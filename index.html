@@ -58,7 +58,7 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
+    html { scroll-behavior: smooth; scroll-snap-type: y mandatory; }
     body {
       font-family: var(--font-body);
       color: var(--text-primary);
@@ -87,12 +87,14 @@
     .section {
       width: min(1180px, calc(100vw - 32px));
       margin: 0 auto;
-      min-height: 96vh;
+      height: 100svh;
       display: grid;
       align-content: center;
       gap: 20px;
       padding: 64px 0 52px;
       position: relative;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
     }
     .section::after {
       content: "";
@@ -271,7 +273,18 @@
       animation: dotMove 4.4s ease-in-out infinite;
     }
 
-    .portal-wrap { padding-top: 5vh; }
+    .portal-wrap {
+      padding-top: 5vh;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .portal-wrap .portal-shell {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
     .portal-shell {
       border-radius: 22px;
       border: 1px solid rgba(255, 255, 255, 0.14);
@@ -297,16 +310,20 @@
       border: none;
       border-radius: 14px;
       width: 100%;
-      min-height: 62vh;
+      flex: 1;
+      min-height: 0;
       background: #fff;
     }
 
     .ios26-shell { pointer-events: auto; }
 
     @media (max-width: 960px) {
-      .section { min-height: auto; padding: 56px 0 44px; }
+      html { scroll-snap-type: none; }
+      .section { height: auto; min-height: auto; padding: 56px 0 44px; }
       .experience-grid { grid-template-columns: 1fr; }
-      .portal-preview { min-height: 68vh; }
+      .portal-preview { min-height: 68vh; flex: none; }
+      .portal-wrap { display: grid; align-content: start; }
+      .portal-wrap .portal-shell { flex: none; }
       .btn-row .btn { width: 100%; min-width: 0; }
     }
     @media (prefers-color-scheme: light) {
@@ -328,7 +345,7 @@
       }
     }
     @media (prefers-reduced-motion: reduce) {
-      html { scroll-behavior: auto; }
+      html { scroll-behavior: auto; scroll-snap-type: none; }
       .aurora, .scroll-tip, .flow path.wave, .flow-dot { animation: none !important; }
       .reveal { opacity: 1; transform: none; }
     }
