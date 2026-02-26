@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MFIN7034 Learning Home</title>
+  <title>MFIN7034 Machine Learning and Artificial Intelligence</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./html/app-shell.css?v=10" />
   <style>
     :root {
@@ -14,14 +14,47 @@
       --bg-secondary: #16213e;
       --bg-tertiary: #1f2b47;
       --bg-elevated: #263352;
+      --bg-card: #1c2a45;
       --text-primary: #edf2f7;
       --text-secondary: #a0aec0;
       --text-tertiary: #718096;
       --accent-primary: #f6c177;
       --accent-secondary: #a3d9a5;
       --border-color: rgba(255, 255, 255, 0.1);
-      --font-body: "Noto Serif SC", Georgia, serif;
-      --font-heading: "Inter", -apple-system, sans-serif;
+      --border-hover: rgba(246, 193, 119, 0.35);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.32);
+      --shadow-lg: 0 14px 30px rgba(0, 0, 0, 0.4);
+      --font-body: "Georgia", "Times New Roman", "Noto Serif SC", serif;
+      --font-heading: -apple-system, "Helvetica Neue", "PingFang SC", sans-serif;
+      --glow-warm: rgba(246, 193, 119, 0.18);
+      --glow-soft: rgba(163, 217, 165, 0.16);
+      --card-mix: rgba(29, 42, 69, 0.58);
+      --panel-mix: rgba(29, 42, 69, 0.6);
+      --portal-mix: rgba(19, 31, 53, 0.76);
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg-primary: #faf8f5;
+        --bg-secondary: #f0ece4;
+        --bg-tertiary: #e8e2d8;
+        --bg-elevated: #ffffff;
+        --bg-card: #ffffff;
+        --text-primary: #1c1917;
+        --text-secondary: #57534e;
+        --text-tertiary: #a8a29e;
+        --accent-primary: #c2742f;
+        --accent-secondary: #3d8b40;
+        --border-color: rgba(0, 0, 0, 0.08);
+        --border-hover: rgba(194, 116, 47, 0.3);
+        --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+        --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.14);
+        --glow-warm: rgba(194, 116, 47, 0.12);
+        --glow-soft: rgba(194, 116, 47, 0.06);
+        --card-mix: rgba(255, 255, 255, 0.82);
+        --panel-mix: rgba(255, 255, 255, 0.84);
+        --portal-mix: rgba(255, 255, 255, 0.86);
+      }
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -30,146 +63,225 @@
       font-family: var(--font-body);
       color: var(--text-primary);
       background:
-        radial-gradient(64vw 64vw at 8% 18%, rgba(246, 193, 119, 0.2), transparent 70%),
-        radial-gradient(56vw 56vw at 88% 8%, rgba(163, 217, 165, 0.17), transparent 70%),
-        linear-gradient(180deg, #111726 0%, #16213e 38%, #1a1a2e 100%);
+        radial-gradient(64vw 64vw at 8% 12%, var(--glow-warm), transparent 70%),
+        radial-gradient(58vw 58vw at 92% 18%, var(--glow-soft), transparent 72%),
+        linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
       min-height: 100vh;
       overflow-x: hidden;
     }
 
-    .aurora,
-    .aurora::before,
-    .aurora::after {
+    .aurora {
       position: fixed;
-      inset: -18vh -15vw auto -15vw;
-      height: 72vh;
+      inset: -18vh -20vw auto -20vw;
+      height: 74vh;
       pointer-events: none;
       z-index: -1;
-      filter: blur(26px);
-      content: "";
-    }
-    .aurora {
-      background: radial-gradient(circle at 24% 46%, rgba(246, 193, 119, 0.26), transparent 54%);
-      animation: driftA 15s ease-in-out infinite alternate;
-    }
-    .aurora::before {
-      background: radial-gradient(circle at 76% 30%, rgba(163, 217, 165, 0.22), transparent 57%);
-      animation: driftB 18s ease-in-out infinite alternate;
-    }
-    .aurora::after {
-      background: radial-gradient(circle at 48% 68%, rgba(88, 140, 201, 0.2), transparent 56%);
-      animation: driftC 20s ease-in-out infinite alternate;
+      filter: blur(24px);
+      background:
+        radial-gradient(circle at 22% 50%, rgba(246, 193, 119, 0.2), transparent 55%),
+        radial-gradient(circle at 72% 36%, var(--glow-soft), transparent 56%);
+      animation: drift 16s ease-in-out infinite alternate;
+      transform: translateY(var(--aurora-offset, 0px));
     }
 
     .section {
-      min-height: 100vh;
-      width: min(1200px, calc(100vw - 32px));
+      width: min(1180px, calc(100vw - 32px));
       margin: 0 auto;
-      padding: 64px 0 56px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 22px;
+      min-height: 96vh;
+      display: grid;
+      align-content: center;
+      gap: 20px;
+      padding: 64px 0 52px;
+      position: relative;
+    }
+    .section::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -1px;
+      height: 140px;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(246, 193, 119, 0.06));
+      opacity: 0.4;
     }
 
-    h1, h2, h3 { font-family: var(--font-heading); line-height: 1.15; letter-spacing: -0.01em; }
-    h1 { font-size: clamp(2rem, 5vw, 3.8rem); max-width: 900px; }
-    h2 { font-size: clamp(1.6rem, 3vw, 2.5rem); }
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.62s ease, transform 0.62s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
 
-    .hero-kicker {
+    h1, h2, h3 {
       font-family: var(--font-heading);
+      line-height: 1.16;
+      letter-spacing: -0.01em;
+    }
+    h1 { font-size: clamp(2rem, 5vw, 3.6rem); max-width: 900px; }
+    h2 { font-size: clamp(1.5rem, 3vw, 2.35rem); }
+
+    .kicker {
       color: var(--accent-primary);
-      font-size: 0.86rem;
-      letter-spacing: 0.12em;
+      font-size: 0.84rem;
       text-transform: uppercase;
+      letter-spacing: 0.13em;
+      font-family: var(--font-heading);
     }
-    .hero-sub {
-      color: var(--text-secondary);
+    .subtitle {
       max-width: 760px;
-      line-height: 1.7;
+      color: var(--text-secondary);
       font-size: 1rem;
+      line-height: 1.72;
     }
-    .cta-row {
+
+    .btn-row {
       display: flex;
-      gap: 10px;
       flex-wrap: wrap;
-      margin-top: 8px;
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .btn-row .btn {
+      padding: 14px 32px;
+      font-size: 1.02rem;
+      min-width: 230px;
+      text-align: center;
     }
     .btn {
       border: 1px solid var(--border-color);
       border-radius: 999px;
-      padding: 11px 18px;
+      padding: 10px 17px;
       text-decoration: none;
       color: var(--text-primary);
       font-family: var(--font-heading);
-      font-size: 0.92rem;
-      background: rgba(255, 255, 255, 0.08);
-      -webkit-backdrop-filter: blur(14px) saturate(130%);
-      backdrop-filter: blur(14px) saturate(130%);
-      transition: transform 0.22s ease, border-color 0.22s ease, background 0.22s ease;
+      font-size: 0.9rem;
+      background: rgba(255, 255, 255, 0.1);
+      -webkit-backdrop-filter: blur(14px) saturate(135%);
+      backdrop-filter: blur(14px) saturate(135%);
+      transition: transform 0.2s ease, border-color 0.2s ease;
       cursor: pointer;
     }
-    .btn:hover { transform: translateY(-1px); border-color: rgba(246, 193, 119, 0.45); }
+    .btn:hover { transform: translateY(-1px); border-color: var(--border-hover); }
     .btn.primary {
-      border-color: rgba(246, 193, 119, 0.44);
-      color: #ffe5bc;
-      background: linear-gradient(140deg, rgba(246, 193, 119, 0.22), rgba(246, 193, 119, 0.1));
+      border-color: rgba(246, 193, 119, 0.45);
+      background: linear-gradient(145deg, rgba(246, 193, 119, 0.18), rgba(246, 193, 119, 0.06));
+      color: var(--accent-primary);
     }
-    .scroll-hint {
-      margin-top: 8px;
+
+    .scroll-tip {
       color: var(--text-tertiary);
-      font-size: 0.84rem;
-      animation: bob 2.3s ease-in-out infinite;
+      font-size: 0.82rem;
       font-family: var(--font-heading);
+      animation: bob 2.4s ease-in-out infinite;
     }
 
     .feature-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 14px;
-      margin-top: 8px;
+      margin-top: 6px;
     }
     .feature-card {
       border: 1px solid var(--border-color);
-      border-radius: 18px;
-      padding: 16px 14px;
+      border-radius: 16px;
+      padding: 16px;
       background:
-        linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02) 44%, rgba(255,255,255,0)),
-        rgba(28, 42, 69, 0.62);
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
-      -webkit-backdrop-filter: blur(18px) saturate(150%);
-      backdrop-filter: blur(18px) saturate(150%);
+        linear-gradient(145deg, rgba(255,255,255,0.11), rgba(255,255,255,0.03) 45%, rgba(255,255,255,0.01)),
+        var(--card-mix);
+      box-shadow: var(--shadow-md);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      backdrop-filter: blur(20px) saturate(160%);
+      transition: border-color 0.22s ease, transform 0.22s ease;
+    }
+    .feature-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-hover);
     }
     .feature-card h3 {
       font-size: 1rem;
-      margin: 10px 0 8px;
+      margin-bottom: 8px;
     }
     .feature-card p {
       color: var(--text-secondary);
-      line-height: 1.6;
+      line-height: 1.62;
       font-size: 0.9rem;
     }
-    .feature-icon {
-      width: 34px;
-      height: 34px;
-      display: inline-block;
-      color: var(--accent-primary);
+
+    .experience-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 14px;
+      align-items: stretch;
+    }
+    .panel {
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 16px;
+      background:
+        linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02) 43%, rgba(255,255,255,0.01)),
+        var(--panel-mix);
+      box-shadow: var(--shadow-md);
+      -webkit-backdrop-filter: blur(20px) saturate(155%);
+      backdrop-filter: blur(20px) saturate(155%);
+    }
+    .panel p {
+      color: var(--text-secondary);
+      line-height: 1.68;
+      font-size: 0.92rem;
+    }
+    .panel h3 {
+      font-size: 1rem;
+      margin-bottom: 10px;
     }
 
-    .portal-section {
+    .flow {
+      overflow: hidden;
       position: relative;
-      padding-top: 12vh;
     }
+    .flow svg {
+      width: 100%;
+      height: 180px;
+      display: block;
+    }
+    .flow path.track {
+      fill: none;
+      stroke: rgba(246, 193, 119, 0.42);
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-dasharray: 8 8;
+    }
+    .flow path.wave {
+      fill: none;
+      stroke: rgba(246, 193, 119, 0.86);
+      stroke-width: 2.4;
+      stroke-linecap: round;
+      stroke-dasharray: 520;
+      stroke-dashoffset: 520;
+      animation: pathDraw 4.4s ease-in-out infinite;
+    }
+    .flow-dot {
+      position: absolute;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: rgba(246, 193, 119, 0.95);
+      top: 65%;
+      left: 10%;
+      box-shadow: 0 0 0 6px rgba(246, 193, 119, 0.16);
+      animation: dotMove 4.4s ease-in-out infinite;
+    }
+
+    .portal-wrap { padding-top: 5vh; }
     .portal-shell {
-      border-radius: 24px;
+      border-radius: 22px;
       border: 1px solid rgba(255, 255, 255, 0.14);
       padding: 14px;
       background:
-        linear-gradient(150deg, rgba(255,255,255,0.12), rgba(255,255,255,0.01) 42%, rgba(255,255,255,0.03)),
-        rgba(19, 31, 53, 0.76);
-      box-shadow: 0 20px 42px rgba(0, 0, 0, 0.36);
-      -webkit-backdrop-filter: blur(22px) saturate(155%);
-      backdrop-filter: blur(22px) saturate(155%);
+        linear-gradient(150deg, rgba(255,255,255,0.12), rgba(255,255,255,0.02) 42%, rgba(255,255,255,0.03)),
+        var(--portal-mix);
+      box-shadow: var(--shadow-lg);
+      -webkit-backdrop-filter: blur(22px) saturate(165%);
+      backdrop-filter: blur(22px) saturate(165%);
     }
     .portal-head {
       display: flex;
@@ -178,78 +290,110 @@
       gap: 10px;
       margin-bottom: 10px;
       color: var(--text-secondary);
-      font-size: 0.88rem;
+      font-size: 0.87rem;
       font-family: var(--font-heading);
     }
     .portal-preview {
+      border: none;
+      border-radius: 14px;
       width: 100%;
       min-height: 62vh;
-      border: none;
-      border-radius: 16px;
       background: #fff;
     }
 
     .ios26-shell { pointer-events: auto; }
-    @media (prefers-reduced-motion: reduce) {
-      .aurora, .aurora::before, .aurora::after, .scroll-hint { animation: none !important; }
-      html { scroll-behavior: auto; }
+
+    @media (max-width: 960px) {
+      .section { min-height: auto; padding: 56px 0 44px; }
+      .experience-grid { grid-template-columns: 1fr; }
+      .portal-preview { min-height: 68vh; }
+      .btn-row .btn { width: 100%; min-width: 0; }
     }
-    @media (max-width: 900px) {
-      .section { min-height: auto; padding: 52px 0 44px; }
-      .portal-preview { min-height: 70vh; }
+    @media (prefers-color-scheme: light) {
+      .section::after {
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(194, 116, 47, 0.08));
+      }
+      .feature-card,
+      .panel,
+      .portal-shell {
+        border-color: rgba(73, 61, 48, 0.14);
+      }
+      .feature-card p,
+      .panel p,
+      .subtitle {
+        color: #57534e;
+      }
+      .scroll-tip {
+        color: #a8a29e;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .aurora, .scroll-tip, .flow path.wave, .flow-dot { animation: none !important; }
+      .reveal { opacity: 1; transform: none; }
     }
 
     @keyframes bob {
       0%, 100% { transform: translateY(0); opacity: 0.85; }
       50% { transform: translateY(6px); opacity: 1; }
     }
-    @keyframes driftA { from { transform: translateX(-2vw); } to { transform: translateX(2vw) translateY(2vh); } }
-    @keyframes driftB { from { transform: translateX(3vw); } to { transform: translateX(-3vw) translateY(2vh); } }
-    @keyframes driftC { from { transform: translateY(-1vh); } to { transform: translateY(3vh); } }
+    @keyframes drift {
+      from { transform: translateY(var(--aurora-offset, 0px)) translateX(-2vw); }
+      to { transform: translateY(calc(var(--aurora-offset, 0px) + 4px)) translateX(2vw); }
+    }
+    @keyframes pathDraw {
+      0% { stroke-dashoffset: 520; opacity: 0.4; }
+      35% { opacity: 1; }
+      100% { stroke-dashoffset: 0; opacity: 0.5; }
+    }
+    @keyframes dotMove {
+      0% { left: 8%; top: 66%; }
+      50% { left: 52%; top: 36%; }
+      100% { left: 86%; top: 48%; }
+    }
   </style>
 </head>
 <body data-shell-page="landing">
-  <div class="aurora"></div>
+  <div class="aurora" aria-hidden="true"></div>
 
   <main>
     <section id="home" class="section">
-      <div class="hero-kicker">MFIN7034 • Interactive Learning</div>
-      <h1>Learn FinTech and AI with a smoother, app-like study flow.</h1>
-      <p class="hero-sub">
-        Lecture notes, PDFs, quizzes, notes focus, and AI Q&A are unified in one continuous experience.
-        Scroll down to enter the portal directly, with the same visual language as your existing interactive pages.
+      <div class="kicker reveal">MFIN7034 • HKU Business School</div>
+      <h1 class="reveal">Machine Learning and Artificial Intelligence</h1>
+      <p class="subtitle reveal">
+        Explore 11 AI-enhanced interactive lectures, each with Feynman-style concept expansion, source PDFs, note-taking,
+        quizzes, and AI Q&A — all in one continuous app-like workspace.
+        Scroll down to enter the portal directly.
       </p>
-      <div class="cta-row">
-        <button class="btn primary" type="button" data-scroll-target="#portal-entry">Start from Portal</button>
-        <a class="btn" href="./html/index.html">Open Portal Directly</a>
+      <div class="btn-row reveal">
+        <button class="btn primary" type="button" data-scroll-target="#portal-entry">Scroll into Portal</button>
+        <a class="btn" href="./html/index.html">Open Portal directly</a>
       </div>
-      <div class="scroll-hint">Scroll ↓ to continue into the first page</div>
+      <div class="scroll-tip reveal">Scroll ↓ to enter the learning flow</div>
 
-      <div class="feature-grid">
+      <div class="feature-grid reveal">
         <article class="feature-card">
-          <svg class="feature-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 6.5h16M4 12h16M4 17.5h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-          <h3>Lecture-by-lecture continuity</h3>
-          <p>All generated interactive pages are centrally managed, searchable, and linked with PDF sources.</p>
+          <h3>Lecture continuity</h3>
+          <p>All generated interactive pages and PDFs are managed in one searchable portal with consistent navigation.</p>
         </article>
         <article class="feature-card">
-          <svg class="feature-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 18l4-5 3 3 5-7 4 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <h3>Course-relevant interaction</h3>
-          <p>Use notes, quizzes, AI Q&A, and concept expansion in the same learning canvas with smooth motion.</p>
+          <h3>Study actions in context</h3>
+          <p>AI Q&A, notes, and quizzes stay inside each lecture page, so revision does not break context.</p>
         </article>
         <article class="feature-card">
-          <svg class="feature-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v18M3 12h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-          <h3>Mobile-first access</h3>
-          <p>Glass navigation stays available while you move from landing to portal and then to each lecture.</p>
+          <h3>Mobile app-like behavior</h3>
+          <p>The bottom glass nav remains available while scrolling from this landing page to the portal and beyond.</p>
         </article>
       </div>
     </section>
 
-    <section id="portal-entry" class="section portal-section">
-      <h2>Portal Preview</h2>
-      <p class="hero-sub">Keep scrolling to transition naturally, or interact with the live portal preview below.</p>
-      <div class="portal-shell">
+    <section id="portal-entry" class="section portal-wrap">
+      <div class="kicker reveal">Portal</div>
+      <h2 class="reveal">Open a lecture and start studying below.</h2>
+      <p class="subtitle reveal">Each card links to a full interactive page: read concepts → open PDF → take notes → do quizzes → ask AI.</p>
+      <div class="portal-shell reveal">
         <div class="portal-head">
-          <span>Live portal section</span>
+          <span>Live portal preview</span>
           <a class="btn" href="./html/index.html">Open full portal</a>
         </div>
         <iframe class="portal-preview" src="./html/index.html" title="Lecture Portal Preview" loading="lazy"></iframe>
@@ -260,7 +404,6 @@
   <nav class="ios26-shell" aria-label="Bottom navigation">
     <div class="ios26-shell__inner">
       <button class="ios26-shell__btn is-active" type="button" data-target="#home"><span class="ios26-shell__icon">⌂</span><span class="ios26-shell__label">Home</span></button>
-      <button class="ios26-shell__btn" type="button" data-target="#home"><span class="ios26-shell__icon">◈</span><span class="ios26-shell__label">Features</span></button>
       <button class="ios26-shell__btn" type="button" data-target="#portal-entry"><span class="ios26-shell__icon">⤓</span><span class="ios26-shell__label">Portal</span></button>
       <button class="ios26-shell__btn" type="button" data-link="./html/index.html"><span class="ios26-shell__icon">↗</span><span class="ios26-shell__label">Open</span></button>
     </div>
@@ -269,16 +412,19 @@
   <script>
     (() => {
       const navButtons = Array.from(document.querySelectorAll(".ios26-shell__btn"));
+      const revealEls = Array.from(document.querySelectorAll(".reveal"));
+      const sectionIds = ["home", "portal-entry"];
+      const sectionBtnMap = new Map(sectionIds.map((id) => [id, navButtons.find((b) => b.dataset.target === `#${id}`)]));
       const setActive = (btn) => navButtons.forEach((b) => b.classList.toggle("is-active", b === btn));
 
       navButtons.forEach((btn) => {
         btn.addEventListener("click", () => {
-          const link = btn.getAttribute("data-link");
+          const link = btn.dataset.link;
           if (link) {
             window.location.href = link;
             return;
           }
-          const target = document.querySelector(btn.getAttribute("data-target") || "");
+          const target = document.querySelector(btn.dataset.target || "");
           if (!target) return;
           setActive(btn);
           target.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -292,21 +438,31 @@
         });
       });
 
-      const home = document.getElementById("home");
-      const portal = document.getElementById("portal-entry");
-      const portalBtn = navButtons.find((b) => b.getAttribute("data-target") === "#portal-entry");
-      const homeBtn = navButtons[0];
-      const observer = new IntersectionObserver((entries) => {
+      const revealObserver = new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting && portalBtn && homeBtn) {
-            setActive(entry.target === portal ? portalBtn : homeBtn);
-          }
+          if (entry.isIntersecting) entry.target.classList.add("visible");
         });
-      }, { threshold: 0.52 });
-      if (home) observer.observe(home);
-      if (portal) observer.observe(portal);
+      }, { threshold: 0.15 });
+      revealEls.forEach((el) => revealObserver.observe(el));
+
+      const sectionObserver = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          const btn = sectionBtnMap.get(entry.target.id);
+          if (btn) setActive(btn);
+        });
+      }, { threshold: 0.54 });
+      sectionIds.forEach((id) => {
+        const section = document.getElementById(id);
+        if (section) sectionObserver.observe(section);
+      });
+
+      const aurora = document.querySelector(".aurora");
+      window.addEventListener("scroll", () => {
+        if (!aurora) return;
+        aurora.style.setProperty("--aurora-offset", `${Math.min(window.scrollY * 0.08, 26)}px`);
+      }, { passive: true });
     })();
   </script>
 </body>
 </html>
-

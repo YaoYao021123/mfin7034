@@ -1,6 +1,19 @@
-# PDF to Interactive Learning - Feynman Method
+# Machine Learning and Artificial Intelligence — MFIN7034
 
-> Transform static PDF course materials into interactive, AI-enhanced HTML learning experiences
+> PDF → AI-enhanced interactive lectures, notes, quizzes, and Q&A · HKU Business School
+
+## 📸 Screenshots
+
+### Landing Homepage
+![Homepage](docs/screenshots/homepage.png)
+
+### Lecture Portal
+![Portal](docs/screenshots/portal.png)
+
+### Interactive Lecture Page
+![Lecture](docs/screenshots/lecture.png)
+
+---
 
 ## 🎯 Overview
 
