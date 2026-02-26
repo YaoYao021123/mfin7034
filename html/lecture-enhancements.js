@@ -114,6 +114,7 @@
       .inline-note-actions { display:flex; justify-content:flex-end; gap:.45rem; margin-top:.45rem; }
       .inline-note-actions button { border:1px solid var(--border-color, rgba(255,255,255,0.16)); background: var(--bg-elevated,#263352); color: var(--text-primary,#edf2f7); border-radius:8px; padding:.3rem .6rem; cursor:pointer; font-size:.8rem; }
       .inline-note-actions .save { border-color: rgba(163,217,165,.55); color: var(--accent-secondary,#a3d9a5); }
+      #notesList { max-height: 196px !important; overflow-y: auto !important; }
     `;
     document.head.appendChild(style);
   }
