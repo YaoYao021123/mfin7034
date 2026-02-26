@@ -1122,6 +1122,56 @@
     window.openAIConfigModal = openAIConfigModal;
   }
 
+  // ── Theme alignment with portal ───────────────────────────────────────────
+  // Overrides the lecture page CSS variables to exactly match html/index.html
+  // (portal). Key differences: border-color opacity 0.06→0.08, border-hover
+  // 0.25→0.35, shadow-lg spread. Also adds portal-style card hover transitions.
+
+  function alignThemeWithPortal() {
+    if (document.getElementById('themeAlignStyle')) return;
+    // Only apply on lecture pages
+    if (!document.getElementById('aiInput')) return;
+    const st = document.createElement('style');
+    st.id = 'themeAlignStyle';
+    st.textContent = `
+      :root {
+        --border-color: rgba(255, 255, 255, 0.08);
+        --border-hover: rgba(246, 193, 119, 0.35);
+        --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.32);
+        --shadow-lg: 0 14px 30px rgba(0, 0, 0, 0.4);
+      }
+      @media (prefers-color-scheme: light) {
+        :root {
+          --border-color: rgba(0, 0, 0, 0.08);
+          --border-hover: rgba(194, 116, 47, 0.3);
+          --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+          --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.14);
+        }
+      }
+      /* Portal-style hover lift on content cards */
+      .feynman-block:hover,
+      .expandable:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+      }
+      .quiz-container:hover {
+        border-color: var(--border-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
+        transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+      }
+      /* Consistent transition timing (matches portal .card) */
+      .feynman-block,
+      .expandable,
+      .quiz-container,
+      .note-card,
+      .ai-chat {
+        transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+      }
+    `;
+    document.head.appendChild(st);
+  }
+
   function initEnhancements() {
     window.renderNoteMarkdown = renderMd;
     if ('serviceWorker' in navigator) {
@@ -1130,6 +1180,7 @@
         .catch(() => {});
     }
     try { ensureShellAssets(); } catch {}
+    try { alignThemeWithPortal(); } catch {}
     try { addFocusNotesButton(); } catch {}
     try { bindShortcutClicks(); } catch {}
     try { patchNoteFunctions(); } catch {}
