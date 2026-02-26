@@ -106,7 +106,7 @@ bash scripts/check_project.sh
 
 1. Push this repository to GitHub (branch `main`).
 2. In GitHub repository settings, enable **Pages** and set **Source = GitHub Actions**.
-3. The included workflow `.github/workflows/deploy-pages.yml` will publish the static site.
+3. The included workflow `.github/workflows/jekyll-gh-pages.yml` will publish the static site.
 4. Open:
    - `https://<your-username>.github.io/<repo>/` (auto-redirects)
    - or `https://<your-username>.github.io/<repo>/html/index.html`
@@ -120,30 +120,42 @@ Notes:
 
 ```
 .
-├── pdfs/                          # Place your PDF files here
-│   ├── Lec 1 Fintech and AI.pdf
-│   ├── Lec 2 Regression ML.pdf
-│   └── Lec 3 Gradient Method.pdf
-│
-├── extracted/                     # Extracted content (auto-generated)
+├── index.html                     # Apple-style landing homepage
+├── pdfs/                          # Source PDF lecture files
+├── extracted/                     # Extracted content (auto-generated, gitignored)
 │   └── [Lecture Name]/
 │       ├── extracted_content.json
-│       ├── text/full_text.txt
+│       ├── text/
 │       ├── images/
 │       └── tables/
 │
-├── html/                           # Generated interactive pages + portal (index.html)
+├── html/                          # All web assets
+│   ├── index.html                 # Lecture portal
+│   ├── app-shell.css              # Shared glass-nav styles
+│   ├── app-shell.js               # Shared glass-nav logic
+│   ├── lecture-enhancements.js    # Notes, quiz, AI enhancements
+│   ├── lectures.json              # Static fallback for GitHub Pages
+│   ├── manifest.webmanifest       # PWA manifest
+│   ├── sw.js                      # Service worker
+│   └── Lec_*_interactive.html    # Generated lecture pages
+│
+├── docs/                          # Project documentation & assets
+│   ├── screenshots/               # README screenshots
+│   ├── 使用指南.md
+│   └── 主题升级说明.md
+│
+├── scripts/
+│   ├── sync_lectures_json.py      # Generate html/lectures.json
+│   └── check_project.sh           # Syntax/security/placeholder checks
 │
 ├── extract_pdf.py                 # PDF extraction script
 ├── generate_html.py               # HTML generator with AI
 ├── serve.py                       # Local server + Gemini proxy
 ├── run.sh                         # One-click workflow
-├── scripts/
-│   ├── sync_lectures_json.py      # Generate html/lectures.json
-│   └── check_project.sh           # Syntax/security/placeholder checks
-│
-├── .env.local                     # API keys (not in git)
-└── README.md                      # This file
+├── codex.md                       # Project codex & design decisions
+├── .env.example                   # API key template
+├── .env.local                     # API keys (gitignored)
+└── README.md
 ```
 
 ## 🧠 How It Works
