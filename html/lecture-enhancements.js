@@ -1,5 +1,5 @@
 (() => {
-  const SHELL_VERSION = '11';
+  const SHELL_VERSION = '12';
   const getBasePrefix = () => {
     const lower = window.location.pathname.toLowerCase();
     const idx = lower.indexOf('/html/');
@@ -285,6 +285,7 @@
   }
 
   function buildFallbackNav(page) {
+    if (window !== window.top) return; // Don't render nav bar inside iframes
     if (document.querySelector('.ios26-shell')) return;
     const items = page === 'portal'
       ? [
@@ -322,6 +323,7 @@
   }
 
   function ensureShellAssets() {
+    if (window !== window.top) return; // Don't inject nav assets inside iframes
     const page = inferShellPage();
     if (!page) return;
     const cssHref = `${withBase('/html/app-shell.css')}?v=${SHELL_VERSION}`;

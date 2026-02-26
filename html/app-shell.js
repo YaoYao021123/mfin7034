@@ -17,6 +17,7 @@
   const fromDom = document.getElementById('aiInput') ? 'lecture' : '';
   const page = fromDataset || fromPath || fromDom;
   if (!page || !['portal', 'lecture'].includes(page)) return;
+  if (window !== window.top) return; // Don't render nav bar when embedded in iframe
 
   const icon = {
     landing: '⌂',

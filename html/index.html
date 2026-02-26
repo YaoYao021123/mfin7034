@@ -10,7 +10,7 @@
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./app-shell.css?v=11" />
+    <link rel="stylesheet" href="./app-shell.css?v=12" />
     <style>
         :root {
             --bg-primary: #1a1a2e;
@@ -249,10 +249,16 @@
             render(!q ? lectures : lectures.filter(l => l.title.toLowerCase().includes(q)));
         });
 
+        const inIframe = window !== window.top;
+
         document.addEventListener('click', (e) => {
             const link = e.target.closest('[data-open-lecture]');
             if (!link) return;
             localStorage.setItem('lecture-last-opened', link.getAttribute('data-open-lecture'));
+            if (inIframe) {
+                e.preventDefault();
+                window.top.location.href = link.getAttribute('data-open-lecture');
+            }
         });
 
         if ('serviceWorker' in navigator) {
@@ -265,7 +271,7 @@
 
         loadLectures();
     </script>
-    <script src="./app-shell.js?v=11"></script>
+    <script src="./app-shell.js?v=12"></script>
     <script src="./lecture-enhancements.js?v=4"></script>
 </body>
 </html>
