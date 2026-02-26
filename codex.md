@@ -5,6 +5,7 @@ This document defines the standard workflow and quality gates for this project.
 ## 1) Recommended Skills
 
 - Primary skill: `.claude/skill/pdf-to-interactive-learning.md`
+- Homepage skill: `.claude/skill/course-homepage-apple-style.md`
 - Supporting capability: integrated portal (`html/index.html`) + `serve.py` API endpoints
 
 ## 2) Standard Workflow
@@ -58,6 +59,13 @@ bash scripts/check_project.sh
 - Keep generated pages only in `html/`, source PDFs in `pdfs/`, and extraction cache in `extracted/`.
 - Keep secret values only in `.env.local`; commit-safe template must stay in `.env.example`.
 - Keep deploy and maintenance scripts centralized in `scripts/`.
+
+## 7) Homepage design guardrails (current task)
+
+- Root `index.html` is the product landing page; `html/index.html` remains the lecture portal index.
+- Homepage style must align with existing warm academic palette and iOS glass nav.
+- Homepage should provide a smooth scroll path into portal content and keep bottom navigation visible.
+- Avoid disconnected decorative assets; use course-related visuals and subtle motion.
 
 ## 4) Mobile App Feature (PWA)
 
