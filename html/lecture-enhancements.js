@@ -1,5 +1,5 @@
 (() => {
-  const SHELL_VERSION = '10';
+  const SHELL_VERSION = '11';
   const getBasePrefix = () => {
     const lower = window.location.pathname.toLowerCase();
     const idx = lower.indexOf('/html/');
@@ -288,16 +288,16 @@
     if (document.querySelector('.ios26-shell')) return;
     const items = page === 'portal'
       ? [
-          { id: 'home', label: 'Home', icon: '⌂', onClick: () => (window.location.href = withBase('/html/index.html')) },
-          { id: 'search', label: 'Search', icon: '⌕', onClick: () => document.getElementById('searchInput')?.focus() },
-          { id: 'latest', label: 'Latest', icon: '⟲', onClick: () => { const href = localStorage.getItem('lecture-last-opened'); if (!href) return; window.location.href = href.startsWith('/') ? `${withBase(href)}` : href; } },
-          { id: 'demo', label: 'Demo', icon: '◈', onClick: () => (window.location.href = withBase('/demo.html')) },
+          { id: 'landing', label: 'Home',   icon: '⌂', onClick: () => (window.location.href = withBase('/')) },
+          { id: 'search',  label: 'Search', icon: '⌕', onClick: () => document.getElementById('searchInput')?.focus() },
+          { id: 'latest',  label: 'Latest', icon: '⟲', onClick: () => { const href = localStorage.getItem('lecture-last-opened'); if (!href) return; window.location.href = href.startsWith('/') ? `${withBase(href)}` : href; } },
         ]
       : [
-          { id: 'home', label: 'Portal', icon: '⌂', onClick: () => (window.location.href = withBase('/html/index.html')) },
-          { id: 'pdf', label: 'PDF', icon: '▣', onClick: () => window.switchSidebarTab?.('pdf') },
-          { id: 'notes', label: 'Notes', icon: '✎', onClick: () => window.switchSidebarTab?.('notes') },
-          { id: 'ai', label: 'AI', icon: '✦', onClick: () => focusAIInput() },
+          { id: 'landing', label: 'Home',   icon: '⌂', onClick: () => (window.location.href = withBase('/')) },
+          { id: 'home',    label: 'Portal', icon: '⊞', onClick: () => (window.location.href = withBase('/html/index.html')) },
+          { id: 'pdf',     label: 'PDF',    icon: '▣', onClick: () => window.switchSidebarTab?.('pdf') },
+          { id: 'notes',   label: 'Notes',  icon: '✎', onClick: () => window.switchSidebarTab?.('notes') },
+          { id: 'ai',      label: 'AI',     icon: '✦', onClick: () => focusAIInput() },
         ];
     const nav = document.createElement('nav');
     nav.className = 'ios26-shell';
@@ -493,18 +493,44 @@
 
   const AI_CONFIG_KEY = 'mfin_ai_config';
 
+  // format: 'gemini' | 'anthropic' | 'openai-compat' | 'proxy'
+  // needsEndpoint: show editable endpoint URL field
   const AI_PROVIDERS = [
-    { id: 'proxy',     label: 'Local Server (Recommended)', needsKey: false, models: [],
-      hint: 'Routes through your local <code>serve.py</code>. Works only when running <code>python3 serve.py</code>.' },
-    { id: 'gemini',    label: 'Google Gemini',              needsKey: true,
-      models: ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'],
-      keyPlaceholder: 'AIza...', keyLink: 'https://aistudio.google.com/app/apikey' },
-    { id: 'openai',    label: 'OpenAI',                     needsKey: true,
-      models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-3.5-turbo'],
+    { id: 'proxy',     label: 'Local Server',    needsKey: false,  format: 'proxy',        models: [],
+      hint: 'Routes through <code>serve.py</code>. Requires <code>python3 serve.py</code> running locally.' },
+    { id: 'openai',    label: 'OpenAI',           needsKey: true,   format: 'openai-compat',
+      endpoint: 'https://api.openai.com/v1/chat/completions',
+      models: ['gpt-4o', 'o3', 'gpt-4o-mini', 'o1', 'o1-mini', 'gpt-4-turbo', 'gpt-3.5-turbo'],
       keyPlaceholder: 'sk-...', keyLink: 'https://platform.openai.com/api-keys' },
-    { id: 'anthropic', label: 'Anthropic Claude',           needsKey: true,
-      models: ['claude-3-5-sonnet-20241022', 'claude-3-haiku-20240307', 'claude-3-opus-20240229'],
+    { id: 'gemini',    label: 'Google Gemini',    needsKey: true,   format: 'gemini',
+      models: ['gemini-3.1-pro-preview', 'gemini-3-flash-preview', 'gemini-3-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'],
+      keyPlaceholder: 'AIza...', keyLink: 'https://aistudio.google.com/app/apikey' },
+    { id: 'anthropic', label: 'Anthropic Claude', needsKey: true,   format: 'anthropic',
+      models: ['claude-3-5-sonnet-20241022', 'claude-3-5-haiku-20241022', 'claude-3-opus-20240229', 'claude-3-sonnet-20240229'],
       keyPlaceholder: 'sk-ant-...', keyLink: 'https://console.anthropic.com/settings/keys' },
+    { id: 'grok',      label: 'Grok (xAI)',       needsKey: true,   format: 'openai-compat',
+      endpoint: 'https://api.x.ai/v1/chat/completions',
+      models: ['grok-4', 'grok-3', 'grok-3-mini'],
+      keyPlaceholder: 'xai-...', keyLink: 'https://console.x.ai' },
+    { id: 'glm',       label: 'GLM (Zhipu AI)',   needsKey: true,   format: 'openai-compat',
+      endpoint: 'https://open.bigmodel.cn/api/paas/v4/chat/completions',
+      models: ['glm-4-plus', 'glm-4', 'glm-4-air', 'glm-4-flash'],
+      keyPlaceholder: 'your-glm-key', keyLink: 'https://open.bigmodel.cn/usercenter/apikeys' },
+    { id: 'kimi',      label: 'Kimi (Moonshot)',  needsKey: true,   format: 'openai-compat',
+      endpoint: 'https://api.moonshot.cn/v1/chat/completions',
+      models: ['moonshot-v1-128k', 'moonshot-v1-32k', 'moonshot-v1-8k'],
+      keyPlaceholder: 'sk-...', keyLink: 'https://platform.moonshot.cn/console/api-keys' },
+    { id: 'qwen',      label: 'Qwen (Alibaba)',   needsKey: true,   format: 'openai-compat',
+      endpoint: 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions',
+      models: ['qwen-max', 'qwen-plus', 'qwen-turbo', 'qwen-long'],
+      keyPlaceholder: 'sk-...', keyLink: 'https://bailian.console.aliyun.com/' },
+    { id: 'minimax',   label: 'MiniMax',          needsKey: true,   format: 'openai-compat',
+      endpoint: 'https://api.minimaxi.chat/v1/text/chatcompletion_v2',
+      models: ['MiniMax-Text-01', 'abab6.5s-chat', 'abab5.5-chat'],
+      keyPlaceholder: 'your-minimax-key', keyLink: 'https://platform.minimaxi.com/user-center/basic-information/interface-key' },
+    { id: 'custom',    label: 'Custom',            needsKey: true,   format: 'openai-compat', needsEndpoint: true,
+      endpoint: '', models: [],
+      keyPlaceholder: 'API key', keyLink: '' },
   ];
 
   function getAIConfig() {
@@ -564,9 +590,17 @@
           <input type="password" class="ai-cfg-inp" id="aiCfgKey" placeholder="Paste your API key" autocomplete="off"/>
           <div class="ai-cfg-hint" id="aiCfgKeyHint"></div>
         </div>
+        <div id="aiCfgEndpointGroup" style="display:none">
+          <div class="ai-cfg-lbl">Endpoint URL</div>
+          <input type="text" class="ai-cfg-inp" id="aiCfgEndpoint" placeholder="https://api.example.com/v1/chat/completions" autocomplete="off"/>
+        </div>
         <div id="aiCfgModelGroup">
           <div class="ai-cfg-lbl">Model</div>
           <select class="ai-cfg-sel" id="aiCfgModel"></select>
+        </div>
+        <div id="aiCfgCustomModelGroup" style="display:none">
+          <div class="ai-cfg-lbl">Model name</div>
+          <input type="text" class="ai-cfg-inp" id="aiCfgCustomModel" placeholder="Enter model name"/>
         </div>
         <div class="ai-cfg-hint" id="aiCfgProxyHint" style="display:none"></div>
         <div class="ai-cfg-row">
@@ -579,27 +613,53 @@
 
     const provSel = overlay.querySelector('#aiCfgProvider');
     const keyGroup = overlay.querySelector('#aiCfgKeyGroup');
+    const endpointGroup = overlay.querySelector('#aiCfgEndpointGroup');
     const modelGroup = overlay.querySelector('#aiCfgModelGroup');
+    const customModelGroup = overlay.querySelector('#aiCfgCustomModelGroup');
     const modelSel = overlay.querySelector('#aiCfgModel');
     const keyHint = overlay.querySelector('#aiCfgKeyHint');
     const proxyHint = overlay.querySelector('#aiCfgProxyHint');
     const keyInp = overlay.querySelector('#aiCfgKey');
+    const endpointInp = overlay.querySelector('#aiCfgEndpoint');
+    const customModelInp = overlay.querySelector('#aiCfgCustomModel');
+
+    function refreshModelSel() {
+      const p = AI_PROVIDERS.find((x) => x.id === provSel.value);
+      if (!p) return;
+      const isCustomProvider = p.id === 'custom';
+      if (isCustomProvider) {
+        modelGroup.style.display = 'none';
+        customModelGroup.style.display = '';
+      } else if (p.models.length) {
+        modelGroup.style.display = '';
+        customModelGroup.style.display = 'none';
+        modelSel.innerHTML = p.models.map((m) => `<option value="${m}">${m}</option>`).join('')
+          + '<option value="__custom__">— enter model name —</option>';
+        modelSel.onchange = () => {
+          customModelGroup.style.display = modelSel.value === '__custom__' ? '' : 'none';
+        };
+        modelSel.onchange();
+      } else {
+        modelGroup.style.display = 'none';
+        customModelGroup.style.display = 'none';
+      }
+    }
 
     function refresh() {
       const p = AI_PROVIDERS.find((x) => x.id === provSel.value);
       if (!p) return;
       keyGroup.style.display = p.needsKey ? '' : 'none';
-      modelGroup.style.display = p.models.length ? '' : 'none';
+      endpointGroup.style.display = p.needsEndpoint ? '' : 'none';
       proxyHint.style.display = p.needsKey ? 'none' : '';
       if (p.needsKey) {
         keyInp.placeholder = p.keyPlaceholder || 'Paste API key';
         keyHint.innerHTML = p.keyLink
-          ? `Key stored locally in your browser only. <a href="${p.keyLink}" target="_blank">Get a key →</a>`
+          ? `Key stored locally in your browser only. <a href="${p.keyLink}" target="_blank" rel="noopener">Get a key →</a>`
           : '';
       } else {
         proxyHint.innerHTML = p.hint || '';
       }
-      modelSel.innerHTML = p.models.map((m) => `<option value="${m}">${m}</option>`).join('');
+      refreshModelSel();
     }
     provSel.addEventListener('change', refresh);
     refresh();
@@ -614,7 +674,11 @@
         return;
       }
       keyInp.style.outline = '';
-      setAIConfig({ provider: provSel.value, apiKey: key, model: modelSel.value });
+      const rawModel = modelSel.value === '__custom__' || p.id === 'custom'
+        ? (customModelInp.value.trim() || modelSel.value)
+        : modelSel.value;
+      const endpoint = endpointInp.value.trim() || p.endpoint || '';
+      setAIConfig({ provider: provSel.value, apiKey: key, model: rawModel, endpoint });
       patchAIProviderBadge();
       overlay.classList.remove('show');
       if (typeof overlay._onSave === 'function') { const cb = overlay._onSave; overlay._onSave = null; cb(); }
@@ -628,17 +692,22 @@
     const provSel = overlay.querySelector('#aiCfgProvider');
     const keyInp = overlay.querySelector('#aiCfgKey');
     const modelSel = overlay.querySelector('#aiCfgModel');
+    const endpointInp = overlay.querySelector('#aiCfgEndpoint');
+    const customModelInp = overlay.querySelector('#aiCfgCustomModel');
     if (cfg.provider && provSel) {
       provSel.value = cfg.provider;
       provSel.dispatchEvent(new Event('change'));
     }
     if (cfg.apiKey && keyInp) keyInp.value = cfg.apiKey;
-    if (cfg.model && modelSel) {
-      modelSel.value = cfg.model;
-      if (!modelSel.value) {
-        const opt = Object.assign(document.createElement('option'), { value: cfg.model, textContent: cfg.model });
-        modelSel.appendChild(opt);
+    if (cfg.endpoint && endpointInp) endpointInp.value = cfg.endpoint;
+    if (cfg.model) {
+      if (modelSel.querySelector(`option[value="${CSS.escape(cfg.model)}"]`)) {
         modelSel.value = cfg.model;
+        modelSel.dispatchEvent(new Event('change'));
+      } else if (cfg.model && customModelInp) {
+        modelSel.value = '__custom__';
+        modelSel.dispatchEvent(new Event('change'));
+        customModelInp.value = cfg.model;
       }
     }
     overlay._onSave = onSave || null;
@@ -689,7 +758,9 @@
   async function callAI(prompt) {
     const cfg = getAIConfig();
     const provider = cfg.provider || 'proxy';
+    const p = AI_PROVIDERS.find((x) => x.id === provider);
 
+    // Local proxy (serve.py)
     if (provider === 'proxy') {
       const base = getBasePrefix();
       const url = base ? `${base}/api/gemini` : '../api/gemini';
@@ -705,8 +776,9 @@
       return answer;
     }
 
+    // Gemini REST API
     if (provider === 'gemini') {
-      const model = cfg.model || 'gemini-2.0-flash';
+      const model = cfg.model || 'gemini-2.5-flash';
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${cfg.apiKey}`,
         {
@@ -725,35 +797,35 @@
       return answer;
     }
 
-    if (provider === 'openai') {
-      const model = cfg.model || 'gpt-4o';
-      const res = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${cfg.apiKey}` },
-        body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], max_tokens: 1024, temperature: 0.7 }),
-      });
-      if (!res.ok) { const t = await res.text(); throw new Error(`OpenAI ${res.status}: ${t.substring(0, 200)}`); }
-      const data = await res.json();
-      const answer = data.choices?.[0]?.message?.content;
-      if (!answer) throw new Error('Empty response from OpenAI');
-      return answer;
-    }
-
+    // Anthropic Claude
     if (provider === 'anthropic') {
       const model = cfg.model || 'claude-3-5-sonnet-20241022';
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': cfg.apiKey,
-          'anthropic-version': '2023-06-01',
-        },
+        headers: { 'Content-Type': 'application/json', 'x-api-key': cfg.apiKey, 'anthropic-version': '2023-06-01' },
         body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], max_tokens: 1024 }),
       });
       if (!res.ok) { const t = await res.text(); throw new Error(`Claude ${res.status}: ${t.substring(0, 200)}`); }
       const data = await res.json();
       const answer = data.content?.[0]?.text;
       if (!answer) throw new Error('Empty response from Claude');
+      return answer;
+    }
+
+    // OpenAI-compatible (OpenAI, Grok, GLM, Kimi, Qwen, MiniMax, Custom)
+    if (p && (p.format === 'openai-compat' || p.endpoint)) {
+      const endpoint = cfg.endpoint || p.endpoint;
+      if (!endpoint) throw new Error(`No endpoint configured for provider: ${provider}`);
+      const model = cfg.model || (p.models[0] || '');
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${cfg.apiKey}` },
+        body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], max_tokens: 1024, temperature: 0.7 }),
+      });
+      if (!res.ok) { const t = await res.text(); throw new Error(`${p.label} ${res.status}: ${t.substring(0, 200)}`); }
+      const data = await res.json();
+      const answer = data.choices?.[0]?.message?.content;
+      if (!answer) throw new Error(`Empty response from ${p.label}`);
       return answer;
     }
 

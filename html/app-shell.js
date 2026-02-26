@@ -19,10 +19,10 @@
   if (!page || !['portal', 'lecture'].includes(page)) return;
 
   const icon = {
-    home: '⌂',
+    landing: '⌂',
+    home: '⊞',
     search: '⌕',
     latest: '⟲',
-    demo: '◈',
     pdf: '▣',
     notes: '✎',
     ai: '✦',
@@ -50,13 +50,13 @@
 
   const items = page === 'portal'
     ? [
-        { id: 'home', label: 'Home', onClick: () => (window.location.href = withBase('/html/index.html')) },
-        { id: 'search', label: 'Search', onClick: () => document.getElementById('searchInput')?.focus() },
-        { id: 'latest', label: 'Latest', onClick: openLatestLecture },
-        { id: 'demo', label: 'Demo', onClick: () => (window.location.href = withBase('/demo.html')) },
+        { id: 'landing', label: 'Home',   onClick: () => (window.location.href = withBase('/')) },
+        { id: 'search',  label: 'Search', onClick: () => document.getElementById('searchInput')?.focus() },
+        { id: 'latest',  label: 'Latest', onClick: openLatestLecture },
       ]
     : [
-        { id: 'home', label: 'Portal', onClick: () => (window.location.href = withBase('/html/index.html')) },
+        { id: 'landing', label: 'Home',   onClick: () => (window.location.href = withBase('/')) },
+        { id: 'home',    label: 'Portal', onClick: () => (window.location.href = withBase('/html/index.html')) },
         {
           id: 'pdf',
           label: 'PDF',
@@ -97,7 +97,7 @@
     });
   };
 
-  const initialActiveId = page === 'portal' ? 'home' : 'home';
+  const initialActiveId = page === 'portal' ? 'landing' : null;
 
   items.forEach((item) => {
     const btn = document.createElement('button');
