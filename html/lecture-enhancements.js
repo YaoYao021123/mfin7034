@@ -465,6 +465,127 @@
     });
   }
 
+  // ── Mobile Panel Drawer ──────────────────────────────────────────────────────
+
+  const MOB_CSS = `
+.mob-overlay{position:fixed;inset:0;z-index:9980;background:rgba(0,0,0,.52);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);opacity:0;pointer-events:none;transition:opacity .26s ease}
+.mob-overlay.open{opacity:1;pointer-events:auto}
+.mob-sheet{position:fixed;left:0;right:0;bottom:0;z-index:9981;max-height:88svh;background:var(--bg-secondary,#111827);border:1px solid rgba(255,255,255,.1);border-bottom:none;border-radius:22px 22px 0 0;display:flex;flex-direction:column;overflow:hidden;transform:translateY(110%);transition:transform .32s cubic-bezier(.4,0,.2,1);padding-bottom:env(safe-area-inset-bottom)}
+.mob-sheet.open{transform:translateY(0)}
+.mob-handle{width:36px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;margin:12px auto 4px;flex-shrink:0}
+.mob-head{display:flex;align-items:center;justify-content:space-between;padding:4px 16px 10px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.07)}
+.mob-head-title{font-size:.9rem;font-weight:600;color:var(--text-primary,#edf2f7)}
+.mob-head-close{background:rgba(255,255,255,.1);border:none;color:var(--text-secondary,rgba(230,237,248,.7));width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:.8rem;display:flex;align-items:center;justify-content:center}
+.mob-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 16px calc(80px + env(safe-area-inset-bottom))}
+.mob-body .sidebar-left,.mob-body .sidebar-right{display:block!important;position:static!important;height:auto!important;width:100%!important;background:transparent!important;border:none!important;padding:0!important;overflow:visible!important;max-height:none!important}
+.mob-body #notesList{max-height:none!important}
+.mob-body .ai-chat-messages{max-height:44vh!important;min-height:160px!important}
+.mob-body #pdfViewerContainer{height:60svh!important}
+@media(prefers-color-scheme:light){.mob-sheet{background:var(--bg-secondary,#f8f5f0);border-color:rgba(73,61,48,.14)}.mob-handle{background:rgba(0,0,0,.14)}.mob-head-title{color:rgba(29,24,20,.92)}.mob-head-close{background:rgba(0,0,0,.07);color:rgba(44,38,31,.7)}.mob-overlay{background:rgba(0,0,0,.38)}}
+`;
+
+  let _mobRestoreInfo = null;
+
+  function ensureMobDrawerDOM() {
+    if (document.getElementById('mobOverlay')) return;
+    const st = document.createElement('style');
+    st.id = 'mobDrawerCSS';
+    st.textContent = MOB_CSS;
+    document.head.appendChild(st);
+
+    const ov = document.createElement('div');
+    ov.id = 'mobOverlay';
+    ov.className = 'mob-overlay';
+    ov.addEventListener('click', closeMobDrawer);
+    document.body.appendChild(ov);
+
+    const sh = document.createElement('div');
+    sh.id = 'mobSheet';
+    sh.className = 'mob-sheet';
+    sh.innerHTML = `<div class="mob-handle"></div><div class="mob-head"><span class="mob-head-title" id="mobSheetTitle"></span><button class="mob-head-close" id="mobCloseBtn">✕</button></div><div class="mob-body" id="mobSheetBody"></div>`;
+    document.body.appendChild(sh);
+    document.getElementById('mobCloseBtn').addEventListener('click', closeMobDrawer);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMobDrawer(); });
+  }
+
+  function openMobDrawer(selector, title, tabName) {
+    ensureMobDrawerDOM();
+    const sidebar = document.querySelector(selector);
+    if (!sidebar) return;
+    if (_mobRestoreInfo) closeMobDrawer();
+    const body = document.getElementById('mobSheetBody');
+    _mobRestoreInfo = { el: sidebar, parent: sidebar.parentNode, next: sidebar.nextSibling };
+    body.appendChild(sidebar);
+    document.getElementById('mobSheetTitle').textContent = title;
+    document.getElementById('mobOverlay').classList.add('open');
+    document.getElementById('mobSheet').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    if (tabName) requestAnimationFrame(() => window._origSwitchSidebarTab?.(tabName));
+    if (selector.includes('right')) {
+      setTimeout(() => sidebar.querySelector('#aiInput, .ai-input')?.focus(), 200);
+    }
+  }
+
+  function closeMobDrawer() {
+    document.getElementById('mobOverlay')?.classList.remove('open');
+    document.getElementById('mobSheet')?.classList.remove('open');
+    document.body.style.overflow = '';
+    if (_mobRestoreInfo) {
+      const { el, parent, next } = _mobRestoreInfo;
+      parent.insertBefore(el, next);
+      _mobRestoreInfo = null;
+    }
+  }
+
+  function initMobileDrawer() {
+    const isMob = () => window.innerWidth < 1200;
+
+    // Patch switchSidebarTab
+    const orig = window.switchSidebarTab;
+    if (orig && !orig.__mobPatched) {
+      window._origSwitchSidebarTab = orig;
+      const patched = function (tabName) {
+        if (isMob()) {
+          const titles = { toc: 'Contents', pdf: 'PDF', notes: 'Notes' };
+          openMobDrawer('.sidebar-left', titles[tabName] || tabName, tabName);
+        } else {
+          window._origSwitchSidebarTab?.call(this, tabName);
+        }
+      };
+      patched.__mobPatched = true;
+      window.switchSidebarTab = patched;
+    }
+
+    // Intercept AI nav button (capture phase — before app-shell handler fires)
+    const nav = document.querySelector('.ios26-shell');
+    if (nav && !nav._mobPatched) {
+      nav._mobPatched = true;
+      nav.addEventListener('click', (e) => {
+        if (!isMob()) return;
+        const btn = e.target.closest('.ios26-shell__btn');
+        if (!btn) return;
+        const id = btn.dataset.id;
+        const label = btn.querySelector('.ios26-shell__label')?.textContent?.trim();
+        if (id === 'ai' || label === 'AI') {
+          e.stopImmediatePropagation();
+          openMobDrawer('.sidebar-right', 'AI Study Assistant');
+        }
+      }, true);
+    }
+
+    // Patch focusAIInput
+    window.focusAIInput = function () {
+      if (isMob()) {
+        openMobDrawer('.sidebar-right', 'AI Study Assistant');
+      } else {
+        document.getElementById('aiInput')?.focus();
+        document.querySelector('.sidebar-right')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    };
+  }
+
+  // ── Text-selection tooltip: add touch/mobile support ──────────────────────
+
   function patchHighlightAndNote() {
     window.highlightAndNote = function highlightAndNoteInline() {
       const sel = window.getSelection();
@@ -487,6 +608,28 @@
       }
       openInlineNoteEditor(text, section, rect);
     };
+
+    // Touch support: on mobile, touchend fires after selection via long-press
+    document.addEventListener('touchend', () => {
+      setTimeout(() => {
+        const tooltip = document.querySelector('.highlight-tooltip');
+        if (!tooltip) return;
+        const sel = window.getSelection();
+        const text = sel?.toString().trim();
+        const main = document.querySelector('.main-content');
+        if (!text || text.length < 3 || !main?.contains(sel.anchorNode)) {
+          tooltip.classList.remove('show');
+          return;
+        }
+        try {
+          const range = sel.getRangeAt(0);
+          const rect = range.getBoundingClientRect();
+          tooltip.style.left = `${Math.max(4, rect.left + rect.width / 2 - 60)}px`;
+          tooltip.style.top = `${rect.top - 44 + window.scrollY}px`;
+          tooltip.classList.add('show');
+        } catch {}
+      }, 120);
+    }, { passive: true });
   }
 
   window.openNotesFocusModal = openNotesFocusModal;
@@ -916,6 +1059,7 @@
     try { patchNoteFunctions(); } catch {}
     try { patchHighlightAndNote(); } catch {}
     try { patchAIChatHeader(); } catch {}
+    try { initMobileDrawer(); } catch {}
     try {
       const noteInput = document.getElementById('noteInput');
       if (noteInput && typeof window.renderDraftPreview === 'function') {
