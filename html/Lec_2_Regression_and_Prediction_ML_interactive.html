@@ -1,0 +1,3148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lec 2 Regression and Prediction ML - Interactive Learning</title>
+    
+    <!-- KaTeX for formula rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    
+    <!-- Mermaid for flowcharts and diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+    
+    <!-- Fonts: Noto Serif for body, Inter for headings -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        
+        :root {
+            /* Warm Academic Theme - Clean & Readable */
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #1f2b47;
+            --bg-elevated: #263352;
+            --bg-card: #1c2a45;
+            
+            --text-primary: #edf2f7;
+            --text-secondary: #a0aec0;
+            --text-tertiary: #718096;
+            
+            /* Warm Gold + Sage Green palette */
+            --accent-primary: #f6c177;
+            --accent-secondary: #a3d9a5;
+            --accent-tertiary: #c4b5fd;
+            --accent-warning: #fbbf24;
+            --accent-error: #fb7185;
+            --accent-info: #7dd3fc;
+            
+            --gradient-primary: linear-gradient(135deg, #f6c177 0%, #e8a87c 100%);
+            --gradient-heading: linear-gradient(135deg, #f6c177 0%, #c4b5fd 100%);
+            
+            --border-color: rgba(255, 255, 255, 0.06);
+            --border-hover: rgba(246, 193, 119, 0.25);
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+            
+            --font-body: 'Georgia', 'Times New Roman', 'Noto Serif SC', serif;
+            --font-heading: -apple-system, 'Helvetica Neue', 'PingFang SC', sans-serif;
+            --font-mono: 'SF Mono', 'Menlo', 'Monaco', monospace;
+            
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-primary: #faf8f5;
+                --bg-secondary: #f0ece4;
+                --bg-tertiary: #e8e2d8;
+                --bg-elevated: #ffffff;
+                --bg-card: #ffffff;
+                
+                --text-primary: #1c1917;
+                --text-secondary: #57534e;
+                --text-tertiary: #a8a29e;
+                
+                --accent-primary: #c2742f;
+                --accent-secondary: #3d8b40;
+                --accent-tertiary: #7c3aed;
+                --accent-warning: #b45309;
+                --accent-error: #dc2626;
+                
+                --gradient-heading: linear-gradient(135deg, #c2742f 0%, #7c3aed 100%);
+                
+                --border-color: rgba(0, 0, 0, 0.06);
+                --border-hover: rgba(194, 116, 47, 0.3);
+                --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+                --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+                --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+            }
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+        
+        .page-container {
+            --left-width: 260px;
+            --right-width: 300px;
+            display: grid;
+            grid-template-columns: minmax(200px, var(--left-width)) 8px minmax(0, 1fr) 8px minmax(220px, var(--right-width));
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        .column-resizer {
+            cursor: col-resize;
+            background: transparent;
+            transition: background-color 0.15s var(--ease);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            z-index: 5;
+        }
+        .column-resizer:hover,
+        .column-resizer.dragging {
+            background: rgba(246, 193, 119, 0.2);
+        }
+        
+        .sidebar-left, .sidebar-right {
+            background: var(--bg-secondary);
+            padding: 2rem 1.25rem;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-left {
+            border-right: 1px solid var(--border-color);
+        }
+        
+        .sidebar-right {
+            border-left: 1px solid var(--border-color);
+        }
+        
+        .main-content {
+            max-width: none;
+            min-width: 0;
+            width: 100%;
+            margin: 0 auto;
+            padding: 3rem 2.5rem;
+        }
+        
+        @media (max-width: 1200px) {
+            .page-container { grid-template-columns: 1fr; }
+            .sidebar-left, .sidebar-right, .column-resizer { display: none; }
+            .main-content { padding: 2rem 1.25rem; }
+        }
+        
+        h1 {
+            font-family: var(--font-heading);
+            font-size: clamp(1.875rem, 4vw, 2.5rem);
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.01em;
+            color: var(--text-primary);
+        }
+        
+        h2 {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 3.5rem;
+            margin-bottom: 1.25rem;
+            color: var(--accent-primary);
+            letter-spacing: -0.01em;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        h3 {
+            font-family: var(--font-heading);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+        }
+        
+        h4 {
+            font-family: var(--font-heading);
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        
+        h5 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.8;
+        }
+        
+        .feynman-block {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-left: 3px solid var(--accent-primary);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            transition: border-color 0.2s var(--ease);
+        }
+        
+        .feynman-block:hover {
+            border-color: var(--border-hover);
+        }
+        
+        .feynman-block .icon {
+            font-size: 1.75rem;
+            margin-bottom: 0.75rem;
+            display: inline-block;
+        }
+        
+        .expandable {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            margin: 1.5rem 0;
+            overflow: hidden;
+        }
+        
+        .expandable-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            cursor: pointer;
+            user-select: none;
+            font-weight: 500;
+            font-family: var(--font-heading);
+            transition: background 0.15s var(--ease);
+        }
+        
+        .expandable-header:hover {
+            background: var(--bg-tertiary);
+        }
+        
+        .expandable-icon {
+            transition: transform 0.25s var(--ease);
+            display: inline-block;
+            font-size: 0.8rem;
+        }
+        
+        .expandable.open .expandable-icon {
+            transform: rotate(180deg);
+        }
+        
+        .expandable-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s var(--ease);
+        }
+        
+        .expandable.open .expandable-content {
+            max-height: 5000px;
+        }
+        
+        .expandable-content-inner {
+            padding: 1.25rem;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .quiz-container {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border: 1px solid var(--border-color);
+        }
+        
+        .quiz-question {
+            font-size: 1.05rem;
+            font-family: var(--font-heading);
+            margin-bottom: 1.25rem;
+            color: var(--text-primary);
+        }
+        
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.625rem;
+        }
+        
+        .quiz-option {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.15s var(--ease);
+            font-size: 0.95rem;
+        }
+        
+        .quiz-option:hover {
+            border-color: var(--accent-primary);
+            padding-left: 1.25rem;
+        }
+        
+        .quiz-option.correct {
+            background: rgba(163, 217, 165, 0.2);
+            border-color: var(--accent-secondary);
+            color: var(--accent-secondary);
+        }
+        
+        .quiz-option.incorrect {
+            background: rgba(251, 113, 133, 0.15);
+            border-color: var(--accent-error);
+            color: var(--accent-error);
+        }
+        
+        .quiz-feedback {
+            margin-top: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-sm);
+            display: none;
+            font-size: 0.9rem;
+        }
+        
+        .quiz-feedback.show { display: block; }
+        .quiz-feedback.correct { background: rgba(163, 217, 165, 0.15); border: 1px solid var(--accent-secondary); }
+        .quiz-feedback.incorrect { background: rgba(251, 113, 133, 0.1); border: 1px solid var(--accent-error); }
+        
+        .progress-tracker {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--bg-secondary);
+            z-index: 1000;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: var(--gradient-primary);
+            width: 0%;
+            transition: width 0.2s var(--ease);
+        }
+        
+        .ai-chat {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+        }
+        
+        .ai-chat-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .ai-chat-messages {
+            max-height: 320px;
+            overflow-y: auto;
+            margin-bottom: 0.75rem;
+            padding: 0.75rem;
+            background: var(--bg-primary);
+            border-radius: var(--radius-sm);
+        }
+        
+        .ai-message {
+            margin-bottom: 0.75rem;
+            padding: 0.625rem 0.875rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+        
+        .ai-message.user {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            margin-left: 1.5rem;
+            font-weight: 500;
+        }
+        
+        .ai-message.assistant {
+            background: var(--bg-tertiary);
+            margin-right: 1.5rem;
+        }
+        
+        .ai-input-group { display: flex; gap: 0.5rem; }
+        
+        .ai-input {
+            flex: 1;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.625rem 0.75rem;
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+        }
+        
+        .ai-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+        
+        .ai-send-btn, .action-btn {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 0.625rem 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: var(--font-heading);
+            font-size: 0.85rem;
+            transition: opacity 0.15s;
+        }
+        
+        .action-btn {
+            width: 100%;
+            margin-bottom: 0.5rem;
+            text-align: left;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .ai-send-btn:hover { opacity: 0.85; }
+        .action-btn:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+        
+        kbd {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 0.15rem 0.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.8em;
+        }
+        
+        .toc-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: block;
+            padding: 0.375rem 0.5rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            font-family: var(--font-heading);
+            transition: color 0.15s, background 0.15s;
+        }
+        
+        .toc-link:hover {
+            color: var(--accent-primary);
+            background: var(--bg-tertiary);
+        }
+        
+        /* Scroll reveal - simple fade */
+        .reveal-on-scroll {
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity 0.5s var(--ease), transform 0.5s var(--ease);
+        }
+        .reveal-on-scroll.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--bg-elevated); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+        
+        ::selection { background: var(--accent-primary); color: var(--bg-primary); }
+        
+        /* Print */
+        @media print {
+            .sidebar-left, .sidebar-right, .progress-tracker { display: none; }
+            .page-container { grid-template-columns: 1fr; }
+            body { background: white; color: black; }
+        }
+        
+        /* ===========================================
+           DATA VISUALIZATION & CHARTS
+           =========================================== */
+        .chart-container {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+        .chart-container .chart-title {
+            font-family: var(--font-heading);
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            text-align: center;
+        }
+        .chart-container canvas { max-height: 380px; width: 100% !important; }
+        .chart-caption {
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+            text-align: center;
+            margin-top: 0.75rem;
+            font-style: italic;
+        }
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        .chart-grid .chart-container { margin: 0; }
+        
+        .diagram-container {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            overflow-x: auto;
+            text-align: center;
+        }
+        .diagram-container .diagram-title {
+            font-family: var(--font-heading);
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+        }
+        .diagram-container .mermaid { display: flex; justify-content: center; }
+        .diagram-container .mermaid svg { max-width: 100%; height: auto; }
+        .diagram-caption {
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+            text-align: center;
+            margin-top: 0.75rem;
+            font-style: italic;
+        }
+        
+        .comparison-block {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 1rem;
+            align-items: stretch;
+            margin: 2rem 0;
+        }
+        .comparison-side {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+        .comparison-side.left { border-top: 3px solid var(--accent-primary); }
+        .comparison-side.right { border-top: 3px solid var(--accent-secondary); }
+        .comparison-side h4 { margin-bottom: 0.75rem; }
+        .comparison-side ul { padding-left: 1.25rem; }
+        .comparison-side li { margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.95rem; }
+        .comparison-divider {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            color: var(--text-tertiary);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            transition: transform 0.15s var(--ease);
+        }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            display: block;
+            font-family: var(--font-heading);
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            margin-top: 0.25rem;
+        }
+        
+        @media (max-width: 768px) {
+            .comparison-block { grid-template-columns: 1fr; }
+            .comparison-divider { justify-content: center; padding: 0.5rem 0; }
+            .chart-grid { grid-template-columns: 1fr; }
+        }
+        
+        /* ===========================================
+           SIDEBAR TABS & PANELS
+           =========================================== */
+        .sidebar-tabs {
+            display: flex;
+            gap: 2px;
+            margin-bottom: 1rem;
+            background: var(--bg-primary);
+            border-radius: var(--radius-sm);
+            padding: 2px;
+        }
+        .sidebar-tab {
+            flex: 1;
+            padding: 0.5rem 0.25rem;
+            background: transparent;
+            border: none;
+            color: var(--text-tertiary);
+            font-family: var(--font-heading);
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.15s var(--ease);
+        }
+        .sidebar-tab:hover { color: var(--text-secondary); }
+        .sidebar-tab.active {
+            background: var(--bg-elevated);
+            color: var(--accent-primary);
+        }
+        
+        /* ===========================================
+           NOTES SYSTEM
+           =========================================== */
+        .note-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.625rem;
+            font-size: 0.85rem;
+            position: relative;
+            cursor: pointer;
+            transition: border-color 0.15s var(--ease), transform 0.15s var(--ease);
+        }
+        .note-card:hover { border-color: var(--border-hover); }
+        .note-card.active {
+            border-color: var(--accent-primary);
+            transform: translateY(-1px);
+        }
+        .note-card.focused {
+            border-left: 3px solid var(--accent-secondary);
+            padding-left: calc(0.625rem - 2px);
+        }
+        .note-card .note-citation {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            border-left: 2px solid var(--accent-primary);
+            padding-left: 0.5rem;
+            margin-bottom: 0.375rem;
+            font-style: italic;
+            line-height: 1.4;
+        }
+        .note-card .note-body {
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .note-card .note-meta {
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+            margin-top: 0.375rem;
+            display: flex;
+            justify-content: space-between;
+        }
+        .note-card .note-delete {
+            background: none;
+            border: none;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 0;
+        }
+        .note-card .note-delete:hover { color: var(--accent-error); }
+        .note-card .note-focus {
+            background: none;
+            border: none;
+            color: var(--accent-secondary);
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 0;
+            margin-right: 0.5rem;
+        }
+        .note-card .note-focus:hover { color: var(--accent-primary); }
+        .note-reader {
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-primary);
+            overflow-y: auto;
+            max-height: 34vh;
+        }
+        .note-reader .reader-title {
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            margin-bottom: 0.5rem;
+        }
+        .note-reader .reader-content {
+            color: var(--text-secondary);
+            line-height: 1.65;
+            font-size: 0.9rem;
+        }
+        .note-reader .reader-content code {
+            background: var(--bg-tertiary);
+            padding: 0.1em 0.35em;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+        .note-draft-preview {
+            margin-top: 0.5rem;
+            max-height: 20vh;
+        }
+        
+
+        
+        /* ===========================================
+           TEXT HIGHLIGHT
+           =========================================== */
+        .text-highlight {
+            background: rgba(246, 193, 119, 0.25);
+            border-bottom: 2px solid var(--accent-primary);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .text-highlight:hover {
+            background: rgba(246, 193, 119, 0.4);
+        }
+        
+        /* Highlight context menu */
+        .highlight-tooltip {
+            position: fixed;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-lg);
+            padding: 0.25rem;
+            display: none;
+            z-index: 1001;
+            gap: 2px;
+        }
+        .highlight-tooltip.show { display: flex; }
+        .highlight-tooltip button {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 0.375rem 0.625rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-family: var(--font-heading);
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        .highlight-tooltip button:hover {
+            background: var(--bg-tertiary);
+            color: var(--accent-primary);
+        }
+    
+    </style>
+    <link rel="stylesheet" href="./app-shell.css?v=10" />
+</head>
+<body data-shell-page="lecture">
+    <!-- Progress Tracker -->
+    <div class="progress-tracker">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="page-container">
+        <!-- Left Sidebar -->
+        <aside class="sidebar-left">
+            <!-- Sidebar Tabs -->
+            <div class="sidebar-tabs">
+                <button class="sidebar-tab active" data-tab="toc" onclick="switchSidebarTab('toc')">Contents</button>
+                <button class="sidebar-tab" data-tab="pdf" onclick="switchSidebarTab('pdf')">PDF</button>
+                <button class="sidebar-tab" data-tab="notes" onclick="switchSidebarTab('notes')">Notes</button>
+            </div>
+            
+            <!-- Tab: Table of Contents -->
+            <div class="sidebar-panel" id="panel-toc">
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin-bottom: 0.75rem;">
+                        <a href="#overview" class="toc-link">Overview</a>
+                    </li>
+                    
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-1" class="toc-link">Statistical Model and Data-Generating Process (DGP)</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-2" class="toc-link">Prediction Function</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-3" class="toc-link">Loss Function (Cost Function)</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-4" class="toc-link">Squared Loss (L-2 Loss)</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-5" class="toc-link">Conditional Mean Estimation</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-6" class="toc-link">Linear Regression</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-7" class="toc-link">Ordinary Least Squares (OLS) Algebraic Solution</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-8" class="toc-link">Matrix Singularity in Regression</a>
+            </li>
+        
+                </ul>
+                
+                <div style="margin-top: 3rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.85rem;">
+                    <div style="color: var(--text-tertiary); margin-bottom: 0.5rem;">Course Stats</div>
+                    <div style="color: var(--text-secondary);">
+                        <div>8 Concepts</div>
+                        <div>12 Images</div>
+                        <div>36 Tables</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab: PDF Viewer -->
+            <div class="sidebar-panel" id="panel-pdf" style="display:none;">
+                <div id="pdfViewerContainer" style="height: calc(100vh - 80px); display: flex; flex-direction: column;">
+                    <p style="font-size: 0.85rem; color: var(--text-tertiary); margin-bottom: 0.75rem;">Source: Lec 2 Regression and Prediction ML.pdf</p>
+                    <iframe id="pdfFrame" src="../pdfs/Lec 2 Regression and Prediction ML.pdf" style="flex:1; width:100%; border:none; border-radius: var(--radius-sm); background: var(--bg-tertiary);"></iframe>
+                </div>
+            </div>
+            
+            <!-- Tab: Notes -->
+            <div class="sidebar-panel" id="panel-notes" style="display:none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                    <span style="font-size: 0.85rem; color: var(--text-tertiary);" id="notesCount">0 notes</span>
+                    <button onclick="exportNotesToObsidian()" class="action-btn" style="width:auto; padding: 0.4rem 0.75rem; font-size: 0.8rem;">Export .md</button>
+                </div>
+                                <div id="notesList" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 32vh; overflow-y: auto;"></div>
+                <div id="noteReader" class="note-reader">
+                    <div class="reader-title">Reading</div>
+                    <div class="reader-content">Click a note in history to read it here.</div>
+                </div>
+                <div style="margin-top: 0.75rem; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
+                    <textarea id="noteInput" oninput="handleNoteInputChange(this.value)" placeholder="Write a note (Markdown supported)..." style="width:100%; min-height: 80px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem; color: var(--text-primary); font-family: var(--font-mono); font-size: 0.85rem; resize: vertical;"></textarea>
+                    <div id="noteDraftPreview" class="note-reader note-draft-preview">
+                        <div class="reader-title">Live Preview</div>
+                        <div class="reader-content" id="noteDraftPreviewContent">Type in the note box to preview Markdown rendering in real time.</div>
+                    </div>
+                    <button onclick="addFreeNote()" class="action-btn" style="margin-top: 0.375rem;">Add Note</button>
+                </div>
+            </div>
+        </aside>
+
+        <div class="column-resizer" id="resizerLeft" role="separator" aria-orientation="vertical" aria-label="Resize left sidebar"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header id="overview">
+                <h1>Lec 2 Regression and Prediction ML</h1>
+                <p style="font-size: 1.1rem; color: var(--text-tertiary); margin-bottom: 2rem;">
+                    Interactive Learning Experience • Source: Lec 2 Regression and Prediction ML.pdf
+                </p>
+                
+                <!-- Course Overview -->
+                <div class="feynman-block" style="border-left-color: #9f7aea;">
+                    <h4>Course Overview</h4>
+                    <p><strong>Difficulty:</strong> Intermediate</p>
+                    
+                    <h5 style="margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--accent-primary);">Prerequisites:</h5>
+                    <ul style="margin-left: 1.5rem;">
+                        <li>Linear Algebra (Matrix multiplication, transposes, and inversion)</li><li>Calculus (Differentiation and gradient-based optimization)</li><li>Probability Theory (Expectation, conditional mean, and i.i.d. variables)</li><li>Basic Statistics (Variables, distributions, and sample data)</li>
+                    </ul>
+                    
+                    <h5 style="margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--accent-secondary);">Learning Objectives:</h5>
+                    <ul style="margin-left: 1.5rem;">
+                        <li>Identify the components of a statistical model and the goal of prediction functions in machine learning.</li><li>Formulate and minimize a loss function to optimize model parameters.</li><li>Mathematically demonstrate why squared loss regression leads to conditional mean estimation.</li><li>Derive the algebraic solution for linear regression parameters using matrix notation.</li><li>Recognize the implications of model mis-specification and matrix singularity on regression outcomes.</li>
+                    </ul>
+                </div>
+            </header>
+
+            <!-- Concept Sections -->
+            
+        <section id="concept-1" class="concept-section">
+            <h2>Statistical Model and Data-Generating Process (DGP)</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Think of a recipe as the Data-Generating Process (DGP) and the actual batch of cookies as your sample data. The recipe contains the 'rules' for how ingredients turn into cookies, but because of small variations in the oven or how you stir, every batch comes out slightly different.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>By identifying the underlying DGP, we can predict future outcomes even in situations we haven't seen yet. This allows businesses to move beyond simply looking at past spreadsheets and start making 'what-if' projections about market changes or customer behavior.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="diagram-container">
+            <div class="diagram-title">From Reality to Model</div>
+            <div class="mermaid">
+flowchart TD
+    A[The Real World / Population] --> B(DGP: The Underlying Rules + Randomness)
+    B --> C[Sample Data: Observations we collect]
+    C --> D[Statistical Model: Our mathematical map]
+    D -.->|Aims to approximate| B
+            </div>
+            <div class="diagram-caption">The relationship between the invisible process (DGP), the observable results, and our mathematical representation.</div>
+        </div>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>A Data-Generating Process (DGP) is the 'hidden engine' of the real world that produces the numbers we observe. Since we can't see the internal gears of this engine, we build a Statistical Model as a simplified, mathematical map to represent it. This model typically defines a relationship where 'input' variables (like education level) lead to an 'output' (like income), while also including a 'noise' component to account for the inherent randomness and complexity of reality. In essence, the model is our best-guess blueprint of the invisible rules that created our data.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>A mathematical representation of the assumptions concerning how sample data is generated from a larger population.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Imagine predicting the price of a house. The true DGP might be: Price = (Area * $200) + (Error/Noise). If a house is 1,000 sq. ft., the 'rule' says it should be $200,000, but the actual data point might be $205,000 because of random factors like a nice view. Our statistical model tries to find that '$200' multiplier by looking at many different houses.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>Students often treat the collected data as the 'truth' itself, forgetting that the data is just one specific outcome of a much larger, invisible process that could have turned out differently.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+        </section>
+        
+        <section id="concept-2" class="concept-section">
+            <h2>Prediction Function</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Think of a prediction function like a kitchen recipe. You provide the raw ingredients (the input X), and the recipe's instructions (the function f) determine exactly what dish (the output Y) will come out of the oven.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>Prediction functions allow us to use historical data to anticipate future events, such as a bank deciding whether to approve a loan or a weather app forecasting rain. It turns raw information into actionable insights, reducing uncertainty in decision-making.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="diagram-container">
+            <div class="diagram-title">The Prediction Mapping Process</div>
+            <div class="mermaid">
+flowchart LR
+    X[Input Variables: X
+'The Knowns'] --> F{Prediction Function: f
+'The Rule'}
+    F --> Y[Predicted Outcome: Y
+'The Unknown']
+            </div>
+            <div class="diagram-caption">This flow shows how input variables (X) are processed through a mathematical rule (f) to produce a predicted outcome (Y).</div>
+        </div>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>A prediction function is a mathematical 'map' that connects what we know to what we want to find out. In statistics, we assume that data is generated by a complex real-world process (the DGP), and the prediction function serves as our best attempt to model that process. By taking one or more variables—which could be simple numbers or complex multi-dimensional data—and passing them through the function f, we transform those inputs into a predicted value Y. This function captures the underlying relationship between variables, allowing us to generalize from a small sample of data to a much larger population.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>between one or more random variables and other non-random variables.
+
+•  The goal is to establish a map  f  :  X  7→ Y  where  X ,  Y  could be
+multi-dimensional object, with  f  being referred as the prediction function. 1
+
+
+[Tables on this page: 1]
+
+============================================================
+PAGE 3
+============================================================
+
+Goal and Specifications</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Suppose you want to predict a house's price (Y) based on its square footage (X). If your prediction function is f(X) = 200 * X + 50,000, you are asserting a specific relationship between size and cost. For a 1,000-square-foot house, the function calculates a predicted price of $250,000. In this scenario, the function acts as a rule that standardizes how we translate physical space into monetary value.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>A common mistake is believing the prediction function represents an absolute truth rather than an approximation. In reality, the function only accounts for the variables we give it and cannot perfectly capture the 'noise' or random chance inherent in real-world data.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> In the context of the prediction function, what does the notation f : X → Y represent?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="true">
+                        A map between one or more random variables and other variables
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The sum of all multi-dimensional objects
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        A constant value that never changes
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        A method for eliminating random variables from a dataset
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The prediction function is defined as a map f that establishes a relationship between input variables X and output variables Y.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The prediction function is defined as a map f that establishes a relationship between input variables X and output variables Y.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> Which of the following is true regarding the dimensions of X and Y in a prediction function?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        They must always be single-dimensional scalars
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        They are restricted to being non-random variables only
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        They can be multi-dimensional objects
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        They must have the same number of dimensions at all times
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The concept specifies that X and Y could be multi-dimensional objects within the mapping f.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The concept specifies that X and Y could be multi-dimensional objects within the mapping f.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> What is the primary goal of establishing the function f in this statistical context?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        To prove that random variables do not exist
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        To establish a map that serves as the prediction function between variables
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To convert multi-dimensional objects into single-dimensional ones
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To ensure that X and Y are always equal
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The goal is to establish a map f: X → Y, where f is referred to as the prediction function used to relate the variables.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The goal is to establish a map f: X → Y, where f is referred to as the prediction function used to relate the variables.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-3" class="concept-section">
+            <h2>Loss Function (Cost Function)</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Think of a Loss Function as a game of 'Hot or Cold.' Every time the model makes a guess, the Loss Function acts as the person telling you how many miles away you are from the hidden object; the larger the distance, the louder they shout, signaling you to change direction.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>In applications like self-driving cars, the Loss Function translates the physical danger of missing a stop sign into a mathematical penalty. It is the essential 'compass' that tells the computer exactly how to adjust its internal settings to avoid repeating dangerous or costly mistakes.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="chart-container">
+            <div class="chart-title">Mean Squared Error (MSE) Curve</div>
+            <canvas id="chart-3" style="max-height:380px;"></canvas>
+            <div class="chart-caption">As the prediction error (distance from zero) increases, the Loss (penalty) grows exponentially.</div>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('chart-3');
+            if (ctx && typeof Chart !== 'undefined') {
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ["-3", "-2", "-1", "0", "1", "2", "3"],
+                        datasets: [{"label": "Loss Value (Error Squared)", "data": [9, 4, 1, 0, 1, 4, 9], "borderColor": "#4299e1", "backgroundColor": "rgba(66,153,225,0.15)", "tension": 0.4, "fill": true}]
+                    },
+                    options: {
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            tooltip: { mode: 'index', intersect: false }
+                        },
+                        scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                x: { grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+                    }
+                });
+            }
+        });
+        </script>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>A Loss Function is a mathematical scorecard that calculates the gap between a model's prediction and the actual reality. While we see the model's output as an answer, the computer sees it as a calculation that needs to be 'minimized.' By converting errors into a single numerical value—the loss—we turn the abstract goal of 'learning' into a concrete task of finding the lowest point on a valley. The model constantly tweaks itself to drive this number as close to zero as possible, effectively 'studying' its own failures to improve future performance.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>A function that measures the 'cost' or error of a model's prediction compared to the actual target variable, used as an objective to be minimized.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Suppose you are training a model to predict house prices. If the actual price of a house is $500,000 but the model predicts $450,000, the error is $50,000. Using a 'Squared Error' loss function, the model squares that difference to get 2,500,000,000; this large number tells the model it was significantly off, forcing it to adjust its weights more aggressively than if the error had only been $1,000.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>Many students confuse 'Loss' with 'Accuracy.' Accuracy is a simple percentage of right vs. wrong for humans to read, while Loss is a complex mathematical gradient that provides the specific direction and magnitude the model needs to improve.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> What is the primary purpose of a loss function in machine learning?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        To increase the speed of data collection during the training phase.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        To quantify the difference between a model's predicted output and the actual target value.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To determine the total number of layers required in a neural network.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To visualize the relationship between input features in a 3D plot.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! A loss function serves as a mathematical measure of the error or discrepancy between the model's predictions and the true labels.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. A loss function serves as a mathematical measure of the error or discrepancy between the model's predictions and the true labels.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> During the optimization process of a model, what is the typical goal regarding the cost function?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="true">
+                        To minimize the cost function value to reach the lowest possible error.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To maximize the cost function value to ensure the model explores all data.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To keep the cost function constant to maintain model stability.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To set the cost function value equal to the number of input features.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Lowering the cost function value indicates that the model is becoming more accurate by reducing its prediction errors.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Lowering the cost function value indicates that the model is becoming more accurate by reducing its prediction errors.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> Which of the following best describes the inputs required by a loss function to calculate its output?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        Only the raw input features provided to the model.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The learning rate and the number of training iterations.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        The model's predicted value and the actual target ground truth.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The size of the dataset and the hardware specifications of the computer.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The loss function evaluates 'cost' by comparing what the model thought the answer was against what the answer actually should have been.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The loss function evaluates 'cost' by comparing what the model thought the answer was against what the answer actually should have been.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-4" class="concept-section">
+            <h2>Squared Loss (L-2 Loss)</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Think of Squared Loss like a 'Strictness Penalty' where being slightly wrong is fine, but being very wrong is punished severely. If you are 1 inch off a target, you pay $1, but if you are 10 inches off, you pay $100 instead of just $10.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>It is the backbone of most regression models because its mathematical properties allow computers to easily find the 'perfect' balance through calculus. It ensures that the model prioritizes avoiding huge, embarrassing failures over fixing tiny, negligible inaccuracies.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="chart-container">
+            <div class="chart-title">The Quadratic Penalty of Squared Loss</div>
+            <canvas id="chart-4" style="max-height:380px;"></canvas>
+            <div class="chart-caption">Notice how the loss (penalty) accelerates as the prediction error grows further from zero.</div>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('chart-4');
+            if (ctx && typeof Chart !== 'undefined') {
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ["-3", "-2", "-1", "0", "1", "2", "3"],
+                        datasets: [{"label": "Loss Value (Error^2)", "data": [9, 4, 1, 0, 1, 4, 9], "borderColor": "#4299e1", "backgroundColor": "rgba(66,153,225,0.15)", "tension": 0.4, "fill": true}]
+                    },
+                    options: {
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            tooltip: { mode: 'index', intersect: false }
+                        },
+                        scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                x: { grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+                    }
+                });
+            }
+        });
+        </script>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Squared Loss calculates the distance between the actual outcome (Y) and the model's prediction (f(X)), then squares that number. Squaring the error serves two main purposes: it ensures that all errors are positive (so a prediction that is too high doesn't cancel out one that is too low) and it places a much higher cost on large outliers. Because the loss grows quadratically, the learning algorithm is forced to move the prediction line closer to the points that are furthest away, effectively aiming for a result that represents the mean of the data.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>A specific loss function defined as (Y - f(X))^2, which penalizes larger discrepancies between predicted and actual values more heavily.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Imagine predicting the price of a car. If the car costs $20,000 and you predict $19,000, your error is 1,000 and your loss is 1,000,000. If you predict $15,000, your error is only 5 times larger (5,000), but your loss becomes 25,000,000. This massive jump in loss tells the model that the $15,000 prediction is unacceptable compared to the $19,000 one.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>Students often assume Squared Loss is always the best choice, forgetting that it is extremely sensitive to outliers. A single incorrect data point that is far from the rest can 'pull' the entire model toward it, making the overall predictions less accurate for the normal data.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> What is the mathematical formula for Squared Loss (L-2 Loss) given an actual value Y and a predicted value f(X)?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        |Y - f(X)|
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        (Y - f(X))^2
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        sqrt(Y - f(X))
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Y / f(X)
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Squared Loss is mathematically defined as the square of the difference between the actual value and the predicted value.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Squared Loss is mathematically defined as the square of the difference between the actual value and the predicted value.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> Which of the following is a primary characteristic of Squared Loss compared to Absolute Loss (L-1)?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        It penalizes all errors equally regardless of size.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It is less sensitive to outliers in the dataset.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        It penalizes larger discrepancies more heavily than smaller ones.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It always results in a lower total error value.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Because the difference is squared, larger errors result in a disproportionately larger loss, making the function highly sensitive to outliers.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Because the difference is squared, larger errors result in a disproportionately larger loss, making the function highly sensitive to outliers.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> If a model predicts a value of 12 for an observation where the actual value is 8, what is the calculated Squared Loss?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        4
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        8
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        16
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        20
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The difference between 8 and 12 is -4, and squaring this difference yields a loss of 16.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The difference between 8 and 12 is -4, and squaring this difference yields a loss of 16.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-5" class="concept-section">
+            <h2>Conditional Mean Estimation</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Imagine you are trying to guess the weight of a dog. If you know nothing about the dog, you would guess the average weight of all dogs; however, if you are told the dog is a 'Golden Retriever,' your best guess becomes the average weight of only that specific breed.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>This concept proves that 'Least Squares Regression' isn't just an arbitrary choice; it is mathematically the best way to minimize squared errors. It allows us to make the most stable prediction possible by targeting the 'center' of the data for any given input.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="chart-container">
+            <div class="chart-title">Regression as the Conditional Mean</div>
+            <canvas id="chart-5" style="max-height:380px;"></canvas>
+            <div class="chart-caption">The blue line represents the conditional mean E[Y|X], which averages the spread of Y-values at each X-level.</div>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('chart-5');
+            if (ctx && typeof Chart !== 'undefined') {
+                new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                        datasets: [{"label": "Observed Data (Noise around Mean)", "data": [{"x": 1, "y": 1.2}, {"x": 1, "y": 0.8}, {"x": 2, "y": 2.5}, {"x": 2, "y": 1.5}, {"x": 3, "y": 3.2}, {"x": 3, "y": 2.8}, {"x": 4, "y": 4.5}, {"x": 4, "y": 3.5}], "borderColor": "#cbd5e0", "backgroundColor": "rgba(203, 213, 224, 0.5)"}, {"label": "Conditional Mean (Regression Line)", "data": [{"x": 1, "y": 1}, {"x": 2, "y": 2}, {"x": 3, "y": 3}, {"x": 4, "y": 4}], "borderColor": "#4299e1", "backgroundColor": "rgba(66,153,225,0.15)"}]
+                    },
+                    options: {
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            tooltip: { mode: 'index', intersect: false }
+                        },
+                        scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                x: { grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+                    }
+                });
+            }
+        });
+        </script>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Conditional Mean Estimation is the mathematical backbone of regression. When we minimize the Expected Squared Error, we are searching for a function that gives us the most accurate prediction of an outcome (Y) given a specific set of inputs (X). The math dictates that the optimal function is the 'Conditional Expectation,' which is simply the average value of Y for every specific value of X. In the presence of noise or randomness, we cannot predict every individual point perfectly, so we instead calculate the average behavior of the data-generating process. This means that for any input X, our regression model is essentially reporting the 'expected' or 'average' outcome we should see.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>PAGE 6
+============================================================
+
+Interpreting Regression as Conditional Mean Estimation
+
+
+[FORMULA]: •  Suppose  X ,  Y  ∼ π ( X ,  Y  ) as a fixed distribution of data.  π ( · ,  · ) is a
+
+probability distribution function of ( X ,  Y  ).
+
+
+[FORMULA]: •  Consider the following problem:  ˆ f  :=  argmin f  E X , Y  ∼ π ( · , · ) [( Y  − f  ( X )) 2 ] .
+</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Suppose you want to predict the price of a house based on its square footage. If you look at all houses that are exactly 2,000 square feet, you will find a range of prices like $380k, $400k, and $420k due to minor variations. The conditional mean estimation tells us that the best prediction for any 2,000 sq ft house is $400k, which is the average of all prices at that specific size.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>Students often think regression is trying to pass through every single data point, but it is actually trying to find the average path through the points. They also mistake the 'mean' for the 'median'; minimizing squared error specifically targets the mean, while minimizing absolute error would target the median.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> In the provided regression framework, what objective function is used to determine the optimal function f?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        The expected absolute difference between Y and f(X)
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        The expected squared error between Y and f(X)
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The maximum likelihood of the distribution π(X, Y)
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The minimization of the variance of X
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The formula argmin E[(Y - f(X))^2] specifically defines the minimization of the expected squared error.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The formula argmin E[(Y - f(X))^2] specifically defines the minimization of the expected squared error.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> What does the symbol π(X, Y) represent in the context of Page 6?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        A mathematical constant used for normalization
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The estimated slope of the regression line
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        The joint probability distribution function of the data variables X and Y
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The error term associated with the prediction f(X)
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The text explicitly defines π(·, ·) as the probability distribution function from which the data (X, Y) is drawn.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The text explicitly defines π(·, ·) as the probability distribution function from which the data (X, Y) is drawn.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> Based on the title 'Conditional Mean Estimation,' what is the theoretical result of finding a function f that minimizes the expected squared error?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        The function represents the conditional median of Y given X
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The function identifies the most likely value (mode) of Y
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The function estimates the probability density of X
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        The function represents the conditional mean of Y given X
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The title indicates that minimizing the expected squared error is the mathematical path to estimating the conditional mean of the target variable.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The title indicates that minimizing the expected squared error is the mathematical path to estimating the conditional mean of the target variable.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-6" class="concept-section">
+            <h2>Linear Regression</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Think of predicting the cost of a pizza: for every extra topping you add, the price increases by a consistent, fixed amount. Linear regression is like finding that 'price per topping' rule so you can predict the total cost of any pizza based on how many toppings it has.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>Linear regression is the foundation of predictive modeling, used by businesses to forecast sales and by doctors to predict patient health outcomes based on risk factors. It turns messy, raw data into a clear 'best-guess' formula that helps us make informed decisions about the future.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="chart-container">
+            <div class="chart-title">Linear Regression: Hours Studied vs. Test Score</div>
+            <canvas id="chart-6" style="max-height:380px;"></canvas>
+            <div class="chart-caption">The blue dots represent actual student data, while the line represents the linear model's 'best guess' (E[Y|X]).</div>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('chart-6');
+            if (ctx && typeof Chart !== 'undefined') {
+                new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                        datasets: [{"label": "Actual Data Points", "data": [{"x": 1, "y": 55}, {"x": 2, "y": 62}, {"x": 3, "y": 60}, {"x": 4, "y": 70}, {"x": 5, "y": 78}, {"x": 6, "y": 75}, {"x": 7, "y": 85}, {"x": 8, "y": 92}, {"x": 9, "y": 90}, {"x": 10, "y": 98}], "borderColor": "#4299e1", "backgroundColor": "rgba(66,153,225,0.5)"}, {"label": "Linear Regression Line", "data": [{"x": 1, "y": 56}, {"x": 10, "y": 96}], "borderColor": "#e53e3e", "backgroundColor": "transparent"}]
+                    },
+                    options: {
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            tooltip: { mode: 'index', intersect: false }
+                        },
+                        scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                x: { grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+                    }
+                });
+            }
+        });
+        </script>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Linear regression is a method for modeling the relationship between an outcome (Y) and one or more predictors (X). In reality, the 'Data Generating Process' is complex, so we simplify it by assuming the average outcome follows a straight-line formula: $E[Y|X] = X^T \beta$. This means we represent the average value of Y as a weighted sum of the X variables, where each weight (beta) represents the specific impact that factor has on the result. By finding the best weights, we create a mathematical map that tells us exactly how much the outcome is expected to change when our inputs change.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>PAGE 8
+============================================================
+
+Linear regression: a special form of regression
+
+•  In general,  X  could be multi-dimensional. Therefore, estimating the
+conditional mean  E [ Y  | X ] can be challenging.
+
+•  In practice, a functional form assumption needs to be taken. The most
+simple form one can have is to assume a linear functional form:
+
+
+[FORMULA]: E [ Y  | X ] =  X   ⊺ β,</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Imagine predicting a house's price based on its square footage and age. If our model finds that each square foot adds $200 to the price and each year of age subtracts $1,000, we can calculate the expected price of any home. For a 1,500 sq. ft. house that is 10 years old, the predicted price would be (1,500 * 200) - (10 * 1,000), resulting in a prediction of $290,000.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>A common mistake is assuming that because two variables are linearly related, one causes the other (correlation vs. causation). Additionally, students often try to force a straight line onto data that is actually curved, leading to inaccurate predictions.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> Why is it often necessary to assume a functional form when estimating the conditional mean E[Y | X] in linear regression?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        Because X is always limited to a single dimension
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To guarantee that the resulting model is 100% accurate
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        Because estimating the conditional mean is challenging when X is multi-dimensional
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To ensure that the value of β is always a positive integer
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The text states that estimating E[Y | X] can be challenging because X could be multi-dimensional, necessitating a functional form assumption.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The text states that estimating E[Y | X] can be challenging because X could be multi-dimensional, necessitating a functional form assumption.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> According to the provided content, what is the simplest functional form one can assume for E[Y | X]?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        A quadratic form: E[Y | X] = X²β
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        A linear form: E[Y | X] = Xᵀβ
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        An exponential form: E[Y | X] = e^(Xβ)
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        A logarithmic form: E[Y | X] = log(X)β
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The content explicitly defines the simplest functional form as the linear assumption where E[Y | X] equals the transpose of X multiplied by β.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The content explicitly defines the simplest functional form as the linear assumption where E[Y | X] equals the transpose of X multiplied by β.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> In the formula E[Y | X] = Xᵀβ, what does the expression represent?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        The probability distribution of X
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The variance of the error term
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        The linear functional form of the conditional mean
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The multi-dimensional dimensionality of Y
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The formula represents the specific linear assumption used to estimate the conditional mean E[Y | X].
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The formula represents the specific linear assumption used to estimate the conditional mean E[Y | X].
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-7" class="concept-section">
+            <h2>Ordinary Least Squares (OLS) Algebraic Solution</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Imagine trying to position a flat trampoline under a cluster of floating balloons so that the total distance from the balloons to the mat is as small as possible. The OLS formula is like a mathematical GPS that tells you exactly how to tilt and height-adjust that trampoline to be 'closest' to all balloons at once.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>This formula is the mathematical backbone of most predictive modeling, allowing businesses to calculate the exact relationship between variables like advertising spend and revenue. It provides a unique, 'best' answer in one step without needing to guess or use trial and error.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="chart-container">
+            <div class="chart-title">OLS: Finding the Line of Best Fit</div>
+            <canvas id="chart-7" style="max-height:380px;"></canvas>
+            <div class="chart-caption">The OLS solution calculates the line (red) that minimizes the vertical distance to all data points (blue).</div>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('chart-7');
+            if (ctx && typeof Chart !== 'undefined') {
+                new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        labels: [1, 2, 3, 4, 5],
+                        datasets: [{"label": "Observed Data (Y)", "data": [{"x": 1, "y": 2.1}, {"x": 2, "y": 3.9}, {"x": 3, "y": 6.2}, {"x": 4, "y": 8.1}, {"x": 5, "y": 9.8}], "borderColor": "#4299e1", "backgroundColor": "rgba(66,153,225,0.5)"}, {"label": "OLS Prediction (X\u03b2)", "data": [{"x": 1, "y": 2}, {"x": 5, "y": 10}], "borderColor": "#f56565", "backgroundColor": "transparent"}]
+                    },
+                    options: {
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            tooltip: { mode: 'index', intersect: false }
+                        },
+                        scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                x: { grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+                    }
+                });
+            }
+        });
+        </script>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>The OLS algebraic solution finds the parameter vector (Beta) that minimizes the sum of squared residuals—the gap between reality and our model's prediction. By using matrix calculus, we take the derivative of the error function and set it to zero to find the minimum point. The resulting formula, Beta = (XᵀX)⁻¹XᵀY, essentially re-scales the relationship between the inputs (X) and the output (Y). The (XᵀX)⁻¹ part accounts for the variance and overlap in your features, while XᵀY captures the raw correlation between your features and the target variable, resulting in the most efficient linear map possible.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>The matrix-based formula β̂ = (XᵀX)⁻¹XᵀY used to find the optimal parameters for a linear regression model.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>If you are predicting house prices (Y) based on square footage and number of rooms (X), you gather data from 100 homes. You arrange this data into matrices and plug them into the formula. The result might be a Beta vector of [50000, 200, 15000], telling you that the base price is $50,000, each square foot adds $200, and each room adds $15,000.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>Students often forget that the formula requires the matrix (XᵀX) to be invertible; if your data has perfectly redundant features (like weight in pounds and weight in kilograms), the math breaks because it can't decide which feature is responsible for the result.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> Which of the following matrix equations correctly represents the Ordinary Least Squares (OLS) estimator for the vector of coefficients β?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        β̂ = (XᵀX) XᵀY
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        β̂ = (XXᵀ)⁻¹ XᵀY
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        β̂ = (XᵀX)⁻¹ XᵀY
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        β̂ = Xᵀ (XXᵀ)⁻¹ Y
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The formula β̂ = (XᵀX)⁻¹XᵀY is derived by setting the derivative of the sum of squared residuals with respect to β to zero and solving for β.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The formula β̂ = (XᵀX)⁻¹XᵀY is derived by setting the derivative of the sum of squared residuals with respect to β to zero and solving for β.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> For the OLS algebraic solution to yield a unique set of parameters, what must be true about the matrix (XᵀX)?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        It must be a singular matrix.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        It must be invertible (non-singular).
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It must be a square matrix of dimension (n x n) where n is the number of observations.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        All of its elements must be positive.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The solution requires the inverse of (XᵀX) to exist, which only occurs if the matrix is non-singular and the features in X are linearly independent.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The solution requires the inverse of (XᵀX) to exist, which only occurs if the matrix is non-singular and the features in X are linearly independent.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> In the OLS formula β̂ = (XᵀX)⁻¹XᵀY, what does the resulting vector β̂ mathematically minimize?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        The sum of the absolute differences between observed and predicted values.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The product of the residuals.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        The sum of the squared differences between observed and predicted values.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The variance of the independent variables in X.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The OLS method specifically seeks to minimize the sum of squared residuals, which represents the aggregate error between the model's predictions and the actual data.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The OLS method specifically seeks to minimize the sum of squared residuals, which represents the aggregate error between the model's predictions and the actual data.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-8" class="concept-section">
+            <h2>Matrix Singularity in Regression</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Imagine trying to solve a puzzle where two clues tell you exactly the same thing, like 'The thief is 6 feet tall' and 'The thief is 72 inches tall.' Because these clues are redundant, you don't actually have enough unique information to identify the person, leaving you with an infinite number of possible suspects who fit that single description.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>In machine learning, singularity prevents the model from calculating a unique set of 'best' weights for your features. If your data has redundant columns, the standard math used to train the model fails (it's like trying to divide by zero), making the model's predictions unstable or impossible to compute.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="comparison-block">
+            <div class="comparison-side left">
+                <h4>🔵 Invertible Matrix (Full Rank)</h4>
+                <ul><li>Each feature provides unique info</li><li>XᵀX has a non-zero determinant</li><li>Unique solution for coefficients (β)</li><li>Matrix can be 'inverted' like division</li></ul>
+            </div>
+            <div class="comparison-divider">vs</div>
+            <div class="comparison-side right">
+                <h4>🟢 Singular Matrix (Rank Deficient)</h4>
+                <ul><li>Redundant features (e.g., Height in cm and m)</li><li>XᵀX has a determinant of zero</li><li>Infinitely many solutions for β</li><li>Mathematical 'Divide by Zero' error</li></ul>
+            </div>
+        </div>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>In linear regression, we find the optimal coefficients using the Normal Equation, which requires inverting the matrix XᵀX. For a matrix to be invertible, its columns must be linearly independent, meaning no column can be perfectly predicted by the others. When singularity occurs, the matrix is 'flat' in a mathematical sense—it has a determinant of zero. This happens because the features contain redundant information, creating a situation where there isn't a single 'best' solution, but rather an infinite line or plane of solutions that all fit the data equally well.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>The condition where XᵀX is non-invertible (singular), often caused by identical columns, leading to non-unique solutions.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Suppose you are predicting a person's health score using two features: 'Weight in Kilograms' and 'Weight in Pounds.' Since 1 kg is always approximately 2.2 lbs, the second column is just the first column multiplied by a constant. When the computer tries to calculate the importance of each, it can't decide if the weight effect belongs to the kg column or the lbs column. Mathematically, the XᵀX matrix becomes singular, and the software will throw an error because it cannot find a unique 'inverse' to solve the equation.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>Students often assume singularity only happens if two columns are identical, but it actually occurs whenever any column can be written as a linear combination of others (e.g., Column C = Column A + Column B). They also mistake this for a coding error rather than a fundamental issue with the data features selected.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> Which of the following conditions most directly causes the matrix XᵀX to be singular (non-invertible) in a linear regression model?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        The number of observations is significantly larger than the number of features.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        Two or more independent variables are perfectly linearly dependent (e.g., identical columns).
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The error terms in the model do not follow a normal distribution.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The dependent variable has a mean of zero.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Perfect multicollinearity means one column can be expressed as a linear combination of others, reducing the matrix rank and making it non-invertible.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Perfect multicollinearity means one column can be expressed as a linear combination of others, reducing the matrix rank and making it non-invertible.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> What is the primary consequence for the Ordinary Least Squares (OLS) estimator if the matrix XᵀX is singular?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        The model will consistently produce a unique, optimal solution for the coefficients.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The R-squared value will automatically become zero.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        There are infinitely many solutions for the parameter vector β, making it non-unique.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The variance of the coefficients will decrease to zero.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! When XᵀX is singular, the normal equations are underdetermined, resulting in a lack of a single unique solution for the regression coefficients.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. When XᵀX is singular, the normal equations are underdetermined, resulting in a lack of a single unique solution for the regression coefficients.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> From a mathematical perspective, a square matrix like XᵀX is considered singular if and only if:
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="true">
+                        Its determinant is equal to zero.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It is an identity matrix.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        All of its diagonal elements are positive.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The number of rows is equal to the number of columns.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! A matrix is singular and cannot be inverted if its determinant is zero, which occurs when its columns are not linearly independent.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. A matrix is singular and cannot be inverted if its determinant is zero, which occurs when its columns are not linearly independent.
+                    </div>
+                </div>
+                
+        </section>
+        
+            
+            <!-- Completion -->
+            <div style="margin-top: 4rem; padding: 2rem; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); border-radius: 12px; text-align: center; color: white;">
+                <h3 style="margin-bottom: 1rem;">Course Complete!</h3>
+                <p>You've reviewed all 8 main concepts. Keep practicing with the quizzes above.</p>
+            </div>
+        </main>
+
+        <div class="column-resizer" id="resizerRight" role="separator" aria-orientation="vertical" aria-label="Resize right sidebar"></div>
+
+        <!-- Right Sidebar: AI Assistant & Tools -->
+        <aside class="sidebar-right">
+            <div class="ai-chat">
+                <div class="ai-chat-header">
+                    <div>
+                        <h3 style="margin: 0;">AI Study Assistant</h3>
+                        <p style="font-size: 0.8rem; color: var(--text-tertiary); margin: 0;">Powered by Gemini</p>
+                    </div>
+                </div>
+                
+                <div class="ai-chat-messages" id="aiMessages">
+                    <div class="ai-message assistant">
+                        Hi! I'm your AI study assistant. Ask me anything about this topic, or request:
+                        <ul style="margin-top: 0.5rem; padding-left: 1.5rem; font-size: 0.9rem;">
+                            <li>Explanations in simpler terms</li>
+                            <li>More examples</li>
+                            <li>Practice questions</li>
+                            <li>Connections to other concepts</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="ai-input-group">
+                    <input 
+                        type="text" 
+                        class="ai-input" 
+                        id="aiInput" 
+                        placeholder="Ask a question..."
+                        onkeypress="if(event.key==='Enter') sendAIMessage()"
+                    />
+                    <button class="ai-send-btn" onclick="sendAIMessage()">Send</button>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div style="margin-top: 2rem;">
+                <h4 style="margin-bottom: 1rem; color: var(--text-tertiary);">Quick Actions</h4>
+                <button onclick="reviewAllQuizzes()" class="action-btn">
+                    Review All Quizzes
+                </button>
+                <button onclick="createSummary()" class="action-btn">
+                    Generate Summary
+                </button>
+                <button onclick="window.print()" class="action-btn">
+                    Print Notes
+                </button>
+            </div>
+            
+            <!-- Keyboard Shortcuts -->
+            <div style="margin-top: 2rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.85rem;">
+                <h5 style="margin-bottom: 0.75rem; color: var(--text-tertiary);">Shortcuts</h5>
+                <div id="shortcutsDisplay" style="color: var(--text-secondary); line-height: 1.8;">
+                    <div><kbd id="shortcutFocusAI">Alt+A</kbd> Focus AI</div>
+                    <div><kbd id="shortcutSummary">Alt+S</kbd> Summary</div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        
+        // ── Gemini Proxy Configuration ──
+        const GEMINI_PROXY_URL = '../api/gemini';
+        const LAYOUT_STORAGE_KEY = 'learning-layout-widths-v1';
+        
+        let courseContext = '';
+        let conversationHistory = [];
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        
+        // ── Main Controller ──
+        class LearningPageController {
+            constructor() {
+                this.isMac = /Mac|iPhone|iPod|iPad/i.test(navigator.platform);
+                this.setupExpandables();
+                this.setupQuizzes();
+                this.setupProgressTracking();
+                this.setupScrollReveal();
+                this.setupCourseContext();
+                this.setupKeyboardShortcuts();
+                this.initializeMermaid();
+                this.initializeCharts();
+                this.updateShortcutsDisplay();
+                this.setupColumnResizers();
+            }
+            
+            initializeMermaid() {
+                if (typeof mermaid !== 'undefined') {
+                    mermaid.initialize({
+                        startOnLoad: true,
+                        theme: 'dark',
+                        themeVariables: {
+                            primaryColor: '#263352',
+                            primaryTextColor: '#edf2f7',
+                            primaryBorderColor: '#f6c177',
+                            lineColor: '#a0aec0',
+                            secondaryColor: '#1f2b47',
+                            tertiaryColor: '#1c2a45',
+                            background: '#16213e',
+                            mainBkg: '#263352',
+                            nodeBorder: '#f6c177',
+                            clusterBkg: '#1f2b47',
+                            fontSize: '14px'
+                        },
+                        flowchart: { curve: 'basis', padding: 20 },
+                        sequence: { actorMargin: 50 }
+                    });
+                }
+            }
+            
+            initializeCharts() {
+                if (typeof Chart !== 'undefined') {
+                    Chart.defaults.color = '#a0aec0';
+                    Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+                    Chart.defaults.font.family = "-apple-system, 'Helvetica Neue', sans-serif";
+                    Chart.defaults.responsive = true;
+                    Chart.defaults.maintainAspectRatio = true;
+                    Chart.defaults.plugins.legend.labels.usePointStyle = true;
+                }
+            }
+            
+            setupCourseContext() {
+                const mc = document.querySelector('.main-content');
+                if (mc) courseContext = mc.innerText.substring(0, 6000);
+            }
+            
+            setupExpandables() {
+                document.querySelectorAll('.expandable-header').forEach(header => {
+                    header.addEventListener('click', () => {
+                        header.parentElement.classList.toggle('open');
+                    });
+                });
+            }
+            
+            setupQuizzes() {
+                document.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.addEventListener('click', () => this.handleQuiz(opt));
+                });
+            }
+
+            handleQuiz(option) {
+                const quiz = option.closest('.quiz-container');
+                const isCorrect = option.dataset.correct === 'true';
+                
+                quiz.querySelectorAll('.quiz-option').forEach(o => {
+                    o.classList.remove('selected','correct','incorrect');
+                });
+                
+                option.classList.add('selected');
+                option.classList.add(isCorrect ? 'correct' : 'incorrect');
+                
+                if (!isCorrect) {
+                    quiz.querySelectorAll('.quiz-option').forEach(o => {
+                        if (o.dataset.correct === 'true') o.classList.add('correct');
+                    });
+                }
+                
+                const cf = quiz.querySelector('.quiz-feedback.correct');
+                const ic = quiz.querySelector('.quiz-feedback.incorrect');
+                if (isCorrect) { cf.classList.add('show'); ic.classList.remove('show'); }
+                else { ic.classList.add('show'); cf.classList.remove('show'); }
+            }
+
+            
+            setupProgressTracking() {
+                window.addEventListener('scroll', () => {
+                    const h = document.documentElement.scrollHeight - window.innerHeight;
+                    const p = h > 0 ? Math.min((window.scrollY / h) * 100, 100) : 0;
+                    document.getElementById('progressBar').style.width = p + '%';
+                });
+            }
+            
+            setupScrollReveal() {
+                const obs = new IntersectionObserver((entries) => {
+                    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('revealed'); });
+                }, { threshold: 0.08 });
+                document.querySelectorAll('.reveal-on-scroll').forEach(el => obs.observe(el));
+            }
+            
+            setupKeyboardShortcuts() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.altKey && e.key === 'a') {
+                        e.preventDefault();
+                        document.getElementById('aiInput')?.focus();
+                    }
+                    if (e.altKey && e.key === 's') {
+                        e.preventDefault();
+                        askSummary();
+                    }
+                });
+            }
+            
+            updateShortcutsDisplay() {
+                const prefix = this.isMac ? '⌥' : 'Alt+';
+                const focusEl = document.getElementById('shortcutFocusAI');
+                const summaryEl = document.getElementById('shortcutSummary');
+                if (focusEl) focusEl.textContent = prefix + 'A';
+                if (summaryEl) summaryEl.textContent = prefix + 'S';
+            }
+
+            setupColumnResizers() {
+                if (window.matchMedia('(max-width: 1200px)').matches) return;
+                const container = document.querySelector('.page-container');
+                const leftResizer = document.getElementById('resizerLeft');
+                const rightResizer = document.getElementById('resizerRight');
+                if (!container || !leftResizer || !rightResizer) return;
+
+                const minLeft = 200, maxLeft = 560;
+                const minRight = 220, maxRight = 560;
+                const minMain = 520;
+                let leftWidth = 260;
+                let rightWidth = 300;
+
+                const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+                const applyWidths = () => {
+                    container.style.setProperty('--left-width', leftWidth + 'px');
+                    container.style.setProperty('--right-width', rightWidth + 'px');
+                };
+                const getTotalWidth = () => container.getBoundingClientRect().width - 16;
+                const clampAll = () => {
+                    const total = getTotalWidth();
+                    leftWidth = clamp(leftWidth, minLeft, maxLeft);
+                    rightWidth = clamp(rightWidth, minRight, maxRight);
+                    if (total - leftWidth - rightWidth < minMain) {
+                        const overflow = minMain - (total - leftWidth - rightWidth);
+                        leftWidth = clamp(leftWidth - overflow / 2, minLeft, maxLeft);
+                        rightWidth = clamp(rightWidth - overflow / 2, minRight, maxRight);
+                        if (total - leftWidth - rightWidth < minMain) {
+                            const rightCap = clamp(total - leftWidth - minMain, minRight, maxRight);
+                            rightWidth = rightCap;
+                            leftWidth = clamp(total - rightWidth - minMain, minLeft, maxLeft);
+                        }
+                    }
+                };
+
+                try {
+                    const cached = JSON.parse(localStorage.getItem(LAYOUT_STORAGE_KEY) || '{}');
+                    if (Number.isFinite(cached.left)) leftWidth = cached.left;
+                    if (Number.isFinite(cached.right)) rightWidth = cached.right;
+                } catch {}
+                clampAll();
+                applyWidths();
+
+                const startDrag = (side) => (evt) => {
+                    evt.preventDefault();
+                    const rect = container.getBoundingClientRect();
+                    const total = getTotalWidth();
+                    const onMove = (moveEvt) => {
+                        if (side === 'left') {
+                            const rawLeft = moveEvt.clientX - rect.left;
+                            const maxAllowed = Math.min(maxLeft, total - rightWidth - minMain);
+                            leftWidth = clamp(rawLeft, minLeft, Math.max(minLeft, maxAllowed));
+                        } else {
+                            const rawRight = rect.right - moveEvt.clientX;
+                            const maxAllowed = Math.min(maxRight, total - leftWidth - minMain);
+                            rightWidth = clamp(rawRight, minRight, Math.max(minRight, maxAllowed));
+                        }
+                        applyWidths();
+                    };
+                    const stopMove = () => {
+                        document.body.style.userSelect = '';
+                        document.body.style.cursor = '';
+                        leftResizer.classList.remove('dragging');
+                        rightResizer.classList.remove('dragging');
+                        localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify({ left: leftWidth, right: rightWidth }));
+                        document.removeEventListener('pointermove', onMove);
+                        document.removeEventListener('pointerup', stopMove);
+                    };
+                    document.body.style.userSelect = 'none';
+                    document.body.style.cursor = 'col-resize';
+                    (side === 'left' ? leftResizer : rightResizer).classList.add('dragging');
+                    document.addEventListener('pointermove', onMove);
+                    document.addEventListener('pointerup', stopMove);
+                };
+
+                leftResizer.addEventListener('pointerdown', startDrag('left'));
+                rightResizer.addEventListener('pointerdown', startDrag('right'));
+                window.addEventListener('resize', () => {
+                    if (window.matchMedia('(max-width: 1200px)').matches) return;
+                    clampAll();
+                    applyWidths();
+                });
+            }
+        }
+        
+        // ── AI Chat (Real Gemini API) ──
+        async function sendAIMessage() {
+            const input = document.getElementById('aiInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+            
+            appendMsg('user', msg);
+            input.value = '';
+            input.disabled = true;
+            
+            const typingEl = appendMsg('assistant', '<span class="typing-dots"><span>.</span><span>.</span><span>.</span></span>');
+            
+            try {
+                const answer = await callGemini(msg);
+                typingEl.innerHTML = formatMd(answer);
+            } catch (err) {
+                const errMsg = err?.message || String(err);
+                let hint = 'Check console for details.';
+                if (window.location.protocol === 'file:' || errMsg.includes('Failed to fetch')) {
+                    const current = window.location.pathname.split('/').pop();
+                    hint = `Start local server: python3 serve.py --open html/${current} and ensure GEMINI_API_KEY exists in .env.local`;
+                }
+                typingEl.innerHTML = '⚠️ Error: ' + escapeHtml(errMsg) + '<br><small>' + escapeHtml(hint) + '</small>';
+                console.error('Gemini API error:', err);
+            } finally {
+                input.disabled = false;
+                input.focus();
+            }
+        }
+        
+        async function callGemini(userMessage) {
+            if (window.location.protocol === 'file:') {
+                throw new Error('This page is opened as file:// and cannot reach ../api/gemini');
+            }
+
+            const prompt = `You are a concise study assistant for this course.
+
+Course content (excerpt):
+${courseContext.substring(0, 3500)}
+
+Previous conversation:
+${conversationHistory.slice(-4).map(m => m.role + ': ' + m.content).join('\n')}
+
+Student question: ${userMessage}
+
+Instructions:
+- Answer in 3-6 sentences, be direct and complete
+- Always finish your sentences, never leave a thought incomplete
+- Use the course content as reference
+- If the question is in Chinese, answer in Chinese`;
+
+            const res = await fetch(GEMINI_PROXY_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    prompt: prompt,
+                    generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
+                })
+            });
+            
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(`API ${res.status}: ${errText.substring(0, 200)}`);
+            }
+            
+            const data = await res.json();
+            const candidate = data.candidates?.[0];
+            const answer = candidate?.content?.parts?.[0]?.text;
+            if (!answer) throw new Error('Empty response from API');
+            
+            // Check if response was truncated
+            if (candidate?.finishReason === 'MAX_TOKENS') {
+                conversationHistory.push({ role: 'user', content: userMessage }, { role: 'assistant', content: answer });
+                return answer + '...\n\n_(Response was trimmed. Ask a follow-up for more detail.)_';
+            }
+            
+            conversationHistory.push({ role: 'user', content: userMessage }, { role: 'assistant', content: answer });
+            return answer;
+        }
+        
+        function appendMsg(role, html) {
+            const container = document.getElementById('aiMessages');
+            const div = document.createElement('div');
+            div.className = 'ai-message ' + role;
+            div.innerHTML = html;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            return div;
+        }
+        
+        function formatMd(text) {
+            return text
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/`(.+?)`/g, '<code style="background:var(--bg-tertiary);padding:0.1em 0.4em;border-radius:3px;font-size:0.9em;">$1</code>')
+                .replace(/\n/g, '<br>');
+        }
+        
+        function askSummary() {
+            const input = document.getElementById('aiInput');
+            input.value = 'Please summarize the key concepts of this lesson in bullet points.';
+            sendAIMessage();
+        }
+        
+        function reviewAllQuizzes() {
+            const q = document.querySelector('.quiz-container');
+            if (q) q.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        function createSummary() { askSummary(); }
+        
+        // ── Sidebar Tabs ──
+        function switchSidebarTab(tabName) {
+            document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.sidebar-panel').forEach(p => p.style.display = 'none');
+            document.querySelector(`.sidebar-tab[data-tab="${tabName}"]`)?.classList.add('active');
+            const panel = document.getElementById('panel-' + tabName);
+            if (panel) panel.style.display = 'block';
+        }
+        // ── Notes System ──
+        const NOTES_STORAGE_KEY = 'learning-notes-' + document.title;
+        const NOTES_FOCUS_KEY = NOTES_STORAGE_KEY + '-focus';
+        const NOTES_ACTIVE_KEY = NOTES_STORAGE_KEY + '-active';
+        const NOTES_DRAFT_KEY = NOTES_STORAGE_KEY + '-draft';
+        
+        function loadNotes() {
+            try {
+                const raw = JSON.parse(localStorage.getItem(NOTES_STORAGE_KEY) || '[]');
+                if (!Array.isArray(raw)) return [];
+                return raw.map((n, idx) => {
+                    const idNum = Number(n?.id);
+                    return {
+                        id: Number.isFinite(idNum) ? idNum : -(idx + 1),
+                        citation: typeof n?.citation === 'string' ? n.citation : (typeof n?.quote === 'string' ? n.quote : ''),
+                        body: typeof n?.body === 'string' ? n.body : (typeof n?.text === 'string' ? n.text : (typeof n?.content === 'string' ? n.content : '')),
+                        section: typeof n?.section === 'string' ? n.section : (typeof n?.title === 'string' ? n.title : ''),
+                        timestamp: typeof n?.timestamp === 'string' && n.timestamp
+                            ? n.timestamp
+                            : (typeof n?.created_at === 'string' && n.created_at ? n.created_at : new Date().toISOString())
+                    };
+                });
+            }
+            catch { return []; }
+        }
+        
+                function saveNotes(notes) {
+            localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(notes));
+            renderNotes();
+        }
+
+        function saveDraft(text) {
+            localStorage.setItem(NOTES_DRAFT_KEY, text || '');
+        }
+
+        function loadDraft() {
+            return localStorage.getItem(NOTES_DRAFT_KEY) || '';
+        }
+
+        function renderDraftPreview(text) {
+            const preview = document.getElementById('noteDraftPreviewContent');
+            if (!preview) return;
+            const clean = text || '';
+            if (!clean.trim()) {
+                preview.innerHTML = '<span style="color: var(--text-tertiary);">Type in the note box to preview Markdown rendering in real time.</span>';
+                return;
+            }
+            preview.innerHTML = renderNoteMarkdown(clean);
+        }
+
+        function handleNoteInputChange(value) {
+            saveDraft(value);
+            renderDraftPreview(value);
+        }
+
+        function initNoteComposer() {
+            const input = document.getElementById('noteInput');
+            if (!input) return;
+            const draft = loadDraft();
+            input.value = draft;
+            renderDraftPreview(draft);
+            input.addEventListener('input', () => {
+                handleNoteInputChange(input.value);
+            });
+            input.addEventListener('keydown', (e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    addFreeNote();
+                }
+            });
+        }
+
+        function getFocusedNoteId() {
+            const value = localStorage.getItem(NOTES_FOCUS_KEY);
+            return value ? Number(value) : null;
+        }
+
+        function getActiveNoteId() {
+            const value = localStorage.getItem(NOTES_ACTIVE_KEY);
+            return value ? Number(value) : null;
+        }
+
+        function setFocusedNoteId(id) {
+            if (!id) localStorage.removeItem(NOTES_FOCUS_KEY);
+            else localStorage.setItem(NOTES_FOCUS_KEY, String(id));
+        }
+
+        function setActiveNoteId(id) {
+            if (!id) localStorage.removeItem(NOTES_ACTIVE_KEY);
+            else localStorage.setItem(NOTES_ACTIVE_KEY, String(id));
+        }
+
+        function toggleFocusNote(id, e) {
+            e?.stopPropagation();
+            const focusedId = getFocusedNoteId();
+            setFocusedNoteId(focusedId === id ? null : id);
+            renderNotes();
+        }
+
+        function openNote(id) {
+            setActiveNoteId(id);
+            renderNotes();
+            switchSidebarTab('notes');
+        }
+
+        function ensureNoteReader() {
+            const panel = document.getElementById('panel-notes');
+            const notesList = document.getElementById('notesList');
+            if (!panel || !notesList) return null;
+            notesList.style.maxHeight = '32vh';
+
+            let reader = document.getElementById('noteReader');
+            if (!reader) {
+                reader = document.createElement('div');
+                reader.id = 'noteReader';
+                reader.className = 'note-reader';
+                notesList.insertAdjacentElement('afterend', reader);
+            }
+            return reader;
+        }
+
+        function renderNoteMarkdown(text) {
+            return escapeHtml(text || '')
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/`(.+?)`/g, '<code>$1</code>')
+                .replace(/\n/g, '<br>');
+        }
+
+        function renderNoteReader(notes) {
+            const reader = ensureNoteReader();
+            if (!reader) return;
+            if (notes.length === 0) {
+                reader.innerHTML = '<div class="reader-title">Reader</div><div class="reader-content">No notes yet.</div>';
+                return;
+            }
+
+            let activeId = getActiveNoteId();
+            let active = notes.find(n => n.id === activeId);
+            if (!active) {
+                active = notes[0];
+                setActiveNoteId(active.id);
+            }
+            const time = new Date(active.timestamp).toLocaleString();
+            const citationHtml = active.citation ? `<div class="note-citation">${escapeHtml(active.citation)}</div>` : '';
+            const activeBody = typeof active.body === 'string' ? active.body : '';
+            reader.innerHTML = `
+                <div class="reader-title">Reading • ${escapeHtml(active.section || 'General')} • ${time}</div>
+                ${citationHtml}
+                <div class="reader-content">${renderNoteMarkdown(activeBody)}</div>
+            `;
+        }
+        
+        function addNote(citation, body, section) {
+            const notes = loadNotes();
+            const note = {
+                id: Date.now(),
+                citation: citation || '',
+                body: body || '',
+                section: section || '',
+                timestamp: new Date().toISOString()
+            };
+            notes.push(note);
+            setActiveNoteId(note.id);
+            saveNotes(notes);
+            // Switch to notes tab
+            switchSidebarTab('notes');
+        }
+        
+        function addFreeNote() {
+            const input = document.getElementById('noteInput');
+            const text = input.value.trim();
+            if (!text) return;
+            addNote('', text, '');
+            input.value = '';
+            saveDraft('');
+            renderDraftPreview('');
+        }
+        
+        function deleteNote(id, e) {
+            e?.stopPropagation();
+            const notes = loadNotes().filter(n => n.id !== id);
+            if (getFocusedNoteId() === id) setFocusedNoteId(null);
+            if (getActiveNoteId() === id) setActiveNoteId(notes.length ? notes[0].id : null);
+            saveNotes(notes);
+        }
+        
+        function renderNotes() {
+            const notes = loadNotes();
+            const container = document.getElementById('notesList');
+            const counter = document.getElementById('notesCount');
+            if (!container) return;
+            
+            counter.textContent = notes.length + ' note' + (notes.length !== 1 ? 's' : '');
+            
+            if (notes.length === 0) {
+                container.innerHTML = '<p style="font-size:0.85rem; color:var(--text-tertiary); text-align:center; padding:2rem 0;">Select text and click "Add Note" to begin, or write freely below.</p>';
+                renderNoteReader(notes);
+                return;
+            }
+
+            const focusedId = getFocusedNoteId();
+            const activeId = getActiveNoteId();
+            const sortedNotes = [...notes].sort((a, b) => {
+                const aFocused = a.id === focusedId ? 1 : 0;
+                const bFocused = b.id === focusedId ? 1 : 0;
+                if (aFocused !== bFocused) return bFocused - aFocused;
+                return new Date(b.timestamp) - new Date(a.timestamp);
+            });
+
+            container.innerHTML = sortedNotes.map(n => {
+                const time = new Date(n.timestamp).toLocaleString();
+                const citationHtml = n.citation 
+                    ? `<div class="note-citation">${escapeHtml(n.citation)}</div>` 
+                    : '';
+                const noteBody = typeof n.body === 'string' ? n.body : '';
+                const preview = noteBody.length > 140 ? (noteBody.slice(0, 140) + '...') : noteBody;
+                const focusLabel = n.id === focusedId ? 'Unfocus' : 'Focus';
+                return `<div class="note-card ${n.id === activeId ? 'active' : ''} ${n.id === focusedId ? 'focused' : ''}" onclick="openNote(${n.id})">
+                    ${citationHtml}
+                    <div class="note-body">${escapeHtml(preview)}</div>
+                    <div class="note-meta">
+                        <span>${n.section ? escapeHtml(n.section) : ''} ${time}</span>
+                        <span>
+                            <button class="note-focus" onclick="toggleFocusNote(${n.id}, event)">${focusLabel}</button>
+                            <button class="note-delete" onclick="deleteNote(${n.id}, event)">Delete</button>
+                        </span>
+                    </div>
+                </div>`;
+            }).join('');
+            renderNoteReader(sortedNotes);
+        }
+        
+        function exportNotesToObsidian() {
+            const notes = loadNotes();
+            if (notes.length === 0) { alert('No notes to export.'); return; }
+            
+            const title = document.title.replace(' - Interactive Learning', '');
+            const sourceFile = document.querySelector('.main-content header p')?.textContent?.match(/Source: (.+)/)?.[1] || '';
+            
+            let md = `---
+tags: [lecture-notes, mfin7034]
+source: "${sourceFile}"
+date: ${new Date().toISOString().split('T')[0]}
+---
+
+`;
+            md += `# ${title}
+
+`;
+            md += `> [!info] Source
+> PDF: [[${sourceFile.replace('.pdf','')}]]
+
+`;
+            
+            notes.forEach((n, idx) => {
+                if (n.citation) {
+                    md += `> [!quote] Highlight
+> ${n.citation}
+
+`;
+                }
+                const noteBody = typeof n.body === 'string' ? n.body : '';
+                md += noteBody + `
+
+`;
+                if (idx < notes.length - 1) md += `---
+
+`;
+            });
+            
+            md += `
+## References
+
+- Source: ${sourceFile}
+- Generated: ${new Date().toLocaleString()}
+`;
+            
+            const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = title.replace(/[^a-zA-Z0-9一-鿿 ]/g, '_') + '.md';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+        
+        // ── Text Highlight & Selection ──
+        const highlightTooltip = document.createElement('div');
+        highlightTooltip.className = 'highlight-tooltip';
+        highlightTooltip.innerHTML = `
+            <button onclick="highlightSelection()">Highlight</button>
+            <button onclick="highlightAndNote()">+ Note</button>
+        `;
+        document.body.appendChild(highlightTooltip);
+        
+        document.addEventListener('mouseup', (e) => {
+            const sel = window.getSelection();
+            const text = sel.toString().trim();
+            
+            // Only show for selections within main content
+            const main = document.querySelector('.main-content');
+            if (!text || text.length < 3 || !main?.contains(sel.anchorNode)) {
+                highlightTooltip.classList.remove('show');
+                return;
+            }
+            
+            const range = sel.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+            highlightTooltip.style.left = rect.left + (rect.width / 2) - 60 + 'px';
+            highlightTooltip.style.top = rect.top - 40 + window.scrollY + 'px';
+            highlightTooltip.classList.add('show');
+        });
+        
+        document.addEventListener('mousedown', (e) => {
+            if (!highlightTooltip.contains(e.target)) {
+                highlightTooltip.classList.remove('show');
+            }
+        });
+        
+        function highlightSelection() {
+            const sel = window.getSelection();
+            if (!sel.rangeCount) return;
+            const range = sel.getRangeAt(0);
+            const mark = document.createElement('mark');
+            mark.className = 'text-highlight';
+            try {
+                range.surroundContents(mark);
+            } catch(e) {
+                // Cross-element selection: fall back
+                const text = sel.toString();
+                mark.textContent = text;
+                range.deleteContents();
+                range.insertNode(mark);
+            }
+            sel.removeAllRanges();
+            highlightTooltip.classList.remove('show');
+        }
+        
+        function highlightAndNote() {
+            const sel = window.getSelection();
+            const text = sel.toString().trim();
+            if (!text) return;
+            
+            // Find section context
+            let section = '';
+            let node = sel.anchorNode;
+            while (node && node !== document.body) {
+                if (node.classList?.contains('concept-section')) {
+                    const h2 = node.querySelector('h2');
+                    if (h2) section = h2.textContent;
+                    break;
+                }
+                node = node.parentNode;
+            }
+            
+            highlightSelection();
+            
+            openInlineSelectionNoteEditor(text, section, sel.getRangeAt(0).getBoundingClientRect());
+        }
+        
+
+        function closeInlineSelectionNoteEditor() {
+            document.getElementById('inlineSelectionNoteEditor')?.remove();
+        }
+
+        function openInlineSelectionNoteEditor(selectionText, section, rect) {
+            closeInlineSelectionNoteEditor();
+            const editor = document.createElement('div');
+            editor.id = 'inlineSelectionNoteEditor';
+            editor.style.position = 'absolute';
+            editor.style.zIndex = '10030';
+            editor.style.width = 'min(420px, 90vw)';
+            editor.style.background = 'var(--bg-card)';
+            editor.style.border = '1px solid var(--border-color)';
+            editor.style.borderRadius = '12px';
+            editor.style.boxShadow = '0 16px 36px rgba(0,0,0,0.32)';
+            editor.style.padding = '0.65rem';
+            editor.style.top = (window.scrollY + rect.bottom + 10) + 'px';
+            editor.style.left = Math.max(12, Math.min(window.scrollX + rect.left, window.scrollX + window.innerWidth - 440)) + 'px';
+            editor.innerHTML = `
+                <div style="font-size:0.78rem;color:var(--text-tertiary);margin-bottom:0.4rem;">Add note for selection</div>
+                <textarea id="inlineSelectionNoteInput" placeholder="Write note... (Markdown supported)" style="width:100%;min-height:88px;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border-color);border-radius:8px;padding:0.5rem;font-size:0.86rem;resize:vertical;"></textarea>
+                <div style="display:flex;justify-content:flex-end;gap:0.45rem;margin-top:0.45rem;">
+                    <button type="button" id="inlineSelectionNoteCancel" style="border:1px solid var(--border-color);background:var(--bg-elevated);color:var(--text-primary);border-radius:8px;padding:0.3rem 0.6rem;cursor:pointer;font-size:0.8rem;">Cancel</button>
+                    <button type="button" id="inlineSelectionNoteSave" style="border:1px solid rgba(163,217,165,.55);background:var(--bg-elevated);color:var(--accent-secondary);border-radius:8px;padding:0.3rem 0.6rem;cursor:pointer;font-size:0.8rem;">Save</button>
+                </div>
+            `;
+            document.body.appendChild(editor);
+            const input = editor.querySelector('#inlineSelectionNoteInput');
+            input?.focus();
+            editor.querySelector('#inlineSelectionNoteCancel')?.addEventListener('click', closeInlineSelectionNoteEditor);
+            editor.querySelector('#inlineSelectionNoteSave')?.addEventListener('click', () => {
+                const body = (input?.value || '').trim() || '(highlighted)';
+                addNote(selectionText, body, section);
+                closeInlineSelectionNoteEditor();
+            });
+        }
+
+        // ── Init ──
+        document.addEventListener('DOMContentLoaded', () => {
+            new LearningPageController();
+            
+            // Add reveal animation to concept sections
+            document.querySelectorAll('.feynman-block, .quiz-container, .expandable, .chart-container, .diagram-container, .comparison-block, .stats-grid').forEach(el => {
+                el.classList.add('reveal-on-scroll');
+            });
+            
+            // Re-init observer for dynamically added elements
+            const obs = new IntersectionObserver((entries) => {
+                entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('revealed'); });
+            }, { threshold: 0.08 });
+            document.querySelectorAll('.reveal-on-scroll').forEach(el => obs.observe(el));
+            
+            // Initialize note draft autosave + live markdown preview
+            initNoteComposer();
+            // Load saved notes
+            renderNotes();
+        });
+        
+        // Typing dots animation
+        const typingStyle = document.createElement('style');
+        typingStyle.textContent = `
+            .typing-dots span {
+                animation: blink 1.4s infinite;
+                font-size: 1.5em;
+                line-height: 1;
+            }
+            .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+            .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+            @keyframes blink {
+                0%, 60%, 100% { opacity: 0.2; }
+                30% { opacity: 1; }
+            }
+        `;
+        document.head.appendChild(typingStyle);
+    
+    </script>
+    
+    <!-- KaTeX auto-render -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: "$$", right: "$$", display: true},
+                        {left: "$", right: "$", display: false},
+                        {left: "\\(", right: "\\)", display: false},
+                        {left: "\\[", right: "\\]", display: true}
+                    ],
+                    throwOnError: false
+                });
+            }
+        });
+    </script>
+    <script src="./app-shell.js?v=10"></script>
+    <script src="./lecture-enhancements.js?v=4"></script>
+    <script>
+(function(){
+  function hardFallbackNav(){
+    if (document.querySelector('.ios26-shell')) return;
+    var nav=document.createElement('nav');
+    nav.className='ios26-shell';
+    nav.setAttribute('aria-label','Bottom navigation');
+    var inner=document.createElement('div');
+    inner.className='ios26-shell__inner';
+    var items=[
+      ['⌂','Portal',function(){ location.href='./index.html'; }],
+      ['▣','PDF',function(){ if (window.switchSidebarTab) window.switchSidebarTab('pdf'); }],
+      ['✎','Notes',function(){ if (window.switchSidebarTab) window.switchSidebarTab('notes'); }],
+      ['✦','AI',function(){ var ai=document.getElementById('aiInput'); if (ai) ai.focus(); }]
+    ];
+    items.forEach(function(it, idx){
+      var btn=document.createElement('button');
+      btn.type='button';
+      btn.className='ios26-shell__btn'+(idx===0?' is-active':'');
+      btn.innerHTML='<span class="ios26-shell__icon">'+it[0]+'</span><span class="ios26-shell__label">'+it[1]+'</span>';
+      btn.addEventListener('click', function(){
+        inner.querySelectorAll('.ios26-shell__btn').forEach(function(b){ b.classList.remove('is-active'); });
+        btn.classList.add('is-active');
+        it[2]();
+      });
+      inner.appendChild(btn);
+    });
+    nav.appendChild(inner);
+    document.body.appendChild(nav);
+  }
+  window.addEventListener('load', function(){ setTimeout(hardFallbackNav, 800); });
+})();
+</script>
+</body>
+</html>

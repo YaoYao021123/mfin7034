@@ -1,0 +1,2966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lec 7-8 risk_v2 - Interactive Learning</title>
+    
+    <!-- KaTeX for formula rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    
+    <!-- Mermaid for flowcharts and diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+    
+    <!-- Fonts: Noto Serif for body, Inter for headings -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        
+        :root {
+            /* Warm Academic Theme - Clean & Readable */
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #1f2b47;
+            --bg-elevated: #263352;
+            --bg-card: #1c2a45;
+            
+            --text-primary: #edf2f7;
+            --text-secondary: #a0aec0;
+            --text-tertiary: #718096;
+            
+            /* Warm Gold + Sage Green palette */
+            --accent-primary: #f6c177;
+            --accent-secondary: #a3d9a5;
+            --accent-tertiary: #c4b5fd;
+            --accent-warning: #fbbf24;
+            --accent-error: #fb7185;
+            --accent-info: #7dd3fc;
+            
+            --gradient-primary: linear-gradient(135deg, #f6c177 0%, #e8a87c 100%);
+            --gradient-heading: linear-gradient(135deg, #f6c177 0%, #c4b5fd 100%);
+            
+            --border-color: rgba(255, 255, 255, 0.06);
+            --border-hover: rgba(246, 193, 119, 0.25);
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+            
+            --font-body: 'Georgia', 'Times New Roman', 'Noto Serif SC', serif;
+            --font-heading: -apple-system, 'Helvetica Neue', 'PingFang SC', sans-serif;
+            --font-mono: 'SF Mono', 'Menlo', 'Monaco', monospace;
+            
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-primary: #faf8f5;
+                --bg-secondary: #f0ece4;
+                --bg-tertiary: #e8e2d8;
+                --bg-elevated: #ffffff;
+                --bg-card: #ffffff;
+                
+                --text-primary: #1c1917;
+                --text-secondary: #57534e;
+                --text-tertiary: #a8a29e;
+                
+                --accent-primary: #c2742f;
+                --accent-secondary: #3d8b40;
+                --accent-tertiary: #7c3aed;
+                --accent-warning: #b45309;
+                --accent-error: #dc2626;
+                
+                --gradient-heading: linear-gradient(135deg, #c2742f 0%, #7c3aed 100%);
+                
+                --border-color: rgba(0, 0, 0, 0.06);
+                --border-hover: rgba(194, 116, 47, 0.3);
+                --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+                --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+                --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+            }
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+        
+        .page-container {
+            --left-width: 260px;
+            --right-width: 300px;
+            display: grid;
+            grid-template-columns: minmax(200px, var(--left-width)) 8px minmax(0, 1fr) 8px minmax(220px, var(--right-width));
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        .column-resizer {
+            cursor: col-resize;
+            background: transparent;
+            transition: background-color 0.15s var(--ease);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            z-index: 5;
+        }
+        .column-resizer:hover,
+        .column-resizer.dragging {
+            background: rgba(246, 193, 119, 0.2);
+        }
+        
+        .sidebar-left, .sidebar-right {
+            background: var(--bg-secondary);
+            padding: 2rem 1.25rem;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-left {
+            border-right: 1px solid var(--border-color);
+        }
+        
+        .sidebar-right {
+            border-left: 1px solid var(--border-color);
+        }
+        
+        .main-content {
+            max-width: none;
+            min-width: 0;
+            width: 100%;
+            margin: 0 auto;
+            padding: 3rem 2.5rem;
+        }
+        
+        @media (max-width: 1200px) {
+            .page-container { grid-template-columns: 1fr; }
+            .sidebar-left, .sidebar-right, .column-resizer { display: none; }
+            .main-content { padding: 2rem 1.25rem; }
+        }
+        
+        h1 {
+            font-family: var(--font-heading);
+            font-size: clamp(1.875rem, 4vw, 2.5rem);
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.01em;
+            color: var(--text-primary);
+        }
+        
+        h2 {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 3.5rem;
+            margin-bottom: 1.25rem;
+            color: var(--accent-primary);
+            letter-spacing: -0.01em;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        h3 {
+            font-family: var(--font-heading);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+        }
+        
+        h4 {
+            font-family: var(--font-heading);
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        
+        h5 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.8;
+        }
+        
+        .feynman-block {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-left: 3px solid var(--accent-primary);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            transition: border-color 0.2s var(--ease);
+        }
+        
+        .feynman-block:hover {
+            border-color: var(--border-hover);
+        }
+        
+        .feynman-block .icon {
+            font-size: 1.75rem;
+            margin-bottom: 0.75rem;
+            display: inline-block;
+        }
+        
+        .expandable {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            margin: 1.5rem 0;
+            overflow: hidden;
+        }
+        
+        .expandable-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            cursor: pointer;
+            user-select: none;
+            font-weight: 500;
+            font-family: var(--font-heading);
+            transition: background 0.15s var(--ease);
+        }
+        
+        .expandable-header:hover {
+            background: var(--bg-tertiary);
+        }
+        
+        .expandable-icon {
+            transition: transform 0.25s var(--ease);
+            display: inline-block;
+            font-size: 0.8rem;
+        }
+        
+        .expandable.open .expandable-icon {
+            transform: rotate(180deg);
+        }
+        
+        .expandable-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s var(--ease);
+        }
+        
+        .expandable.open .expandable-content {
+            max-height: 5000px;
+        }
+        
+        .expandable-content-inner {
+            padding: 1.25rem;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .quiz-container {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border: 1px solid var(--border-color);
+        }
+        
+        .quiz-question {
+            font-size: 1.05rem;
+            font-family: var(--font-heading);
+            margin-bottom: 1.25rem;
+            color: var(--text-primary);
+        }
+        
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.625rem;
+        }
+        
+        .quiz-option {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.15s var(--ease);
+            font-size: 0.95rem;
+        }
+        
+        .quiz-option:hover {
+            border-color: var(--accent-primary);
+            padding-left: 1.25rem;
+        }
+        
+        .quiz-option.correct {
+            background: rgba(163, 217, 165, 0.2);
+            border-color: var(--accent-secondary);
+            color: var(--accent-secondary);
+        }
+        
+        .quiz-option.incorrect {
+            background: rgba(251, 113, 133, 0.15);
+            border-color: var(--accent-error);
+            color: var(--accent-error);
+        }
+        
+        .quiz-feedback {
+            margin-top: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-sm);
+            display: none;
+            font-size: 0.9rem;
+        }
+        
+        .quiz-feedback.show { display: block; }
+        .quiz-feedback.correct { background: rgba(163, 217, 165, 0.15); border: 1px solid var(--accent-secondary); }
+        .quiz-feedback.incorrect { background: rgba(251, 113, 133, 0.1); border: 1px solid var(--accent-error); }
+        
+        .progress-tracker {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--bg-secondary);
+            z-index: 1000;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: var(--gradient-primary);
+            width: 0%;
+            transition: width 0.2s var(--ease);
+        }
+        
+        .ai-chat {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+        }
+        
+        .ai-chat-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .ai-chat-messages {
+            max-height: 320px;
+            overflow-y: auto;
+            margin-bottom: 0.75rem;
+            padding: 0.75rem;
+            background: var(--bg-primary);
+            border-radius: var(--radius-sm);
+        }
+        
+        .ai-message {
+            margin-bottom: 0.75rem;
+            padding: 0.625rem 0.875rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+        
+        .ai-message.user {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            margin-left: 1.5rem;
+            font-weight: 500;
+        }
+        
+        .ai-message.assistant {
+            background: var(--bg-tertiary);
+            margin-right: 1.5rem;
+        }
+        
+        .ai-input-group { display: flex; gap: 0.5rem; }
+        
+        .ai-input {
+            flex: 1;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.625rem 0.75rem;
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+        }
+        
+        .ai-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+        
+        .ai-send-btn, .action-btn {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 0.625rem 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: var(--font-heading);
+            font-size: 0.85rem;
+            transition: opacity 0.15s;
+        }
+        
+        .action-btn {
+            width: 100%;
+            margin-bottom: 0.5rem;
+            text-align: left;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .ai-send-btn:hover { opacity: 0.85; }
+        .action-btn:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+        
+        kbd {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 0.15rem 0.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.8em;
+        }
+        
+        .toc-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: block;
+            padding: 0.375rem 0.5rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            font-family: var(--font-heading);
+            transition: color 0.15s, background 0.15s;
+        }
+        
+        .toc-link:hover {
+            color: var(--accent-primary);
+            background: var(--bg-tertiary);
+        }
+        
+        /* Scroll reveal - simple fade */
+        .reveal-on-scroll {
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity 0.5s var(--ease), transform 0.5s var(--ease);
+        }
+        .reveal-on-scroll.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--bg-elevated); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+        
+        ::selection { background: var(--accent-primary); color: var(--bg-primary); }
+        
+        /* Print */
+        @media print {
+            .sidebar-left, .sidebar-right, .progress-tracker { display: none; }
+            .page-container { grid-template-columns: 1fr; }
+            body { background: white; color: black; }
+        }
+        
+        /* ===========================================
+           DATA VISUALIZATION & CHARTS
+           =========================================== */
+        .chart-container {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+        .chart-container .chart-title {
+            font-family: var(--font-heading);
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            text-align: center;
+        }
+        .chart-container canvas { max-height: 380px; width: 100% !important; }
+        .chart-caption {
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+            text-align: center;
+            margin-top: 0.75rem;
+            font-style: italic;
+        }
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        .chart-grid .chart-container { margin: 0; }
+        
+        .diagram-container {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            overflow-x: auto;
+            text-align: center;
+        }
+        .diagram-container .diagram-title {
+            font-family: var(--font-heading);
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+        }
+        .diagram-container .mermaid { display: flex; justify-content: center; }
+        .diagram-container .mermaid svg { max-width: 100%; height: auto; }
+        .diagram-caption {
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+            text-align: center;
+            margin-top: 0.75rem;
+            font-style: italic;
+        }
+        
+        .comparison-block {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 1rem;
+            align-items: stretch;
+            margin: 2rem 0;
+        }
+        .comparison-side {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+        .comparison-side.left { border-top: 3px solid var(--accent-primary); }
+        .comparison-side.right { border-top: 3px solid var(--accent-secondary); }
+        .comparison-side h4 { margin-bottom: 0.75rem; }
+        .comparison-side ul { padding-left: 1.25rem; }
+        .comparison-side li { margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.95rem; }
+        .comparison-divider {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            color: var(--text-tertiary);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            transition: transform 0.15s var(--ease);
+        }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            display: block;
+            font-family: var(--font-heading);
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            margin-top: 0.25rem;
+        }
+        
+        @media (max-width: 768px) {
+            .comparison-block { grid-template-columns: 1fr; }
+            .comparison-divider { justify-content: center; padding: 0.5rem 0; }
+            .chart-grid { grid-template-columns: 1fr; }
+        }
+        
+        /* ===========================================
+           SIDEBAR TABS & PANELS
+           =========================================== */
+        .sidebar-tabs {
+            display: flex;
+            gap: 2px;
+            margin-bottom: 1rem;
+            background: var(--bg-primary);
+            border-radius: var(--radius-sm);
+            padding: 2px;
+        }
+        .sidebar-tab {
+            flex: 1;
+            padding: 0.5rem 0.25rem;
+            background: transparent;
+            border: none;
+            color: var(--text-tertiary);
+            font-family: var(--font-heading);
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.15s var(--ease);
+        }
+        .sidebar-tab:hover { color: var(--text-secondary); }
+        .sidebar-tab.active {
+            background: var(--bg-elevated);
+            color: var(--accent-primary);
+        }
+        
+        /* ===========================================
+           NOTES SYSTEM
+           =========================================== */
+        .note-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.625rem;
+            font-size: 0.85rem;
+            position: relative;
+            cursor: pointer;
+            transition: border-color 0.15s var(--ease), transform 0.15s var(--ease);
+        }
+        .note-card:hover { border-color: var(--border-hover); }
+        .note-card.active {
+            border-color: var(--accent-primary);
+            transform: translateY(-1px);
+        }
+        .note-card.focused {
+            border-left: 3px solid var(--accent-secondary);
+            padding-left: calc(0.625rem - 2px);
+        }
+        .note-card .note-citation {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            border-left: 2px solid var(--accent-primary);
+            padding-left: 0.5rem;
+            margin-bottom: 0.375rem;
+            font-style: italic;
+            line-height: 1.4;
+        }
+        .note-card .note-body {
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .note-card .note-meta {
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+            margin-top: 0.375rem;
+            display: flex;
+            justify-content: space-between;
+        }
+        .note-card .note-delete {
+            background: none;
+            border: none;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 0;
+        }
+        .note-card .note-delete:hover { color: var(--accent-error); }
+        .note-card .note-focus {
+            background: none;
+            border: none;
+            color: var(--accent-secondary);
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 0;
+            margin-right: 0.5rem;
+        }
+        .note-card .note-focus:hover { color: var(--accent-primary); }
+        .note-reader {
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-primary);
+            overflow-y: auto;
+            max-height: 34vh;
+        }
+        .note-reader .reader-title {
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            margin-bottom: 0.5rem;
+        }
+        .note-reader .reader-content {
+            color: var(--text-secondary);
+            line-height: 1.65;
+            font-size: 0.9rem;
+        }
+        .note-reader .reader-content code {
+            background: var(--bg-tertiary);
+            padding: 0.1em 0.35em;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+        .note-draft-preview {
+            margin-top: 0.5rem;
+            max-height: 20vh;
+        }
+        
+        /* ===========================================
+           TEXT HIGHLIGHT
+           =========================================== */
+        .text-highlight {
+            background: rgba(246, 193, 119, 0.25);
+            border-bottom: 2px solid var(--accent-primary);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .text-highlight:hover {
+            background: rgba(246, 193, 119, 0.4);
+        }
+        
+        /* Highlight context menu */
+        .highlight-tooltip {
+            position: fixed;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-lg);
+            padding: 0.25rem;
+            display: none;
+            z-index: 1001;
+            gap: 2px;
+        }
+        .highlight-tooltip.show { display: flex; }
+        .highlight-tooltip button {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 0.375rem 0.625rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-family: var(--font-heading);
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        .highlight-tooltip button:hover {
+            background: var(--bg-tertiary);
+            color: var(--accent-primary);
+        }
+    
+    </style>
+    <link rel="stylesheet" href="./app-shell.css?v=10" />
+</head>
+<body data-shell-page="lecture">
+    <!-- Progress Tracker -->
+    <div class="progress-tracker">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="page-container">
+        <!-- Left Sidebar -->
+        <aside class="sidebar-left">
+            <!-- Sidebar Tabs -->
+            <div class="sidebar-tabs">
+                <button class="sidebar-tab active" data-tab="toc" onclick="switchSidebarTab('toc')">Contents</button>
+                <button class="sidebar-tab" data-tab="pdf" onclick="switchSidebarTab('pdf')">PDF</button>
+                <button class="sidebar-tab" data-tab="notes" onclick="switchSidebarTab('notes')">Notes</button>
+            </div>
+            
+            <!-- Tab: Table of Contents -->
+            <div class="sidebar-panel" id="panel-toc">
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin-bottom: 0.75rem;">
+                        <a href="#overview" class="toc-link">Overview</a>
+                    </li>
+                    
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-1" class="toc-link">SME Credit Risk Modeling</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-2" class="toc-link">Binary Classification</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-3" class="toc-link">Altman’s Z-score</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-4" class="toc-link">Logistic Regression</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-5" class="toc-link">Maximum Likelihood Estimation (MLE)</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-6" class="toc-link">Feature Engineering for Risk</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-7" class="toc-link">Automated Lending Processes</a>
+            </li>
+        
+                </ul>
+                
+                <div style="margin-top: 3rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.85rem;">
+                    <div style="color: var(--text-tertiary); margin-bottom: 0.5rem;">Course Stats</div>
+                    <div style="color: var(--text-secondary);">
+                        <div>7 Concepts</div>
+                        <div>31 Images</div>
+                        <div>69 Tables</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab: PDF Viewer -->
+            <div class="sidebar-panel" id="panel-pdf" style="display:none;">
+                <div id="pdfViewerContainer" style="height: calc(100vh - 80px); display: flex; flex-direction: column;">
+                    <p style="font-size: 0.85rem; color: var(--text-tertiary); margin-bottom: 0.75rem;">Source: Lec 7-8 risk_v2.pdf</p>
+                    <iframe id="pdfFrame" src="../pdfs/Lec 7-8 risk_v2.pdf" style="flex:1; width:100%; border:none; border-radius: var(--radius-sm); background: var(--bg-tertiary);"></iframe>
+                </div>
+            </div>
+            
+            <!-- Tab: Notes -->
+            <div class="sidebar-panel" id="panel-notes" style="display:none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                    <span style="font-size: 0.85rem; color: var(--text-tertiary);" id="notesCount">0 notes</span>
+                    <button onclick="exportNotesToObsidian()" class="action-btn" style="width:auto; padding: 0.4rem 0.75rem; font-size: 0.8rem;">Export .md</button>
+                </div>
+                <div id="notesList" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 32vh; overflow-y: auto;"></div>
+                <div id="noteReader" class="note-reader">
+                    <div class="reader-title">Reading</div>
+                    <div class="reader-content">Click a note in history to read it here.</div>
+                </div>
+                <div style="margin-top: 0.75rem; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
+                    <textarea id="noteInput" oninput="handleNoteInputChange(this.value)" placeholder="Write a note (Markdown supported)..." style="width:100%; min-height: 80px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem; color: var(--text-primary); font-family: var(--font-mono); font-size: 0.85rem; resize: vertical;"></textarea>
+                    <div id="noteDraftPreview" class="note-reader note-draft-preview">
+                        <div class="reader-title">Live Preview</div>
+                        <div class="reader-content" id="noteDraftPreviewContent">Type in the note box to preview Markdown rendering in real time.</div>
+                    </div>
+                    <button onclick="addFreeNote()" class="action-btn" style="margin-top: 0.375rem;">Add Note</button>
+                </div>
+            </div>
+        </aside>
+
+        <div class="column-resizer" id="resizerLeft" role="separator" aria-orientation="vertical" aria-label="Resize left sidebar"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header id="overview">
+                <h1>Lec 7-8 risk_v2</h1>
+                <p style="font-size: 1.1rem; color: var(--text-tertiary); margin-bottom: 2rem;">
+                    Interactive Learning Experience • Source: Lec 7-8 risk_v2.pdf
+                </p>
+                
+                <!-- Course Overview -->
+                <div class="feynman-block" style="border-left-color: #9f7aea;">
+                    <h4>Course Overview</h4>
+                    <p><strong>Difficulty:</strong> Intermediate</p>
+                    
+                    <h5 style="margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--accent-primary);">Prerequisites:</h5>
+                    <ul style="margin-left: 1.5rem;">
+                        <li>Basic Statistics and Probability</li><li>Introductory Corporate Finance</li><li>Fundamental Calculus (Logarithms and Optimization)</li><li>Basic Python Programming</li>
+                    </ul>
+                    
+                    <h5 style="margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--accent-secondary);">Learning Objectives:</h5>
+                    <ul style="margin-left: 1.5rem;">
+                        <li>Analyze the economic challenges and data limitations associated with SME lending and credit risk.</li><li>Compare the evolution of risk models from traditional financial ratios (Z-score) to modern statistical methods.</li><li>Formulate and estimate a Logistic Regression model using the Maximum Likelihood Estimation method.</li><li>Identify and categorize different types of predictors (financial, demographic, and alternative) used in risk features engineering.</li>
+                    </ul>
+                </div>
+            </header>
+
+            <!-- Concept Sections -->
+            
+        <section id="concept-1" class="concept-section">
+            <h2>SME Credit Risk Modeling</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Lending to an SME is like trying to guess if a new local café will succeed based on how busy it looks and its owner's reputation, rather than a thick stack of corporate audits. Since small businesses lack the transparent history of giant corporations, you have to look at 'digital footprints' like daily sales and utility bills to decide if they are trustworthy.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>SMEs represent the majority of businesses globally, yet they often face a 'credit gap' because banks lack the data to trust them. Automated risk modeling allows banks to lend safely to these businesses at scale, fueling economic growth without requiring expensive, manual audits for every small loan.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="diagram-container">
+            <div class="diagram-title">SME Credit Decision Pipeline</div>
+            <div class="mermaid">
+flowchart TD
+    A[Data Sources: POS Records, Tax Data, Bank Statements] --> B[Feature Extraction: Cash Flow, Growth, Liquidity]
+    B --> C[ML Models: Logistic Regression / SVM]
+    C --> D[Risk Score: Probability of Default]
+    D --> E{Threshold Check}
+    E -- Score < 10% --> F[Automated Approval]
+    E -- Score > 10% --> G[Loan Rejection / Manual Review]
+            </div>
+            <div class="diagram-caption">How alternative data and ML methods transform raw business data into a lending decision.</div>
+        </div>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>SME credit risk modeling uses mathematical algorithms to calculate the 'Probability of Default'—the likelihood that a small business will stop paying its loan. Because SMEs often have 'thin' credit files or unaudited books, models rely on Machine Learning techniques like Logistic Regression or Support Vector Machines to find patterns in non-traditional data. These models analyze variables such as cash flow volatility, transaction frequency, and industry-specific trends to assign a numerical risk score. By shifting from manual judgment to automated data-driven pipelines, lenders can handle thousands of applications instantly while maintaining a consistent standard for who gets funded.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>The process of evaluating default risks for Small and Medium Enterprises, which often face data scarcity and require automated, data-driven lending solutions.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>A local hardware store applies for a $20,000 loan to buy inventory. The bank's model analyzes 12 months of the store's bank statements, seeing $10,000 average monthly revenue but a high debt-to-income ratio of 45%. The Logistic Regression model weights these factors and generates a risk score of 0.08, meaning an 8% chance of default. Because the bank’s cutoff for approval is 10%, the loan is automatically approved at a 7% interest rate.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>A frequent error is treating SME data exactly like individual consumer data; in reality, SME risk is often 'intertwined,' meaning the business's survival is heavily dependent on the owner's personal credit and the specific local economy, which requires more complex data blending.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> Which of the following is a primary challenge in SME credit risk modeling that distinguishes it from large corporate lending?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        The abundance of audited financial statements
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        The lack of historical data and standardized financial reporting
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The requirement for physical collateral for every loan
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The stability and predictability of SME revenue streams
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! SMEs often suffer from data scarcity, requiring lenders to find innovative ways to assess risk without the extensive financial history available for larger firms.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. SMEs often suffer from data scarcity, requiring lenders to find innovative ways to assess risk without the extensive financial history available for larger firms.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> How do modern, data-driven lending solutions typically compensate for the lack of traditional credit history in SMEs?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        By increasing the interest rates to the maximum legal limit
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        By relying exclusively on qualitative interviews with business owners
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        By utilizing alternative data such as transaction history and utility payments
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        By requiring SMEs to provide 10 years of audited tax returns
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Alternative data sources allow lenders to build predictive models even when traditional credit bureau data or formal financial statements are missing.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Alternative data sources allow lenders to build predictive models even when traditional credit bureau data or formal financial statements are missing.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> What is the main objective of implementing automated credit risk models for the SME sector?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        To shift all financial liability from the lender to the borrower
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To increase the time required for manual manual review of documents
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        To achieve scalable, cost-effective, and consistent lending decisions
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To eliminate the need for any regulatory compliance checks
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Automation allows financial institutions to process a high volume of small-ticket loans efficiently while maintaining a standardized risk assessment process.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Automation allows financial institutions to process a high volume of small-ticket loans efficiently while maintaining a standardized risk assessment process.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-2" class="concept-section">
+            <h2>Binary Classification</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Think of a 'Pass/Fail' credit sensor at a store checkout. Instead of measuring how much money you have, it only checks if your balance is above or below a specific threshold to decide if the transaction is approved or denied.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>This is the backbone of financial risk management, allowing banks to automate loan approvals and predict the likelihood of a borrower defaulting. It transforms complex financial data into a clear 'Yes' or 'No' decision, minimizing human error and financial loss.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="comparison-block">
+            <div class="comparison-side left">
+                <h4>🔵 Logit Model (Logistic)</h4>
+                <ul><li>Uses the Logistic distribution for the error term.</li><li>Formula: exp(z) / (1 + exp(z)).</li><li>Has 'fatter tails,' meaning it assigns higher probabilities to extreme events.</li></ul>
+            </div>
+            <div class="comparison-divider">vs</div>
+            <div class="comparison-side right">
+                <h4>🟢 Probit Model (Normal)</h4>
+                <ul><li>Uses the Standard Normal distribution (Gaussian).</li><li>Formula: Φ(z), the cumulative distribution function.</li><li>Tends to approach 0 and 1 faster than the Logit model.</li></ul>
+            </div>
+        </div>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Binary classification is a statistical process used to predict which of two distinct categories an observation belongs to. In financial modeling, we use models like Logit or Probit to map input variables—such as income or debt levels—to a probability between 0 and 1. The key technical difference lies in the distribution of the 'residual' or error term: the Logit model assumes a Logistic distribution (leading to the sigmoid curve), while the Probit model assumes a Standard Normal distribution. By applying Maximum Likelihood Estimation (MLE), we find the parameters that make the observed data most probable, allowing us to classify a borrower as 'high risk' or 'low risk' based on whether their calculated probability exceeds a chosen threshold.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>what is the key condition?
+
+•  Typically MLE requires modelling of the distribution of the residual  ϵ .
+•  For binary classification problem: Logit:  Pr ( ϵ <  z ) =
+exp( z ) 1+exp( z ) .
+
+
+[FORMULA]: •  Probit:  Pr ( ϵ <  z ) = Φ( z /σ ), where Φ( x ) =
+
+R  x
+
+
+[FORMULA]: −∞ ϕ ( x ), with</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Imagine a borrower has a credit health score ($z$) of 1.1. Using the Logit formula, the bank calculates the probability of default as $\exp(1.1) / (1 + \exp(1.1))$, which is approximately 0.75. Since 0.75 is above the bank's safety threshold of 0.50, the model classifies the borrower as 'Likely to Default' and the loan is rejected.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>Students often assume the model directly outputs a '0' or '1' result, but it actually outputs a probability between 0 and 1. You must manually define a threshold—usually 0.5—to turn that probability into a final classification decision.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> In the context of binary classification, what is a typical requirement for performing Maximum Likelihood Estimation (MLE)?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="true">
+                        Modeling the distribution of the residual ε
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Ensuring the residual ε is always a constant value
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Eliminating the need for a probability distribution
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Assuming the residual ε follows a discrete uniform distribution only
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! MLE for binary classification models generally requires specifying a functional form for the probability distribution of the error or residual term.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. MLE for binary classification models generally requires specifying a functional form for the probability distribution of the error or residual term.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> Which formula defines the probability Pr(ε < z) when using a Logit model for binary classification?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        Pr(ε < z) = Φ(z/σ)
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        Pr(ε < z) = exp(z) / (1 + exp(z))
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Pr(ε < z) = 1 - exp(-z)
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Pr(ε < z) = z / (1 + z)
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The Logit model specifically employs the logistic cumulative distribution function, defined as exp(z) divided by (1 + exp(z)).
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The Logit model specifically employs the logistic cumulative distribution function, defined as exp(z) divided by (1 + exp(z)).
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> How is the Probit model characterized in terms of the distribution of the residual ε?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        It assumes the residual follows a logistic distribution
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It relies on a linear probability distribution without integration
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        It uses the cumulative distribution function Φ(z/σ) of the normal distribution
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It requires the residual to be modeled as a Poisson process
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The Probit model is defined by the standard normal cumulative distribution function, denoted as Φ(z/σ).
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The Probit model is defined by the standard normal cumulative distribution function, denoted as Φ(z/σ).
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-3" class="concept-section">
+            <h2>Altman’s Z-score</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Think of the Z-score as a 'Medical Vital Signs' score for a business, where instead of heart rate and blood pressure, we measure five financial health markers. Just as a doctor uses a combined health index to predict a patient's risk of a heart attack, a Z-score combines five financial ratios to predict a company's risk of 'dying' through bankruptcy.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>It allows lenders and investors to predict corporate failure up to two years in advance with high accuracy, helping them avoid losing money on bad loans. By condensing complex balance sheets into a single number, it provides a fast, objective 'stress test' for any public company.</p>
+            </div>
+            
+            <!-- Visualization -->
+            <div class="stats-grid"><div class="stat-card"><span class="stat-value">> 2.99</span><div class="stat-label">Safe Zone (Low Bankruptcy Risk)</div></div><div class="stat-card"><span class="stat-value">1.81 - 2.99</span><div class="stat-label">Grey Zone (Caution/At Risk)</div></div><div class="stat-card"><span class="stat-value">< 1.81</span><div class="stat-label">Distress Zone (High Probability of Failure)</div></div></div>
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>The Altman Z-score is a multivariate formula that measures five distinct areas of financial health: liquidity, cumulative profitability, operating efficiency, market confidence, and sales potency. Each area is assigned a 'weight' based on its historical importance in predicting failure—for instance, operating profit (EBIT) is weighted heavily (3.3) because it shows if a business is fundamentally viable. By summing these weighted ratios, the model creates a score that distinguishes between healthy firms and those drifting toward insolvency. A score below 1.8 indicates the 'Distress Zone,' where the company is statistically likely to go bankrupt within two years, while a score above 3.0 indicates the 'Safe Zone.'</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>
+Risk models in financial industry
+
+•  First Generation: E.Altman’s Z-score (1968):
+Z-score = 1.2 working capital/total assets+1.4 retained earnings/total assets + earnings before interest and tax/ total assets + market value of equity/ total liabilities + sales/ total assets. A score below 1.8 means it is likely to go bankruptcy.
+
+•  Many firms and auditing agencies are still using Z-score.
+•  Not good for SMEs because the traditional financial measures are not
+accurate. 15
+
+
+[Tables on this pa</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Imagine a company with $10M in assets but massive debt and negative earnings. Even if they have high sales, their Z-score might drop to 1.2 because the formula heavily penalizes low earnings and high liabilities. A bank looking at this 1.2 score would immediately reject their loan application, classifying them as a 'Distress Zone' candidate regardless of their brand's popularity.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>Students often incorrectly apply the standard 1.8 threshold to modern tech startups or SMEs, even though the original Z-score was specifically designed for public manufacturing firms with heavy physical assets.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> According to Edward Altman’s Z-score model developed in 1968, what score threshold indicates that a firm is likely to face bankruptcy?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        A score above 3.0
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        A score below 1.8
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        A score between 2.0 and 2.5
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        A score of exactly 0
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The model specifically identifies that a Z-score below 1.8 indicates a high likelihood of the company going into bankruptcy.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The model specifically identifies that a Z-score below 1.8 indicates a high likelihood of the company going into bankruptcy.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> Which of the following financial ratios is NOT included in the calculation of Altman’s Z-score?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        Working capital / Total assets
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Retained earnings / Total assets
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        Net income / Total inventory
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Market value of equity / Total liabilities
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The Z-score formula uses working capital, retained earnings, EBIT, market value of equity, and sales, but does not include a ratio for total inventory.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The Z-score formula uses working capital, retained earnings, EBIT, market value of equity, and sales, but does not include a ratio for total inventory.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> What is a primary limitation of using Altman’s Z-score for Small and Medium-sized Enterprises (SMEs)?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        SMEs are legally prohibited from using Z-score models.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The model is only applicable to companies founded before 1968.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Auditing agencies refuse to recognize Z-scores for smaller firms.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        Traditional financial measures are not accurate for these types of firms.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Altman's Z-score is considered less effective for SMEs because traditional financial measures often lack accuracy for smaller businesses.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Altman's Z-score is considered less effective for SMEs because traditional financial measures often lack accuracy for smaller businesses.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-4" class="concept-section">
+            <h2>Logistic Regression</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Imagine a bouncer at a club who looks at your attire and guest list status to decide if you can enter. Instead of a simple 'yes' or 'no' immediately, he first assigns you a 'VIP probability' from 0% to 100%, and only lets you in if that score crosses a specific threshold.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>Logistic regression is the primary tool used by banks to decide who gets a loan and who doesn't by quantifying the probability of default. It allows financial institutions to turn messy, multi-dimensional data into a single, actionable risk score.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="chart-container">
+            <div class="chart-title">The Sigmoid Function (S-Curve) in Logistic Regression</div>
+            <canvas id="chart-4" style="max-height:380px;"></canvas>
+            <div class="chart-caption">The curve maps inputs to a probability between 0 and 1, showing the transition from 'Category A' to 'Category B'.</div>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('chart-4');
+            if (ctx && typeof Chart !== 'undefined') {
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ["-6", "-4", "-2", "0", "2", "4", "6"],
+                        datasets: [{"label": "Probability of Event", "data": [0.002, 0.017, 0.119, 0.5, 0.88, 0.982, 0.997], "borderColor": "#4299e1", "backgroundColor": "rgba(66,153,225,0.15)", "tension": 0.4, "fill": true}]
+                    },
+                    options: {
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            tooltip: { mode: 'index', intersect: false }
+                        },
+                        scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                x: { grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+                    }
+                });
+            }
+        });
+        </script>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Logistic Regression is a classification algorithm that predicts the probability of an outcome belonging to one of two categories. It works by taking a linear combination of input features—like income and credit history—and passing them through a Sigmoid function. This function 'squashes' any input value into a range between 0 and 1, creating an S-shaped curve. Because the output is a probability, we can apply a decision threshold (typically 0.5) to classify the result into a discrete group, such as 'Likely to Default' versus 'Likely to Pay.' Unlike linear regression, which can predict values that make no sense for probability (like -5 or 120), logistic regression ensures the output is always a valid percentage.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>Outline of Today
+
+•  Classification in financial Risks.
+•  Logistic Regression, SVM.
+•  Python Implementation
+•  Real data example.
+1
+
+
+[Tables on this page: 1]
+
+============================================================
+PAGE 3</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>A credit card company analyzes a customer with a $5,000 balance and two missed payments. The model calculates these factors and outputs a probability of 0.85 (85%) that the customer will default. Since 0.85 is above the 0.50 cutoff, the system automatically lowers the customer's credit limit to mitigate risk.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>Students often think Logistic Regression is used for predicting continuous numerical values like stock prices because of the word 'Regression,' but it is actually a classification tool for categorical outcomes.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> Despite its name, what type of machine learning task is Logistic Regression primarily used for?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        Predicting continuous numerical values
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        Categorical classification
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Unsupervised clustering
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Time-series forecasting
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Logistic regression is a classification algorithm used to predict the probability of a discrete outcome or category.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Logistic regression is a classification algorithm used to predict the probability of a discrete outcome or category.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> In the context of financial risks, which of the following is a classic application for Logistic Regression?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        Estimating the exact dollar amount of a stock's future price
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Calculating the annual depreciation of a physical asset
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        Predicting whether a loan applicant will default (Yes/No)
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Generating random numbers for Monte Carlo simulations
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Logistic regression is ideal for binary classification tasks in finance, such as determining if a customer is a credit risk or not.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Logistic regression is ideal for binary classification tasks in finance, such as determining if a customer is a credit risk or not.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> Which mathematical function is used in Logistic Regression to map predicted values to probabilities between 0 and 1?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        The Linear Function
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        The Sigmoid Function
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The Square Root Function
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The Absolute Value Function
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The sigmoid function (or logistic function) transforms any real-valued number into a value between 0 and 1, representing a probability.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The sigmoid function (or logistic function) transforms any real-valued number into a value between 0 and 1, representing a probability.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-5" class="concept-section">
+            <h2>Maximum Likelihood Estimation (MLE)</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Imagine finding a wet umbrella in a hallway and guessing if it rained or if someone spilled a bucket. MLE is the process of choosing 'rain' because, out of all possible explanations, rain is the one that makes seeing a wet umbrella most probable.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>MLE is the engine behind Logistic Regression, which is used by banks to decide who gets a loan. It ensures that the weights we assign to credit scores and income levels are the ones that most accurately reflect historical patterns of default and repayment.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="diagram-container">
+            <div class="diagram-title">The MLE Optimization Process</div>
+            <div class="mermaid">
+flowchart TD
+    A[Observed Data: Successes & Failures] --> B[Define Likelihood Function: Product of Probabilities]
+    B --> C[Apply Logarithm: Convert Product to Sum]
+    C --> D[Log-Likelihood Function]
+    D --> E[Find Maximum Point: Gradient Ascent/Calculus]
+    E --> F[Optimal Model Parameters]
+            </div>
+            <div class="diagram-caption">How MLE moves from raw observations to optimized model parameters using the log-sum trick.</div>
+        </div>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>MLE seeks to find the parameter values that maximize the 'likelihood' of the observed data occurring. In models like Logistic Regression, we assume our data points are independent, meaning the total probability of our dataset is the product of each individual point's probability. Because multiplying many small probabilities results in tiny numbers that are hard for computers to handle, we apply a natural logarithm to the function. This transforms the product into a sum (Log-Likelihood) while keeping the peak in the same location, allowing us to use calculus to find the exact point where our model parameters best fit the reality of the data.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>A statistical method used to estimate model parameters by maximizing the likelihood function, turning multiplication of probabilities into a log-sum for easier calculation.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Suppose you track 10 borrowers and find that 9 repaid their loans while 1 defaulted. If you guess the repayment probability is 50%, the likelihood of seeing this 9-to-1 split is very low. However, if you set the probability to 90%, the likelihood of observing those specific 10 outcomes peaks. MLE mathematically confirms that 0.9 is the parameter value that makes your specific observation most likely to happen.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>A common error is confusing 'Likelihood' with 'Probability' and thinking MLE tells you the probability that a model is true. In reality, MLE assumes the data is fixed and varies the model parameters to see which one fits best, rather than calculating the probability of the parameters themselves.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> What is the primary objective of Maximum Likelihood Estimation (MLE)?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        To minimize the distance between the mean and the median of a dataset
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        To find parameter values that make the observed data most probable under the chosen model
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To prove that the data follows a perfectly normal distribution
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To reduce the number of variables in a high-dimensional dataset
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! MLE identifies the specific parameter values that maximize the probability of obtaining the data actually observed.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. MLE identifies the specific parameter values that maximize the probability of obtaining the data actually observed.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> Why is the likelihood function typically transformed into a log-likelihood function during calculation?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="true">
+                        To convert the product of probabilities into a sum, making differentiation easier
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To ensure that the final parameter estimates are always positive
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To change the maximum of the function to a more convenient value
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To eliminate the need for calculating derivatives entirely
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Since the log function is monotonic, maximizing the sum of logs is mathematically simpler than maximizing a product of probabilities while yielding the same result.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Since the log function is monotonic, maximizing the sum of logs is mathematically simpler than maximizing a product of probabilities while yielding the same result.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> In the MLE process, how is the maximum of the log-likelihood function usually determined?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        By calculating the square root of the probability density function
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        By plotting the data and selecting the highest visual point on a histogram
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        By setting the derivative of the log-likelihood function to zero and solving for the parameter
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        By multiplying the sample size by the standard deviation of the error
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Finding the maximum involves using calculus to identify where the rate of change of the log-likelihood function is zero with respect to the parameter.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Finding the maximum involves using calculus to identify where the rate of change of the log-likelihood function is zero with respect to the parameter.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-6" class="concept-section">
+            <h2>Feature Engineering for Risk</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Think of feature engineering like preparing ingredients for a gourmet meal; while raw potatoes are edible, slicing them into thin strips and frying them into fries makes them far more useful and recognizable for the final dish. In risk, we take 'raw' data points and shape them into 'refined' indicators that help the model clearly see the difference between a safe borrower and a risky one.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>In credit risk, models are only as good as the signals they receive. Transforming raw data into high-quality features allows banks to identify subtle warning signs of default that raw numbers alone miss, directly reducing financial losses while expanding credit access to underserved but reliable borrowers.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="diagram-container">
+            <div class="diagram-title">The Feature Engineering Pipeline for Risk</div>
+            <div class="mermaid">
+flowchart TD
+    A[Raw Data: Income, Age, Digital Log] --> B{Transformation}
+    B --> C[Financial Ratios: e.g., Debt-to-Income]
+    B --> D[Behavioral Features: e.g., App Usage Frequency]
+    B --> E[Demographic Buckets: e.g., Life Stage]
+    C --> F[Risk Model: Logistic Regression/SVM]
+    D --> F
+    E --> F
+    F --> G[Probability of Default]
+            </div>
+            <div class="diagram-caption">How raw data is transformed into predictive power for risk models.</div>
+        </div>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Feature engineering is the process of using domain expertise to transform raw data into variables that highlight the underlying patterns of risk. For models like Logistic Regression or SVM, raw data often contains noise or non-linear relationships that are hard to interpret. Engineers perform tasks like 'scaling' (normalizing different units), 'encoding' (turning demographics into numbers), and 'creating ratios' (like debt-to-income). This process distills complex human behaviors and financial histories into mathematical predictors that maximize the model's ability to separate 'good' applicants from 'bad' ones.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>The selection and transformation of predictors (X), including financial measurements, demographics, and alternative data like digital footprints, to improve model accuracy.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Suppose a borrower has a monthly income of $5,000 and monthly debt of $2,000. Instead of feeding these as two separate numbers, an engineer creates a 'Debt-to-Income Ratio' (0.4) and a 'Cash Flow Volatility' score based on their digital footprint of utility payments. This ratio provides a much stronger signal of their 'repayment capacity' than the raw income figure alone, as a high earner with even higher debt is a greater risk than a low earner with no debt.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>A frequent error is 'Data Leakage,' where students accidentally include features that wouldn't be known at the time of the loan application, such as using future late payment records to predict the initial risk of that same loan.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> Which of the following best defines the process of feature engineering within a risk modeling framework?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        The automated collection of raw data without any further processing.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        The selection and transformation of predictors, such as financial and demographic data, to maximize model accuracy.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The process of manually auditing a model's final risk score after it has been generated.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Developing the hardware infrastructure required to store large financial datasets.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Feature engineering involves strategically choosing and modifying variables to ensure the model captures the most relevant information for predicting risk.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Feature engineering involves strategically choosing and modifying variables to ensure the model captures the most relevant information for predicting risk.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> In the context of risk assessment, which of these would be categorized as a feature derived from 'alternative data'?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        The applicant's current debt-to-income ratio.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The length of the applicant's credit history with a major bureau.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        Digital footprints, such as the applicant's mobile app usage patterns.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The total amount of liquid assets in the applicant's savings account.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Alternative data includes non-traditional predictors like digital footprints that offer insights into behavior beyond standard financial measurements.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Alternative data includes non-traditional predictors like digital footprints that offer insights into behavior beyond standard financial measurements.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> Why is the transformation of predictors (X) a critical step in feature engineering for risk models?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        It ensures that all data remains in its rawest form to prevent information loss.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It is primarily used to reduce the size of the dataset to save on storage costs.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        It helps the model better capture relationships in the data, leading to improved predictive performance.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It is a legal requirement to encrypt all predictors before they are analyzed by an algorithm.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Transforming predictors helps normalize data and expose underlying patterns, which allows the model to more accurately assess potential risk.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Transforming predictors helps normalize data and expose underlying patterns, which allows the model to more accurately assess potential risk.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-7" class="concept-section">
+            <h2>Automated Lending Processes</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Think of a busy airport security line: instead of one guard manually interviewing every traveler for ten minutes, an automated gate scans your passport and face in seconds to decide if you can pass. It uses pre-set rules and data to handle thousands of people instantly rather than creating a massive bottleneck.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>Traditional banks can't manually review the millions of small loan requests from individuals and SMEs without incurring massive labor costs and delays. Automation allows financial institutions to scale their operations, providing instant credit decisions that are essential for modern e-commerce and fast-moving small businesses.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="diagram-container">
+            <div class="diagram-title">The Automated Lending Pipeline</div>
+            <div class="mermaid">
+flowchart LR
+    A[Applicant Data] --> B{Feature Extraction}
+    B --> C[ML Model: LogReg/SVM]
+    C --> D[Probability of Default]
+    D --> E{Threshold Check}
+    E -- Score > Limit --> F[Auto-Reject]
+    E -- Score < Limit --> G[Auto-Approve]
+    G --> H[Instant Funding]
+            </div>
+            <div class="diagram-caption">How data moves from a raw application to an instant financial decision.</div>
+        </div>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Automated lending shifts the burden of risk assessment from human judgment to statistical models like Logistic Regression and Support Vector Machines (SVM). These algorithms analyze historical data to identify patterns—such as the correlation between debt-to-income ratios and default rates—to create a 'scoring' engine. When a new application arrives, the system extracts key features, feeds them into the trained model, and outputs a probability of default. If this probability is below a mathematically defined threshold, the loan is approved and funded without human intervention, ensuring high-speed processing and objective consistency across the entire portfolio.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>The transition from manual financial monitoring to automated, algorithm-based screening to handle high volumes of loan applications efficiently.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>A bank receives 10,000 credit card applications in one hour. An automated system extracts each applicant's credit score, monthly income, and existing debt; it then applies a Logistic Regression model that assigns a 'Risk Score' from 0 to 100. If the system's threshold is 70 and an applicant scores 85 based on their high income and clean history, the loan is approved in 2 seconds. A human would have taken 30 minutes to reach the same conclusion for just one of those 10,000 people.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>Students often assume that automated systems are inherently 'smarter' than humans, but they are actually 'garbage in, garbage out' systems. If the historical data used to train the model contains human biases or doesn't account for a new economic crisis, the algorithm will confidently make thousands of incorrect lending decisions simultaneously.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> What is the primary reason financial institutions are transitioning from manual monitoring to automated lending processes?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        To increase the cost of loan processing
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        To handle high volumes of applications more efficiently
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To eliminate the need for data security protocols
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To ensure every application is reviewed by a human officer
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Automation allows institutions to process a much larger number of applications rapidly, which is not feasible through manual labor alone.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Automation allows institutions to process a much larger number of applications rapidly, which is not feasible through manual labor alone.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> In an automated lending system, what replaces manual financial screening to determine an applicant's eligibility?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="true">
+                        Algorithm-based screening
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Physical document storage
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Randomized selection software
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Peer-to-peer verbal verification
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Automated lending uses algorithms to analyze applicant data and determine creditworthiness according to pre-defined rules.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Automated lending uses algorithms to analyze applicant data and determine creditworthiness according to pre-defined rules.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> Which of the following best describes the shift occurring in modern lending practices?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        Moving from digital platforms to paper-based filing
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        A transition from high-volume processing to manual-only reviews
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        A shift from labor-intensive manual monitoring to algorithm-driven efficiency
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The total removal of mathematical models in favor of human intuition
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The industry is moving toward technology-driven processes to improve speed and scalability while reducing the reliance on manual oversight.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The industry is moving toward technology-driven processes to improve speed and scalability while reducing the reliance on manual oversight.
+                    </div>
+                </div>
+                
+        </section>
+        
+            
+            <!-- Completion -->
+            <div style="margin-top: 4rem; padding: 2rem; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); border-radius: 12px; text-align: center; color: white;">
+                <h3 style="margin-bottom: 1rem;">Course Complete!</h3>
+                <p>You've reviewed all 7 main concepts. Keep practicing with the quizzes above.</p>
+            </div>
+        </main>
+
+        <div class="column-resizer" id="resizerRight" role="separator" aria-orientation="vertical" aria-label="Resize right sidebar"></div>
+
+        <!-- Right Sidebar: AI Assistant & Tools -->
+        <aside class="sidebar-right">
+            <div class="ai-chat">
+                <div class="ai-chat-header">
+                    <div>
+                        <h3 style="margin: 0;">AI Study Assistant</h3>
+                        <p style="font-size: 0.8rem; color: var(--text-tertiary); margin: 0;">Powered by Gemini</p>
+                    </div>
+                </div>
+                
+                <div class="ai-chat-messages" id="aiMessages">
+                    <div class="ai-message assistant">
+                        Hi! I'm your AI study assistant. Ask me anything about this topic, or request:
+                        <ul style="margin-top: 0.5rem; padding-left: 1.5rem; font-size: 0.9rem;">
+                            <li>Explanations in simpler terms</li>
+                            <li>More examples</li>
+                            <li>Practice questions</li>
+                            <li>Connections to other concepts</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="ai-input-group">
+                    <input 
+                        type="text" 
+                        class="ai-input" 
+                        id="aiInput" 
+                        placeholder="Ask a question..."
+                        onkeypress="if(event.key==='Enter') sendAIMessage()"
+                    />
+                    <button class="ai-send-btn" onclick="sendAIMessage()">Send</button>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div style="margin-top: 2rem;">
+                <h4 style="margin-bottom: 1rem; color: var(--text-tertiary);">Quick Actions</h4>
+                <button onclick="reviewAllQuizzes()" class="action-btn">
+                    Review All Quizzes
+                </button>
+                <button onclick="createSummary()" class="action-btn">
+                    Generate Summary
+                </button>
+                <button onclick="window.print()" class="action-btn">
+                    Print Notes
+                </button>
+            </div>
+            
+            <!-- Keyboard Shortcuts -->
+            <div style="margin-top: 2rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.85rem;">
+                <h5 style="margin-bottom: 0.75rem; color: var(--text-tertiary);">Shortcuts</h5>
+                <div id="shortcutsDisplay" style="color: var(--text-secondary); line-height: 1.8;">
+                    <div><kbd id="shortcutFocusAI">Alt+A</kbd> Focus AI</div>
+                    <div><kbd id="shortcutSummary">Alt+S</kbd> Summary</div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        
+        // ── Gemini Proxy Configuration ──
+        const GEMINI_PROXY_URL = '../api/gemini';
+        const LAYOUT_STORAGE_KEY = 'learning-layout-widths-v1';
+        
+        let courseContext = '';
+        let conversationHistory = [];
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+        
+        // ── Main Controller ──
+        class LearningPageController {
+            constructor() {
+                this.isMac = /Mac|iPhone|iPod|iPad/i.test(navigator.platform);
+                this.setupExpandables();
+                this.setupQuizzes();
+                this.setupProgressTracking();
+                this.setupScrollReveal();
+                this.setupCourseContext();
+                this.setupKeyboardShortcuts();
+                this.initializeMermaid();
+                this.initializeCharts();
+                this.updateShortcutsDisplay();
+                this.setupColumnResizers();
+            }
+            
+            initializeMermaid() {
+                if (typeof mermaid !== 'undefined') {
+                    mermaid.initialize({
+                        startOnLoad: true,
+                        theme: 'dark',
+                        themeVariables: {
+                            primaryColor: '#263352',
+                            primaryTextColor: '#edf2f7',
+                            primaryBorderColor: '#f6c177',
+                            lineColor: '#a0aec0',
+                            secondaryColor: '#1f2b47',
+                            tertiaryColor: '#1c2a45',
+                            background: '#16213e',
+                            mainBkg: '#263352',
+                            nodeBorder: '#f6c177',
+                            clusterBkg: '#1f2b47',
+                            fontSize: '14px'
+                        },
+                        flowchart: { curve: 'basis', padding: 20 },
+                        sequence: { actorMargin: 50 }
+                    });
+                }
+            }
+            
+            initializeCharts() {
+                if (typeof Chart !== 'undefined') {
+                    Chart.defaults.color = '#a0aec0';
+                    Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+                    Chart.defaults.font.family = "-apple-system, 'Helvetica Neue', sans-serif";
+                    Chart.defaults.responsive = true;
+                    Chart.defaults.maintainAspectRatio = true;
+                    Chart.defaults.plugins.legend.labels.usePointStyle = true;
+                }
+            }
+            
+            setupCourseContext() {
+                const mc = document.querySelector('.main-content');
+                if (mc) courseContext = mc.innerText.substring(0, 6000);
+            }
+            
+            setupExpandables() {
+                document.querySelectorAll('.expandable-header').forEach(header => {
+                    header.addEventListener('click', () => {
+                        header.parentElement.classList.toggle('open');
+                    });
+                });
+            }
+            
+            setupQuizzes() {
+                document.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.addEventListener('click', () => this.handleQuiz(opt));
+                });
+            }
+
+            handleQuiz(option) {
+                const quiz = option.closest('.quiz-container');
+                const isCorrect = option.dataset.correct === 'true';
+                
+                quiz.querySelectorAll('.quiz-option').forEach(o => {
+                    o.classList.remove('selected','correct','incorrect');
+                });
+                
+                option.classList.add('selected');
+                option.classList.add(isCorrect ? 'correct' : 'incorrect');
+                
+                if (!isCorrect) {
+                    quiz.querySelectorAll('.quiz-option').forEach(o => {
+                        if (o.dataset.correct === 'true') o.classList.add('correct');
+                    });
+                }
+                
+                const cf = quiz.querySelector('.quiz-feedback.correct');
+                const ic = quiz.querySelector('.quiz-feedback.incorrect');
+                if (isCorrect) { cf.classList.add('show'); ic.classList.remove('show'); }
+                else { ic.classList.add('show'); cf.classList.remove('show'); }
+            }
+
+            
+            setupProgressTracking() {
+                window.addEventListener('scroll', () => {
+                    const h = document.documentElement.scrollHeight - window.innerHeight;
+                    const p = h > 0 ? Math.min((window.scrollY / h) * 100, 100) : 0;
+                    document.getElementById('progressBar').style.width = p + '%';
+                });
+            }
+            
+            setupScrollReveal() {
+                const obs = new IntersectionObserver((entries) => {
+                    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('revealed'); });
+                }, { threshold: 0.08 });
+                document.querySelectorAll('.reveal-on-scroll').forEach(el => obs.observe(el));
+            }
+            
+            setupKeyboardShortcuts() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.altKey && e.key === 'a') {
+                        e.preventDefault();
+                        document.getElementById('aiInput')?.focus();
+                    }
+                    if (e.altKey && e.key === 's') {
+                        e.preventDefault();
+                        askSummary();
+                    }
+                });
+            }
+            
+            updateShortcutsDisplay() {
+                const prefix = this.isMac ? '⌥' : 'Alt+';
+                const focusEl = document.getElementById('shortcutFocusAI');
+                const summaryEl = document.getElementById('shortcutSummary');
+                if (focusEl) focusEl.textContent = prefix + 'A';
+                if (summaryEl) summaryEl.textContent = prefix + 'S';
+            }
+
+            setupColumnResizers() {
+                if (window.matchMedia('(max-width: 1200px)').matches) return;
+                const container = document.querySelector('.page-container');
+                const leftResizer = document.getElementById('resizerLeft');
+                const rightResizer = document.getElementById('resizerRight');
+                if (!container || !leftResizer || !rightResizer) return;
+
+                const minLeft = 200, maxLeft = 560;
+                const minRight = 220, maxRight = 560;
+                const minMain = 520;
+                let leftWidth = 260;
+                let rightWidth = 300;
+
+                const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+                const applyWidths = () => {
+                    container.style.setProperty('--left-width', leftWidth + 'px');
+                    container.style.setProperty('--right-width', rightWidth + 'px');
+                };
+                const getTotalWidth = () => container.getBoundingClientRect().width - 16;
+                const clampAll = () => {
+                    const total = getTotalWidth();
+                    leftWidth = clamp(leftWidth, minLeft, maxLeft);
+                    rightWidth = clamp(rightWidth, minRight, maxRight);
+                    if (total - leftWidth - rightWidth < minMain) {
+                        const overflow = minMain - (total - leftWidth - rightWidth);
+                        leftWidth = clamp(leftWidth - overflow / 2, minLeft, maxLeft);
+                        rightWidth = clamp(rightWidth - overflow / 2, minRight, maxRight);
+                        if (total - leftWidth - rightWidth < minMain) {
+                            const rightCap = clamp(total - leftWidth - minMain, minRight, maxRight);
+                            rightWidth = rightCap;
+                            leftWidth = clamp(total - rightWidth - minMain, minLeft, maxLeft);
+                        }
+                    }
+                };
+
+                try {
+                    const cached = JSON.parse(localStorage.getItem(LAYOUT_STORAGE_KEY) || '{}');
+                    if (Number.isFinite(cached.left)) leftWidth = cached.left;
+                    if (Number.isFinite(cached.right)) rightWidth = cached.right;
+                } catch {}
+                clampAll();
+                applyWidths();
+
+                const startDrag = (side) => (evt) => {
+                    evt.preventDefault();
+                    const rect = container.getBoundingClientRect();
+                    const total = getTotalWidth();
+                    const onMove = (moveEvt) => {
+                        if (side === 'left') {
+                            const rawLeft = moveEvt.clientX - rect.left;
+                            const maxAllowed = Math.min(maxLeft, total - rightWidth - minMain);
+                            leftWidth = clamp(rawLeft, minLeft, Math.max(minLeft, maxAllowed));
+                        } else {
+                            const rawRight = rect.right - moveEvt.clientX;
+                            const maxAllowed = Math.min(maxRight, total - leftWidth - minMain);
+                            rightWidth = clamp(rawRight, minRight, Math.max(minRight, maxAllowed));
+                        }
+                        applyWidths();
+                    };
+                    const stopMove = () => {
+                        document.body.style.userSelect = '';
+                        document.body.style.cursor = '';
+                        leftResizer.classList.remove('dragging');
+                        rightResizer.classList.remove('dragging');
+                        localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify({ left: leftWidth, right: rightWidth }));
+                        document.removeEventListener('pointermove', onMove);
+                        document.removeEventListener('pointerup', stopMove);
+                    };
+                    document.body.style.userSelect = 'none';
+                    document.body.style.cursor = 'col-resize';
+                    (side === 'left' ? leftResizer : rightResizer).classList.add('dragging');
+                    document.addEventListener('pointermove', onMove);
+                    document.addEventListener('pointerup', stopMove);
+                };
+
+                leftResizer.addEventListener('pointerdown', startDrag('left'));
+                rightResizer.addEventListener('pointerdown', startDrag('right'));
+                window.addEventListener('resize', () => {
+                    if (window.matchMedia('(max-width: 1200px)').matches) return;
+                    clampAll();
+                    applyWidths();
+                });
+            }
+        }
+        
+        // ── AI Chat (Real Gemini API) ──
+        async function sendAIMessage() {
+            const input = document.getElementById('aiInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+            
+            appendMsg('user', msg);
+            input.value = '';
+            input.disabled = true;
+            
+            const typingEl = appendMsg('assistant', '<span class="typing-dots"><span>.</span><span>.</span><span>.</span></span>');
+            
+            try {
+                const answer = await callGemini(msg);
+                typingEl.innerHTML = formatMd(answer);
+            } catch (err) {
+                const errMsg = err?.message || String(err);
+                let hint = 'Check console for details.';
+                if (window.location.protocol === 'file:' || errMsg.includes('Failed to fetch')) {
+                    const current = window.location.pathname.split('/').pop();
+                    hint = `Start local server: python3 serve.py --open html/${current} and ensure GEMINI_API_KEY exists in .env.local`;
+                }
+                typingEl.innerHTML = '⚠️ Error: ' + escapeHtml(errMsg) + '<br><small>' + escapeHtml(hint) + '</small>';
+                console.error('Gemini API error:', err);
+            } finally {
+                input.disabled = false;
+                input.focus();
+            }
+        }
+        
+        async function callGemini(userMessage) {
+            if (window.location.protocol === 'file:') {
+                throw new Error('This page is opened as file:// and cannot reach ../api/gemini');
+            }
+
+            const prompt = `You are a concise study assistant for this course.
+
+Course content (excerpt):
+${courseContext.substring(0, 3500)}
+
+Previous conversation:
+${conversationHistory.slice(-4).map(m => m.role + ': ' + m.content).join('\n')}
+
+Student question: ${userMessage}
+
+Instructions:
+- Answer in 3-6 sentences, be direct and complete
+- Always finish your sentences, never leave a thought incomplete
+- Use the course content as reference
+- If the question is in Chinese, answer in Chinese`;
+
+            const res = await fetch(GEMINI_PROXY_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    prompt: prompt,
+                    generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
+                })
+            });
+            
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(`API ${res.status}: ${errText.substring(0, 200)}`);
+            }
+            
+            const data = await res.json();
+            const candidate = data.candidates?.[0];
+            const answer = candidate?.content?.parts?.[0]?.text;
+            if (!answer) throw new Error('Empty response from API');
+            
+            // Check if response was truncated
+            if (candidate?.finishReason === 'MAX_TOKENS') {
+                conversationHistory.push({ role: 'user', content: userMessage }, { role: 'assistant', content: answer });
+                return answer + '...\n\n_(Response was trimmed. Ask a follow-up for more detail.)_';
+            }
+            
+            conversationHistory.push({ role: 'user', content: userMessage }, { role: 'assistant', content: answer });
+            return answer;
+        }
+        
+        function appendMsg(role, html) {
+            const container = document.getElementById('aiMessages');
+            const div = document.createElement('div');
+            div.className = 'ai-message ' + role;
+            div.innerHTML = html;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            return div;
+        }
+        
+        function formatMd(text) {
+            return text
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/`(.+?)`/g, '<code style="background:var(--bg-tertiary);padding:0.1em 0.4em;border-radius:3px;font-size:0.9em;">$1</code>')
+                .replace(/\n/g, '<br>');
+        }
+        
+        function askSummary() {
+            const input = document.getElementById('aiInput');
+            input.value = 'Please summarize the key concepts of this lesson in bullet points.';
+            sendAIMessage();
+        }
+        
+        function reviewAllQuizzes() {
+            const q = document.querySelector('.quiz-container');
+            if (q) q.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        function createSummary() { askSummary(); }
+        
+        // ── Sidebar Tabs ──
+        function switchSidebarTab(tabName) {
+            document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.sidebar-panel').forEach(p => p.style.display = 'none');
+            document.querySelector(`.sidebar-tab[data-tab="${tabName}"]`)?.classList.add('active');
+            const panel = document.getElementById('panel-' + tabName);
+            if (panel) panel.style.display = 'block';
+        }
+        
+        // ── Notes System ──
+        const NOTES_STORAGE_KEY = 'learning-notes-' + document.title;
+        const NOTES_FOCUS_KEY = NOTES_STORAGE_KEY + '-focus';
+        const NOTES_ACTIVE_KEY = NOTES_STORAGE_KEY + '-active';
+        const NOTES_DRAFT_KEY = NOTES_STORAGE_KEY + '-draft';
+        
+        function loadNotes() {
+            try {
+                const raw = JSON.parse(localStorage.getItem(NOTES_STORAGE_KEY) || '[]');
+                if (!Array.isArray(raw)) return [];
+                return raw.map((n, idx) => {
+                    const idNum = Number(n?.id);
+                    return {
+                        id: Number.isFinite(idNum) ? idNum : -(idx + 1),
+                        citation: typeof n?.citation === 'string' ? n.citation : (typeof n?.quote === 'string' ? n.quote : ''),
+                        body: typeof n?.body === 'string' ? n.body : (typeof n?.text === 'string' ? n.text : (typeof n?.content === 'string' ? n.content : '')),
+                        section: typeof n?.section === 'string' ? n.section : (typeof n?.title === 'string' ? n.title : ''),
+                        timestamp: typeof n?.timestamp === 'string' && n.timestamp
+                            ? n.timestamp
+                            : (typeof n?.created_at === 'string' && n.created_at ? n.created_at : new Date().toISOString())
+                    };
+                });
+            }
+            catch { return []; }
+        }
+        
+        function saveNotes(notes) {
+            localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(notes));
+            renderNotes();
+        }
+
+        function saveDraft(text) {
+            localStorage.setItem(NOTES_DRAFT_KEY, text || '');
+        }
+
+        function loadDraft() {
+            return localStorage.getItem(NOTES_DRAFT_KEY) || '';
+        }
+
+        function renderDraftPreview(text) {
+            const preview = document.getElementById('noteDraftPreviewContent');
+            if (!preview) return;
+            const clean = text || '';
+            if (!clean.trim()) {
+                preview.innerHTML = '<span style="color: var(--text-tertiary);">Type in the note box to preview Markdown rendering in real time.</span>';
+                return;
+            }
+            preview.innerHTML = renderNoteMarkdown(clean);
+        }
+
+        function handleNoteInputChange(value) {
+            saveDraft(value);
+            renderDraftPreview(value);
+        }
+
+        function initNoteComposer() {
+            const input = document.getElementById('noteInput');
+            if (!input) return;
+            const draft = loadDraft();
+            input.value = draft;
+            renderDraftPreview(draft);
+            input.addEventListener('input', () => {
+                handleNoteInputChange(input.value);
+            });
+            input.addEventListener('keydown', (e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    addFreeNote();
+                }
+            });
+        }
+
+        function getFocusedNoteId() {
+            const value = localStorage.getItem(NOTES_FOCUS_KEY);
+            return value ? Number(value) : null;
+        }
+
+        function getActiveNoteId() {
+            const value = localStorage.getItem(NOTES_ACTIVE_KEY);
+            return value ? Number(value) : null;
+        }
+
+        function setFocusedNoteId(id) {
+            if (!id) localStorage.removeItem(NOTES_FOCUS_KEY);
+            else localStorage.setItem(NOTES_FOCUS_KEY, String(id));
+        }
+
+        function setActiveNoteId(id) {
+            if (!id) localStorage.removeItem(NOTES_ACTIVE_KEY);
+            else localStorage.setItem(NOTES_ACTIVE_KEY, String(id));
+        }
+
+        function toggleFocusNote(id, e) {
+            e?.stopPropagation();
+            const focusedId = getFocusedNoteId();
+            setFocusedNoteId(focusedId === id ? null : id);
+            renderNotes();
+        }
+
+        function openNote(id) {
+            setActiveNoteId(id);
+            renderNotes();
+            switchSidebarTab('notes');
+        }
+
+        function ensureNoteReader() {
+            const panel = document.getElementById('panel-notes');
+            const notesList = document.getElementById('notesList');
+            if (!panel || !notesList) return null;
+            notesList.style.maxHeight = '32vh';
+
+            let reader = document.getElementById('noteReader');
+            if (!reader) {
+                reader = document.createElement('div');
+                reader.id = 'noteReader';
+                reader.className = 'note-reader';
+                notesList.insertAdjacentElement('afterend', reader);
+            }
+            return reader;
+        }
+
+        function renderNoteMarkdown(text) {
+            return escapeHtml(text || '')
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/`(.+?)`/g, '<code>$1</code>')
+                .replace(/\n/g, '<br>');
+        }
+
+        function renderNoteReader(notes) {
+            const reader = ensureNoteReader();
+            if (!reader) return;
+            if (notes.length === 0) {
+                reader.innerHTML = '<div class="reader-title">Reader</div><div class="reader-content">No notes yet.</div>';
+                return;
+            }
+
+            let activeId = getActiveNoteId();
+            let active = notes.find(n => n.id === activeId);
+            if (!active) {
+                active = notes[0];
+                setActiveNoteId(active.id);
+            }
+            const time = new Date(active.timestamp).toLocaleString();
+            const citationHtml = active.citation ? `<div class="note-citation">${escapeHtml(active.citation)}</div>` : '';
+            const activeBody = typeof active.body === 'string' ? active.body : '';
+            reader.innerHTML = `
+                <div class="reader-title">Reading • ${escapeHtml(active.section || 'General')} • ${time}</div>
+                ${citationHtml}
+                <div class="reader-content">${renderNoteMarkdown(activeBody)}</div>
+            `;
+        }
+        
+        function addNote(citation, body, section) {
+            const notes = loadNotes();
+            const note = {
+                id: Date.now(),
+                citation: citation || '',
+                body: body || '',
+                section: section || '',
+                timestamp: new Date().toISOString()
+            };
+            notes.push(note);
+            setActiveNoteId(note.id);
+            saveNotes(notes);
+            // Switch to notes tab
+            switchSidebarTab('notes');
+        }
+        
+        function addFreeNote() {
+            const input = document.getElementById('noteInput');
+            const text = input.value.trim();
+            if (!text) return;
+            addNote('', text, '');
+            input.value = '';
+            saveDraft('');
+            renderDraftPreview('');
+        }
+        
+        function deleteNote(id, e) {
+            e?.stopPropagation();
+            const notes = loadNotes().filter(n => n.id !== id);
+            if (getFocusedNoteId() === id) setFocusedNoteId(null);
+            if (getActiveNoteId() === id) setActiveNoteId(notes.length ? notes[0].id : null);
+            saveNotes(notes);
+        }
+        
+        function renderNotes() {
+            const notes = loadNotes();
+            const container = document.getElementById('notesList');
+            const counter = document.getElementById('notesCount');
+            if (!container) return;
+            
+            counter.textContent = notes.length + ' note' + (notes.length !== 1 ? 's' : '');
+            
+            if (notes.length === 0) {
+                container.innerHTML = '<p style="font-size:0.85rem; color:var(--text-tertiary); text-align:center; padding:2rem 0;">Select text and click "Add Note" to begin, or write freely below.</p>';
+                renderNoteReader(notes);
+                return;
+            }
+
+            const focusedId = getFocusedNoteId();
+            const activeId = getActiveNoteId();
+            const sortedNotes = [...notes].sort((a, b) => {
+                const aFocused = a.id === focusedId ? 1 : 0;
+                const bFocused = b.id === focusedId ? 1 : 0;
+                if (aFocused !== bFocused) return bFocused - aFocused;
+                return new Date(b.timestamp) - new Date(a.timestamp);
+            });
+
+            container.innerHTML = sortedNotes.map(n => {
+                const time = new Date(n.timestamp).toLocaleString();
+                const citationHtml = n.citation 
+                    ? `<div class="note-citation">${escapeHtml(n.citation)}</div>` 
+                    : '';
+                const noteBody = typeof n.body === 'string' ? n.body : '';
+                const preview = noteBody.length > 140 ? (noteBody.slice(0, 140) + '...') : noteBody;
+                const focusLabel = n.id === focusedId ? 'Unfocus' : 'Focus';
+                return `<div class="note-card ${n.id === activeId ? 'active' : ''} ${n.id === focusedId ? 'focused' : ''}" onclick="openNote(${n.id})">
+                    ${citationHtml}
+                    <div class="note-body">${escapeHtml(preview)}</div>
+                    <div class="note-meta">
+                        <span>${n.section ? escapeHtml(n.section) : ''} ${time}</span>
+                        <span>
+                            <button class="note-focus" onclick="toggleFocusNote(${n.id}, event)">${focusLabel}</button>
+                            <button class="note-delete" onclick="deleteNote(${n.id}, event)">Delete</button>
+                        </span>
+                    </div>
+                </div>`;
+            }).join('');
+            renderNoteReader(sortedNotes);
+        }
+        
+        function exportNotesToObsidian() {
+            const notes = loadNotes();
+            if (notes.length === 0) { alert('No notes to export.'); return; }
+            
+            const title = document.title.replace(' - Interactive Learning', '');
+            const sourceFile = document.querySelector('.main-content header p')?.textContent?.match(/Source: (.+)/)?.[1] || '';
+            
+            let md = `---
+tags: [lecture-notes, mfin7034]
+source: "${sourceFile}"
+date: ${new Date().toISOString().split('T')[0]}
+---
+
+`;
+            md += `# ${title}
+
+`;
+            md += `> [!info] Source
+> PDF: [[${sourceFile.replace('.pdf','')}]]
+
+`;
+            
+            notes.forEach((n, idx) => {
+                if (n.citation) {
+                    md += `> [!quote] Highlight
+> ${n.citation}
+
+`;
+                }
+                const noteBody = typeof n.body === 'string' ? n.body : '';
+                md += noteBody + `
+
+`;
+                if (idx < notes.length - 1) md += `---
+
+`;
+            });
+            
+            md += `
+## References
+
+- Source: ${sourceFile}
+- Generated: ${new Date().toLocaleString()}
+`;
+            
+            const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = title.replace(/[^a-zA-Z0-9一-鿿 ]/g, '_') + '.md';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+        
+        // ── Text Highlight & Selection ──
+        const highlightTooltip = document.createElement('div');
+        highlightTooltip.className = 'highlight-tooltip';
+        highlightTooltip.innerHTML = `
+            <button onclick="highlightSelection()">Highlight</button>
+            <button onclick="highlightAndNote()">+ Note</button>
+        `;
+        document.body.appendChild(highlightTooltip);
+        
+        document.addEventListener('mouseup', (e) => {
+            const sel = window.getSelection();
+            const text = sel.toString().trim();
+            
+            // Only show for selections within main content
+            const main = document.querySelector('.main-content');
+            if (!text || text.length < 3 || !main?.contains(sel.anchorNode)) {
+                highlightTooltip.classList.remove('show');
+                return;
+            }
+            
+            const range = sel.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+            highlightTooltip.style.left = rect.left + (rect.width / 2) - 60 + 'px';
+            highlightTooltip.style.top = rect.top - 40 + window.scrollY + 'px';
+            highlightTooltip.classList.add('show');
+        });
+        
+        document.addEventListener('mousedown', (e) => {
+            if (!highlightTooltip.contains(e.target)) {
+                highlightTooltip.classList.remove('show');
+            }
+        });
+        
+        function highlightSelection() {
+            const sel = window.getSelection();
+            if (!sel.rangeCount) return;
+            const range = sel.getRangeAt(0);
+            const mark = document.createElement('mark');
+            mark.className = 'text-highlight';
+            try {
+                range.surroundContents(mark);
+            } catch(e) {
+                // Cross-element selection: fall back
+                const text = sel.toString();
+                mark.textContent = text;
+                range.deleteContents();
+                range.insertNode(mark);
+            }
+            sel.removeAllRanges();
+            highlightTooltip.classList.remove('show');
+        }
+        
+        function highlightAndNote() {
+            const sel = window.getSelection();
+            const text = sel.toString().trim();
+            if (!text) return;
+            
+            // Find section context
+            let section = '';
+            let node = sel.anchorNode;
+            while (node && node !== document.body) {
+                if (node.classList?.contains('concept-section')) {
+                    const h2 = node.querySelector('h2');
+                    if (h2) section = h2.textContent;
+                    break;
+                }
+                node = node.parentNode;
+            }
+            
+            highlightSelection();
+            
+            openInlineSelectionNoteEditor(text, section, sel.getRangeAt(0).getBoundingClientRect());
+        }
+        
+
+        function closeInlineSelectionNoteEditor() {
+            document.getElementById('inlineSelectionNoteEditor')?.remove();
+        }
+
+        function openInlineSelectionNoteEditor(selectionText, section, rect) {
+            closeInlineSelectionNoteEditor();
+            const editor = document.createElement('div');
+            editor.id = 'inlineSelectionNoteEditor';
+            editor.style.position = 'absolute';
+            editor.style.zIndex = '10030';
+            editor.style.width = 'min(420px, 90vw)';
+            editor.style.background = 'var(--bg-card)';
+            editor.style.border = '1px solid var(--border-color)';
+            editor.style.borderRadius = '12px';
+            editor.style.boxShadow = '0 16px 36px rgba(0,0,0,0.32)';
+            editor.style.padding = '0.65rem';
+            editor.style.top = (window.scrollY + rect.bottom + 10) + 'px';
+            editor.style.left = Math.max(12, Math.min(window.scrollX + rect.left, window.scrollX + window.innerWidth - 440)) + 'px';
+            editor.innerHTML = `
+                <div style="font-size:0.78rem;color:var(--text-tertiary);margin-bottom:0.4rem;">Add note for selection</div>
+                <textarea id="inlineSelectionNoteInput" placeholder="Write note... (Markdown supported)" style="width:100%;min-height:88px;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border-color);border-radius:8px;padding:0.5rem;font-size:0.86rem;resize:vertical;"></textarea>
+                <div style="display:flex;justify-content:flex-end;gap:0.45rem;margin-top:0.45rem;">
+                    <button type="button" id="inlineSelectionNoteCancel" style="border:1px solid var(--border-color);background:var(--bg-elevated);color:var(--text-primary);border-radius:8px;padding:0.3rem 0.6rem;cursor:pointer;font-size:0.8rem;">Cancel</button>
+                    <button type="button" id="inlineSelectionNoteSave" style="border:1px solid rgba(163,217,165,.55);background:var(--bg-elevated);color:var(--accent-secondary);border-radius:8px;padding:0.3rem 0.6rem;cursor:pointer;font-size:0.8rem;">Save</button>
+                </div>
+            `;
+            document.body.appendChild(editor);
+            const input = editor.querySelector('#inlineSelectionNoteInput');
+            input?.focus();
+            editor.querySelector('#inlineSelectionNoteCancel')?.addEventListener('click', closeInlineSelectionNoteEditor);
+            editor.querySelector('#inlineSelectionNoteSave')?.addEventListener('click', () => {
+                const body = (input?.value || '').trim() || '(highlighted)';
+                addNote(selectionText, body, section);
+                closeInlineSelectionNoteEditor();
+            });
+        }
+
+        // ── Init ──
+        document.addEventListener('DOMContentLoaded', () => {
+            new LearningPageController();
+            
+            // Add reveal animation to concept sections
+            document.querySelectorAll('.feynman-block, .quiz-container, .expandable, .chart-container, .diagram-container, .comparison-block, .stats-grid').forEach(el => {
+                el.classList.add('reveal-on-scroll');
+            });
+            
+            // Re-init observer for dynamically added elements
+            const obs = new IntersectionObserver((entries) => {
+                entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('revealed'); });
+            }, { threshold: 0.08 });
+            document.querySelectorAll('.reveal-on-scroll').forEach(el => obs.observe(el));
+            
+            // Initialize note draft autosave + live markdown preview
+            initNoteComposer();
+            // Load saved notes
+            renderNotes();
+        });
+        
+        // Typing dots animation
+        const typingStyle = document.createElement('style');
+        typingStyle.textContent = `
+            .typing-dots span {
+                animation: blink 1.4s infinite;
+                font-size: 1.5em;
+                line-height: 1;
+            }
+            .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+            .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+            @keyframes blink {
+                0%, 60%, 100% { opacity: 0.2; }
+                30% { opacity: 1; }
+            }
+        `;
+        document.head.appendChild(typingStyle);
+    
+    </script>
+    
+    <!-- KaTeX auto-render -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: "$$", right: "$$", display: true},
+                        {left: "$", right: "$", display: false},
+                        {left: "\\(", right: "\\)", display: false},
+                        {left: "\\[", right: "\\]", display: true}
+                    ],
+                    throwOnError: false
+                });
+            }
+        });
+    </script>
+    <script src="./app-shell.js?v=10"></script>
+    <script src="./lecture-enhancements.js?v=4"></script>
+</body>
+</html>

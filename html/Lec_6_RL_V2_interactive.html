@@ -1,0 +1,2812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lec 6 RL V2 - Interactive Learning</title>
+    
+    <!-- KaTeX for formula rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    
+    <!-- Mermaid for flowcharts and diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+    
+    <!-- Fonts: Noto Serif for body, Inter for headings -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        
+        :root {
+            /* Warm Academic Theme - Clean & Readable */
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #1f2b47;
+            --bg-elevated: #263352;
+            --bg-card: #1c2a45;
+            
+            --text-primary: #edf2f7;
+            --text-secondary: #a0aec0;
+            --text-tertiary: #718096;
+            
+            /* Warm Gold + Sage Green palette */
+            --accent-primary: #f6c177;
+            --accent-secondary: #a3d9a5;
+            --accent-tertiary: #c4b5fd;
+            --accent-warning: #fbbf24;
+            --accent-error: #fb7185;
+            --accent-info: #7dd3fc;
+            
+            --gradient-primary: linear-gradient(135deg, #f6c177 0%, #e8a87c 100%);
+            --gradient-heading: linear-gradient(135deg, #f6c177 0%, #c4b5fd 100%);
+            
+            --border-color: rgba(255, 255, 255, 0.06);
+            --border-hover: rgba(246, 193, 119, 0.25);
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+            
+            --font-body: 'Georgia', 'Times New Roman', 'Noto Serif SC', serif;
+            --font-heading: -apple-system, 'Helvetica Neue', 'PingFang SC', sans-serif;
+            --font-mono: 'SF Mono', 'Menlo', 'Monaco', monospace;
+            
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-primary: #faf8f5;
+                --bg-secondary: #f0ece4;
+                --bg-tertiary: #e8e2d8;
+                --bg-elevated: #ffffff;
+                --bg-card: #ffffff;
+                
+                --text-primary: #1c1917;
+                --text-secondary: #57534e;
+                --text-tertiary: #a8a29e;
+                
+                --accent-primary: #c2742f;
+                --accent-secondary: #3d8b40;
+                --accent-tertiary: #7c3aed;
+                --accent-warning: #b45309;
+                --accent-error: #dc2626;
+                
+                --gradient-heading: linear-gradient(135deg, #c2742f 0%, #7c3aed 100%);
+                
+                --border-color: rgba(0, 0, 0, 0.06);
+                --border-hover: rgba(194, 116, 47, 0.3);
+                --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+                --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+                --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+            }
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+        
+        .page-container {
+            --left-width: 260px;
+            --right-width: 300px;
+            display: grid;
+            grid-template-columns: minmax(200px, var(--left-width)) 8px minmax(0, 1fr) 8px minmax(220px, var(--right-width));
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        .column-resizer {
+            cursor: col-resize;
+            background: transparent;
+            transition: background-color 0.15s var(--ease);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            z-index: 5;
+        }
+        .column-resizer:hover,
+        .column-resizer.dragging {
+            background: rgba(246, 193, 119, 0.2);
+        }
+        
+        .sidebar-left, .sidebar-right {
+            background: var(--bg-secondary);
+            padding: 2rem 1.25rem;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-left {
+            border-right: 1px solid var(--border-color);
+        }
+        
+        .sidebar-right {
+            border-left: 1px solid var(--border-color);
+        }
+        
+        .main-content {
+            max-width: none;
+            min-width: 0;
+            width: 100%;
+            margin: 0 auto;
+            padding: 3rem 2.5rem;
+        }
+        
+        @media (max-width: 1200px) {
+            .page-container { grid-template-columns: 1fr; }
+            .sidebar-left, .sidebar-right, .column-resizer { display: none; }
+            .main-content { padding: 2rem 1.25rem; }
+        }
+        
+        h1 {
+            font-family: var(--font-heading);
+            font-size: clamp(1.875rem, 4vw, 2.5rem);
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.01em;
+            color: var(--text-primary);
+        }
+        
+        h2 {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 3.5rem;
+            margin-bottom: 1.25rem;
+            color: var(--accent-primary);
+            letter-spacing: -0.01em;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        h3 {
+            font-family: var(--font-heading);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+        }
+        
+        h4 {
+            font-family: var(--font-heading);
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        
+        h5 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.8;
+        }
+        
+        .feynman-block {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-left: 3px solid var(--accent-primary);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            transition: border-color 0.2s var(--ease);
+        }
+        
+        .feynman-block:hover {
+            border-color: var(--border-hover);
+        }
+        
+        .feynman-block .icon {
+            font-size: 1.75rem;
+            margin-bottom: 0.75rem;
+            display: inline-block;
+        }
+        
+        .expandable {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            margin: 1.5rem 0;
+            overflow: hidden;
+        }
+        
+        .expandable-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            cursor: pointer;
+            user-select: none;
+            font-weight: 500;
+            font-family: var(--font-heading);
+            transition: background 0.15s var(--ease);
+        }
+        
+        .expandable-header:hover {
+            background: var(--bg-tertiary);
+        }
+        
+        .expandable-icon {
+            transition: transform 0.25s var(--ease);
+            display: inline-block;
+            font-size: 0.8rem;
+        }
+        
+        .expandable.open .expandable-icon {
+            transform: rotate(180deg);
+        }
+        
+        .expandable-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s var(--ease);
+        }
+        
+        .expandable.open .expandable-content {
+            max-height: 5000px;
+        }
+        
+        .expandable-content-inner {
+            padding: 1.25rem;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .quiz-container {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border: 1px solid var(--border-color);
+        }
+        
+        .quiz-question {
+            font-size: 1.05rem;
+            font-family: var(--font-heading);
+            margin-bottom: 1.25rem;
+            color: var(--text-primary);
+        }
+        
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.625rem;
+        }
+        
+        .quiz-option {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.15s var(--ease);
+            font-size: 0.95rem;
+        }
+        
+        .quiz-option:hover {
+            border-color: var(--accent-primary);
+            padding-left: 1.25rem;
+        }
+        
+        .quiz-option.correct {
+            background: rgba(163, 217, 165, 0.2);
+            border-color: var(--accent-secondary);
+            color: var(--accent-secondary);
+        }
+        
+        .quiz-option.incorrect {
+            background: rgba(251, 113, 133, 0.15);
+            border-color: var(--accent-error);
+            color: var(--accent-error);
+        }
+        
+        .quiz-feedback {
+            margin-top: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-sm);
+            display: none;
+            font-size: 0.9rem;
+        }
+        
+        .quiz-feedback.show { display: block; }
+        .quiz-feedback.correct { background: rgba(163, 217, 165, 0.15); border: 1px solid var(--accent-secondary); }
+        .quiz-feedback.incorrect { background: rgba(251, 113, 133, 0.1); border: 1px solid var(--accent-error); }
+        
+        .progress-tracker {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--bg-secondary);
+            z-index: 1000;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: var(--gradient-primary);
+            width: 0%;
+            transition: width 0.2s var(--ease);
+        }
+        
+        .ai-chat {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+        }
+        
+        .ai-chat-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .ai-chat-messages {
+            max-height: 320px;
+            overflow-y: auto;
+            margin-bottom: 0.75rem;
+            padding: 0.75rem;
+            background: var(--bg-primary);
+            border-radius: var(--radius-sm);
+        }
+        
+        .ai-message {
+            margin-bottom: 0.75rem;
+            padding: 0.625rem 0.875rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+        
+        .ai-message.user {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            margin-left: 1.5rem;
+            font-weight: 500;
+        }
+        
+        .ai-message.assistant {
+            background: var(--bg-tertiary);
+            margin-right: 1.5rem;
+        }
+        
+        .ai-input-group { display: flex; gap: 0.5rem; }
+        
+        .ai-input {
+            flex: 1;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.625rem 0.75rem;
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+        }
+        
+        .ai-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+        
+        .ai-send-btn, .action-btn {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 0.625rem 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: var(--font-heading);
+            font-size: 0.85rem;
+            transition: opacity 0.15s;
+        }
+        
+        .action-btn {
+            width: 100%;
+            margin-bottom: 0.5rem;
+            text-align: left;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .ai-send-btn:hover { opacity: 0.85; }
+        .action-btn:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+        
+        kbd {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 0.15rem 0.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.8em;
+        }
+        
+        .toc-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: block;
+            padding: 0.375rem 0.5rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            font-family: var(--font-heading);
+            transition: color 0.15s, background 0.15s;
+        }
+        
+        .toc-link:hover {
+            color: var(--accent-primary);
+            background: var(--bg-tertiary);
+        }
+        
+        /* Scroll reveal - simple fade */
+        .reveal-on-scroll {
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity 0.5s var(--ease), transform 0.5s var(--ease);
+        }
+        .reveal-on-scroll.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--bg-elevated); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+        
+        ::selection { background: var(--accent-primary); color: var(--bg-primary); }
+        
+        /* Print */
+        @media print {
+            .sidebar-left, .sidebar-right, .progress-tracker { display: none; }
+            .page-container { grid-template-columns: 1fr; }
+            body { background: white; color: black; }
+        }
+        
+        /* ===========================================
+           DATA VISUALIZATION & CHARTS
+           =========================================== */
+        .chart-container {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+        .chart-container .chart-title {
+            font-family: var(--font-heading);
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            text-align: center;
+        }
+        .chart-container canvas { max-height: 380px; width: 100% !important; }
+        .chart-caption {
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+            text-align: center;
+            margin-top: 0.75rem;
+            font-style: italic;
+        }
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        .chart-grid .chart-container { margin: 0; }
+        
+        .diagram-container {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            overflow-x: auto;
+            text-align: center;
+        }
+        .diagram-container .diagram-title {
+            font-family: var(--font-heading);
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+        }
+        .diagram-container .mermaid { display: flex; justify-content: center; }
+        .diagram-container .mermaid svg { max-width: 100%; height: auto; }
+        .diagram-caption {
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+            text-align: center;
+            margin-top: 0.75rem;
+            font-style: italic;
+        }
+        
+        .comparison-block {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 1rem;
+            align-items: stretch;
+            margin: 2rem 0;
+        }
+        .comparison-side {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+        .comparison-side.left { border-top: 3px solid var(--accent-primary); }
+        .comparison-side.right { border-top: 3px solid var(--accent-secondary); }
+        .comparison-side h4 { margin-bottom: 0.75rem; }
+        .comparison-side ul { padding-left: 1.25rem; }
+        .comparison-side li { margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.95rem; }
+        .comparison-divider {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            color: var(--text-tertiary);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            transition: transform 0.15s var(--ease);
+        }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            display: block;
+            font-family: var(--font-heading);
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            margin-top: 0.25rem;
+        }
+        
+        @media (max-width: 768px) {
+            .comparison-block { grid-template-columns: 1fr; }
+            .comparison-divider { justify-content: center; padding: 0.5rem 0; }
+            .chart-grid { grid-template-columns: 1fr; }
+        }
+        
+        /* ===========================================
+           SIDEBAR TABS & PANELS
+           =========================================== */
+        .sidebar-tabs {
+            display: flex;
+            gap: 2px;
+            margin-bottom: 1rem;
+            background: var(--bg-primary);
+            border-radius: var(--radius-sm);
+            padding: 2px;
+        }
+        .sidebar-tab {
+            flex: 1;
+            padding: 0.5rem 0.25rem;
+            background: transparent;
+            border: none;
+            color: var(--text-tertiary);
+            font-family: var(--font-heading);
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.15s var(--ease);
+        }
+        .sidebar-tab:hover { color: var(--text-secondary); }
+        .sidebar-tab.active {
+            background: var(--bg-elevated);
+            color: var(--accent-primary);
+        }
+        
+        /* ===========================================
+           NOTES SYSTEM
+           =========================================== */
+        .note-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.625rem;
+            font-size: 0.85rem;
+            position: relative;
+            cursor: pointer;
+            transition: border-color 0.15s var(--ease), transform 0.15s var(--ease);
+        }
+        .note-card:hover { border-color: var(--border-hover); }
+        .note-card.active {
+            border-color: var(--accent-primary);
+            transform: translateY(-1px);
+        }
+        .note-card.focused {
+            border-left: 3px solid var(--accent-secondary);
+            padding-left: calc(0.625rem - 2px);
+        }
+        .note-card .note-citation {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            border-left: 2px solid var(--accent-primary);
+            padding-left: 0.5rem;
+            margin-bottom: 0.375rem;
+            font-style: italic;
+            line-height: 1.4;
+        }
+        .note-card .note-body {
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .note-card .note-meta {
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+            margin-top: 0.375rem;
+            display: flex;
+            justify-content: space-between;
+        }
+        .note-card .note-delete {
+            background: none;
+            border: none;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 0;
+        }
+        .note-card .note-delete:hover { color: var(--accent-error); }
+        .note-card .note-focus {
+            background: none;
+            border: none;
+            color: var(--accent-secondary);
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 0;
+            margin-right: 0.5rem;
+        }
+        .note-card .note-focus:hover { color: var(--accent-primary); }
+        .note-reader {
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-primary);
+            overflow-y: auto;
+            max-height: 34vh;
+        }
+        .note-reader .reader-title {
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            margin-bottom: 0.5rem;
+        }
+        .note-reader .reader-content {
+            color: var(--text-secondary);
+            line-height: 1.65;
+            font-size: 0.9rem;
+        }
+        .note-reader .reader-content code {
+            background: var(--bg-tertiary);
+            padding: 0.1em 0.35em;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+        .note-draft-preview {
+            margin-top: 0.5rem;
+            max-height: 20vh;
+        }
+        
+        /* ===========================================
+           TEXT HIGHLIGHT
+           =========================================== */
+        .text-highlight {
+            background: rgba(246, 193, 119, 0.25);
+            border-bottom: 2px solid var(--accent-primary);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .text-highlight:hover {
+            background: rgba(246, 193, 119, 0.4);
+        }
+        
+        /* Highlight context menu */
+        .highlight-tooltip {
+            position: fixed;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-lg);
+            padding: 0.25rem;
+            display: none;
+            z-index: 1001;
+            gap: 2px;
+        }
+        .highlight-tooltip.show { display: flex; }
+        .highlight-tooltip button {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 0.375rem 0.625rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-family: var(--font-heading);
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        .highlight-tooltip button:hover {
+            background: var(--bg-tertiary);
+            color: var(--accent-primary);
+        }
+    
+    </style>
+    <link rel="stylesheet" href="./app-shell.css?v=10" />
+</head>
+<body data-shell-page="lecture">
+    <!-- Progress Tracker -->
+    <div class="progress-tracker">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="page-container">
+        <!-- Left Sidebar -->
+        <aside class="sidebar-left">
+            <!-- Sidebar Tabs -->
+            <div class="sidebar-tabs">
+                <button class="sidebar-tab active" data-tab="toc" onclick="switchSidebarTab('toc')">Contents</button>
+                <button class="sidebar-tab" data-tab="pdf" onclick="switchSidebarTab('pdf')">PDF</button>
+                <button class="sidebar-tab" data-tab="notes" onclick="switchSidebarTab('notes')">Notes</button>
+            </div>
+            
+            <!-- Tab: Table of Contents -->
+            <div class="sidebar-panel" id="panel-toc">
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin-bottom: 0.75rem;">
+                        <a href="#overview" class="toc-link">Overview</a>
+                    </li>
+                    
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-1" class="toc-link">Statistical Decision Process</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-2" class="toc-link">Mean-Variance Policy</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-3" class="toc-link">Prediction-Decision Process</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-4" class="toc-link">Parameter Sharing</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-5" class="toc-link">Cut-off Rules</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-6" class="toc-link">Backtesting and Rolling-Window Analysis</a>
+            </li>
+        
+                </ul>
+                
+                <div style="margin-top: 3rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.85rem;">
+                    <div style="color: var(--text-tertiary); margin-bottom: 0.5rem;">Course Stats</div>
+                    <div style="color: var(--text-secondary);">
+                        <div>6 Concepts</div>
+                        <div>34 Images</div>
+                        <div>69 Tables</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab: PDF Viewer -->
+            <div class="sidebar-panel" id="panel-pdf" style="display:none;">
+                <div id="pdfViewerContainer" style="height: calc(100vh - 80px); display: flex; flex-direction: column;">
+                    <p style="font-size: 0.85rem; color: var(--text-tertiary); margin-bottom: 0.75rem;">Source: Lec 6 RL V2.pdf</p>
+                    <iframe id="pdfFrame" src="../pdfs/Lec 6 RL V2.pdf" style="flex:1; width:100%; border:none; border-radius: var(--radius-sm); background: var(--bg-tertiary);"></iframe>
+                </div>
+            </div>
+            
+            <!-- Tab: Notes -->
+            <div class="sidebar-panel" id="panel-notes" style="display:none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                    <span style="font-size: 0.85rem; color: var(--text-tertiary);" id="notesCount">0 notes</span>
+                    <button onclick="exportNotesToObsidian()" class="action-btn" style="width:auto; padding: 0.4rem 0.75rem; font-size: 0.8rem;">Export .md</button>
+                </div>
+                <div id="notesList" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 32vh; overflow-y: auto;"></div>
+                <div id="noteReader" class="note-reader">
+                    <div class="reader-title">Reading</div>
+                    <div class="reader-content">Click a note in history to read it here.</div>
+                </div>
+                <div style="margin-top: 0.75rem; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
+                    <textarea id="noteInput" oninput="handleNoteInputChange(this.value)" placeholder="Write a note (Markdown supported)..." style="width:100%; min-height: 80px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem; color: var(--text-primary); font-family: var(--font-mono); font-size: 0.85rem; resize: vertical;"></textarea>
+                    <div id="noteDraftPreview" class="note-reader note-draft-preview">
+                        <div class="reader-title">Live Preview</div>
+                        <div class="reader-content" id="noteDraftPreviewContent">Type in the note box to preview Markdown rendering in real time.</div>
+                    </div>
+                    <button onclick="addFreeNote()" class="action-btn" style="margin-top: 0.375rem;">Add Note</button>
+                </div>
+            </div>
+        </aside>
+
+        <div class="column-resizer" id="resizerLeft" role="separator" aria-orientation="vertical" aria-label="Resize left sidebar"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header id="overview">
+                <h1>Lec 6 RL V2</h1>
+                <p style="font-size: 1.1rem; color: var(--text-tertiary); margin-bottom: 2rem;">
+                    Interactive Learning Experience • Source: Lec 6 RL V2.pdf
+                </p>
+                
+                <!-- Course Overview -->
+                <div class="feynman-block" style="border-left-color: #9f7aea;">
+                    <h4>Course Overview</h4>
+                    <p><strong>Difficulty:</strong> Intermediate</p>
+                    
+                    <h5 style="margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--accent-primary);">Prerequisites:</h5>
+                    <ul style="margin-left: 1.5rem;">
+                        <li>Basic Probability and Statistics</li><li>Linear Algebra (Matrix and Vector operations)</li><li>Introductory Finance (Return, Risk, and Portfolio Theory)</li><li>Foundations of Machine Learning (Regression and Overfitting)</li>
+                    </ul>
+                    
+                    <h5 style="margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--accent-secondary);">Learning Objectives:</h5>
+                    <ul style="margin-left: 1.5rem;">
+                        <li>Define financial portfolio management within the mathematical framework of a statistical decision process.</li><li>Contrast the 'Direct Decision' approach with the 'Prediction-Decision' process in reinforcement learning contexts.</li><li>Apply regularization concepts like parameter sharing and cut-off rules to build robust financial models.</li><li>Design and implement a rolling-window backtesting procedure to validate investment strategies while minimizing overfitting.</li>
+                    </ul>
+                </div>
+            </header>
+
+            <!-- Concept Sections -->
+            
+        <section id="concept-1" class="concept-section">
+            <h2>Statistical Decision Process</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Think of a thermostat in a room: the current room temperature is the 'State,' the decision to turn the heater on or off is the 'Action,' and the 'Policy' is the specific setting you programmed. Your 'Reward' is how comfortable the room feels, and you adjust the thermostat's internal settings (the parameters) until the room stays perfectly comfortable regardless of the weather outside.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>This framework is the foundation of Reinforcement Learning and algorithmic trading, where machines must make a series of optimal choices in shifting markets. It allows a system to move beyond simple 'if-then' logic to a mathematical strategy that maximizes long-term profit or utility under uncertainty.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="diagram-container">
+            <div class="diagram-title">The Statistical Decision Loop</div>
+            <div class="mermaid">
+flowchart LR
+    S[State S_t] --> P{Policy P_theta}
+    P --> A[Action a_t]
+    A --> R[Reward R_t]
+    R --> O[Optimization: Maximize Sum of Rewards]
+    O -.->|Updates| P
+            </div>
+            <div class="diagram-caption">The cycle of observing states, applying a parameterized policy to take action, and receiving rewards to optimize future decisions.</div>
+        </div>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>A Statistical Decision Process is a structured way to find the best rule for behavior in a dynamic environment. At each time step, you observe a 'State' (a snapshot of current conditions) and apply a 'Policy'—a mathematical function—to decide your next 'Action.' This action produces a 'Reward,' which measures immediate success. Because the policy is controlled by adjustable parameters (theta), the objective is to solve an optimization problem: finding the specific values for these parameters that result in the highest possible cumulative reward over the entire duration of the process.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>PAGE 2
+============================================================
+
+Statistical Decision Process
+
+•  State Variable  S t , decision  a t , and decision policy  a t  =  P ( S t ).
+•  A reward (utility)  R ( S t ,  a t ) is collected at time  t .
+
+[FORMULA]: •  P ( · ) is a function that is parametrized by  P θ ( S ),  θ  is a parameter that
+
+needs to be learned by solving:
+
+</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>In a portfolio management scenario, the State (S) is the current price of Bitcoin, and the Action (a) is the percentage of cash to invest. The Policy (P) is a mathematical formula with a parameter (theta) that determines how aggressively to buy when prices drop. If the reward (R) is the daily percentage return, the process involves testing different values of theta against historical data to find which setting would have yielded the maximum total wealth over 365 days.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>Students often focus on maximizing the reward for a single point in time rather than optimizing the parameter (theta) that governs the policy across all possible states. They may mistake the 'Action' for the 'Policy,' forgetting that the policy is the underlying rule that generates actions based on the state.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> In a statistical decision process, how is the decision a_t at a specific time t determined?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        It is a random variable independent of the state
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It is determined by the reward function R
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        It is defined by the decision policy function P(S_t)
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It is equal to the parameter θ
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The provided content explicitly states that the decision a_t is determined by the decision policy function P applied to the state variable S_t.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The provided content explicitly states that the decision a_t is determined by the decision policy function P applied to the state variable S_t.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> What is the primary objective when learning the parameter θ for the parameterized policy P_θ(S)?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        To minimize the number of state variables S_t
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        To maximize the expected utility or reward collected
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To ensure that the decision a_t remains constant over time
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To calculate the exact value of the state S_t
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The goal of solving for θ in the parameterized policy is to optimize the decision process to achieve the highest possible reward or utility.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The goal of solving for θ in the parameterized policy is to optimize the decision process to achieve the highest possible reward or utility.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> Which two components are required to determine the reward (utility) collected at time t?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        The parameter θ and the policy P
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        The state variable S_t and the decision a_t
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The time index t and the parameter θ
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The decision policy P and the time index t
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The content defines the reward as R(S_t, a_t), indicating it is a function of the current state and the decision made at that time.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The content defines the reward as R(S_t, a_t), indicating it is a function of the current state and the decision made at that time.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-2" class="concept-section">
+            <h2>Mean-Variance Policy</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Choosing a Mean-Variance Policy is like picking a route to the airport: one highway is usually the fastest but prone to massive traffic jams, while a backroad is slower but takes exactly 40 minutes every time. You choose the route based on whether you prefer the highest average speed or the most consistent arrival time.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>This concept is the mathematical foundation of Modern Portfolio Theory, allowing investors to quantitatively balance the desire for profit against the fear of loss. In Reinforcement Learning, it prevents agents from taking 'reckless' gambles that have high potential rewards but an unacceptable risk of total failure.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="comparison-block">
+            <div class="comparison-side left">
+                <h4>🔵 Low Risk-Aversion (Low γ)</h4>
+                <ul><li>Prioritizes maximizing expected return (wᵀμ)</li><li>Acceptable of high volatility and large swings</li><li>Concentrates weights in high-growth, risky assets</li><li>Higher probability of both massive gains and total loss</li></ul>
+            </div>
+            <div class="comparison-divider">vs</div>
+            <div class="comparison-side right">
+                <h4>🟢 High Risk-Aversion (High γ)</h4>
+                <ul><li>Prioritizes minimizing variance (wᵀΣw)</li><li>Seeks consistent, predictable outcomes</li><li>Diversifies weights across stable, low-return assets</li><li>Sacrifices potential upside for capital preservation</li></ul>
+            </div>
+        </div>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>A Mean-Variance Policy is a decision-making strategy that evaluates an action's value by subtracting a 'risk penalty' from its 'expected reward.' In a financial context, the agent chooses a vector of weights (w) representing how much to invest in various assets. The first term of the utility function calculates the expected return by multiplying the weights by the average returns (mu). The second term calculates the risk by looking at the variance (Sigma) of those assets, scaled by a risk-aversion parameter (gamma). By adjusting gamma, the policy can be tuned to be either 'aggressive' (ignoring risk to chase high mu) or 'conservative' (sacrificing mu to ensure the variance remains low), effectively finding the optimal trade-off on what economists call the Efficient Frontier.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>PAGE 4
+============================================================
+
+Mean-Variance Policy
+
+•  Investor has mean-variance utility (reward)
+
+[FORMULA]: R ( w ) =  w   ⊺ µ  − γ
+
+
+[FORMULA]: 2   w  ⊺ Σ w .
+
+</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Suppose you are allocating $1,000 between a volatile Crypto asset (15% expected return) and a stable Bond (3% expected return). If your risk-aversion (gamma) is set to zero, the policy will put all $1,000 into Crypto to maximize the mean return. However, as you increase gamma, the math begins to penalize the Crypto's high variance so heavily that the policy automatically shifts the majority of the $1,000 into the Bond to protect the portfolio from large swings. This results in a balanced weight distribution that achieves a 'smooth' growth curve rather than a 'rollercoaster' one.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>A common error is assuming that variance only penalizes losses; in this mathematical framework, variance penalizes any deviation from the mean, including unexpected massive gains. Additionally, students often forget that the 'optimal' policy changes entirely if the risk-aversion parameter (gamma) is adjusted, even if the market data (mu and Sigma) remains exactly the same.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> In the mean-variance utility formula R(w) = wᵀμ - (γ/2)wᵀΣw, what does the term wᵀΣw represent?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        The expected return of the portfolio
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        The portfolio variance, representing risk
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The risk aversion coefficient of the investor
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The transaction costs associated with the weights
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The quadratic term wᵀΣw calculates the variance of the portfolio returns based on the weights and the covariance matrix.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The quadratic term wᵀΣw calculates the variance of the portfolio returns based on the weights and the covariance matrix.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> How does an increase in the risk aversion coefficient (γ) affect the utility R(w) for a portfolio with a fixed variance?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        It increases the utility by weighting the mean return higher
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It has no effect on the utility calculation
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        It decreases the utility by increasing the penalty for risk
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It reduces the expected return (wᵀμ) of the portfolio
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! A higher γ increases the penalty subtracted from the expected return, reflecting a greater dislike for risk.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. A higher γ increases the penalty subtracted from the expected return, reflecting a greater dislike for risk.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> What is the primary objective of an investor using the Mean-Variance Policy formula?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        To maximize portfolio variance regardless of return
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To minimize the risk aversion coefficient (γ)
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To maximize the mean return while ignoring risk
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        To maximize the trade-off between expected return and risk
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The policy seeks to find weights that provide the highest reward after subtracting the risk-adjusted penalty from the expected return.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The policy seeks to find weights that provide the highest reward after subtracting the risk-adjusted penalty from the expected return.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-3" class="concept-section">
+            <h2>Prediction-Decision Process</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Think of deciding whether to carry an umbrella based on a weather app. The app provides a 'prediction' (70% chance of rain), but you must choose your 'cut-off' rule—perhaps you only carry it if the chance is above 50%—to balance the reward of staying dry against the annoyance of carrying the umbrella.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>In finance and AI, a highly accurate prediction is useless if it doesn't lead to a profitable action. This process allows businesses to translate statistical probabilities into optimal decisions, such as setting the exact credit score threshold required to maximize bank profits while minimizing loan defaults.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="diagram-container">
+            <div class="diagram-title">The Prediction-Decision Pipeline</div>
+            <div class="mermaid">
+flowchart LR
+    A[State/Data S] --> B(Prediction Model)
+    B --> C{Cut-off Rule C}
+    C -->|Above C| D[Action A]
+    C -->|Below C| E[Action B]
+    D --> F(Reward/Utility R)
+    E --> F
+    F -.->|Optimize C| C
+            </div>
+            <div class="diagram-caption">The flow from raw data to a reward-maximizing action via a learned cut-off rule.</div>
+        </div>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>The Prediction-Decision Process is a two-stage framework where we first build a model to estimate an unknown state or future value, aiming for the lowest possible error. Once we have this numerical estimate, we apply a 'cut-off' rule to convert that estimate into a concrete action. In the context of Reinforcement Learning, this is formalized as a policy where we observe a state, use our model to predict outcomes, and then select the action that maximizes our cumulative reward. The critical step is optimizing the cut-off parameter itself; we look at historical data to see which specific threshold would have resulted in the highest total utility, ensuring our decision-making logic is as robust as our statistical model.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>PAGE 8
+============================================================
+
+What’s in the Prediction-Decision Process
+
+•  A prediction model is constructed first. The better quality the prediction
+is, the better the model is. In our case, we would like to learn a robust model that delivers good out-of-sample MSE.
+
+•  A decision is made based on the “cut-off” rule of the prediction model. In
+many cases, the “cut-off” rule is widely used.
+
+•  The parameter to choose is the cut-off rule  c , which can be </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>A credit card company predicts the probability of a transaction being fraudulent; for a specific purchase, the model predicts a 12% risk. If the company's optimized cut-off rule is 10%, they will automatically block the card to prevent loss. However, if they set the cut-off too low (e.g., 2%), they frustrate too many legitimate customers, so they use past data to find the 'golden' cut-off that balances fraud prevention with customer satisfaction.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>Students often assume that minimizing prediction error (like MSE) is the only goal, forgetting that a model with perfect predictions can still fail if the decision cut-off is poorly chosen. You can have a perfect weather forecast, but if your 'cut-off' is to never carry an umbrella, you will still get wet and fail the objective.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> What is the primary indicator of a higher quality prediction model in the Prediction-Decision Process?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        The total number of parameters used in the model
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The complexity of the decision-making algorithm
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        The delivery of good out-of-sample MSE through a robust model
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The speed at which the cut-off rule is applied
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! According to the content, a better model is defined by the quality of its predictions, specifically aiming for robustness and a good out-of-sample Mean Squared Error (MSE).
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. According to the content, a better model is defined by the quality of its predictions, specifically aiming for robustness and a good out-of-sample Mean Squared Error (MSE).
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> In the Prediction-Decision Process, how is a final decision typically reached after the prediction model is built?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="true">
+                        By using a widely implemented 'cut-off' rule
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        By manually reviewing out-of-sample data points
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        By discarding past data and focusing on future trends
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        By calculating the MSE for every individual decision
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The text states that a decision is made based on the 'cut-off' rule of the prediction model, which is a widely used method.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The text states that a decision is made based on the 'cut-off' rule of the prediction model, which is a widely used method.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> Which specific parameter can be learned and optimized using historical data in this process?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        The out-of-sample MSE itself
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        The cut-off rule parameter 'c'
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The raw quality of the prediction model
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The initial construction of the hardware
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The content explicitly mentions that the cut-off rule 'c' is the parameter to choose and it can be optimized using past data.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The content explicitly mentions that the cut-off rule 'c' is the parameter to choose and it can be optimized using past data.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-4" class="concept-section">
+            <h2>Parameter Sharing</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Think of a school where every student is trying to learn to bake; instead of each student inventing their own unique recipe from scratch with very few ingredients, they all follow one master recipe. This shared recipe is more likely to result in a good cake because it was developed using the collective experience of everyone, rather than one person's lucky guess.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>In financial time series where data is scarce (only 100 to 1,000 observations), individual models for every asset would overfit to random noise. Parameter sharing allows a model to learn from thousands of assets simultaneously, creating a robust 'universal' rule that generalizes better than any single-asset model could.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="comparison-block">
+            <div class="comparison-side left">
+                <h4>🔵 Individual Estimation (βi)</h4>
+                <ul><li>Small sample size per model (T ~ 100)</li><li>High risk of overfitting to noise</li><li>Model captures asset-specific 'hallucinations'</li><li>High variance in parameter values</li></ul>
+            </div>
+            <div class="comparison-divider">vs</div>
+            <div class="comparison-side right">
+                <h4>🟢 Parameter Sharing (βi = β)</h4>
+                <ul><li>Large pooled sample size (N × T)</li><li>Robust estimation against outliers</li><li>Captures universal structural relationships</li><li>Lower variance and better generalization</li></ul>
+            </div>
+        </div>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Parameter sharing is a regularization technique that forces multiple distinct entities—such as different stocks or agents in a Reinforcement Learning environment—to use the same weights (e.g., setting βi = β). When the time dimension T is small, estimating separate parameters for each individual leads to high variance and overfitting because the model 'memorizes' specific quirks of that short window. By pooling all observations (N individuals × T time points), the model effectively increases its sample size, forcing the optimization to find a weight vector W that captures the underlying structural relationship common to all participants while ignoring idiosyncratic noise.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>
+•  Often leads to overfit as time series  T  is short.  T  ∼ 100  to  1000.
+
+[FORMULA]: •  Parameter Sharing:  β i  =  β  - this puts a more robust estimation of  β i .
+
+Ideally we could involve many predictors. In this case, LASSO and Boosting can be used.
+
+•  Namely, we solve:
+
+[FORMULA]: ˆ β  =  argmin
+
+N X i =1 T X t =1 ( R it  − W   ⊺
+</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>If you are predicting returns for 50 different tech stocks but only have 100 days of data for each, an individual model for Apple might find a false correlation with rainy days. By enforcing parameter sharing across all 50 stocks, the model uses all 5,000 data points to learn that 'Revenue Growth' is the true predictor. The model applies the same ˆβ to every stock's features, ensuring the prediction logic is grounded in a larger, more statistically significant dataset.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>Students often assume that parameter sharing means all predictions will be the same; in reality, the predictions remain unique because the shared weights are applied to different input data (features) for each individual.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> Why is parameter sharing particularly useful in time series analysis when the time series length (T) is between 100 and 1000?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        To increase the complexity of the model for better fit
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        To prevent overfitting that often occurs because the time series is relatively short
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To ensure that each individual entity has a unique, independent coefficient
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To eliminate the need for collecting more than one predictor
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Parameter sharing is used to mitigate overfitting in scenarios where the limited amount of time-series data (T) makes individual parameter estimation unstable.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Parameter sharing is used to mitigate overfitting in scenarios where the limited amount of time-series data (T) makes individual parameter estimation unstable.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> What is the primary mathematical implication of the parameter sharing constraint βi = β?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        It requires a separate model to be trained for every time point t
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It allows for an infinite number of predictors W
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        It leads to a more robust estimation by pooling information across different entities
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It forces the estimator to always result in a value of zero
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! By forcing coefficients to be equal across entities, the model creates a more robust and stable estimation of the shared parameter.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. By forcing coefficients to be equal across entities, the model creates a more robust and stable estimation of the shared parameter.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> Which techniques are recommended when involving many predictors in a parameter-shared model to optimize the objective function?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        Principal Component Analysis and K-Means
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        LASSO and Boosting
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Simple Moving Averages and Exponential Smoothing
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Maximum Likelihood without regularization
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! LASSO and Boosting are effective regularization and selection methods used to handle high-dimensional predictor sets within this framework.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. LASSO and Boosting are effective regularization and selection methods used to handle high-dimensional predictor sets within this framework.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-5" class="concept-section">
+            <h2>Cut-off Rules</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>A cut-off rule is like a height requirement for a roller coaster: only children who meet the minimum height are allowed to ride. In your portfolio, only assets that meet a minimum 'predicted return' height are allowed to be included in your investment 'ride.'</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>In markets with thousands of assets, investors need a systematic way to filter out noise and focus only on high-probability winners. These rules allow for automated, objective decision-making that removes emotional bias and ensures capital is only risked on assets that meet a specific performance standard.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="diagram-container">
+            <div class="diagram-title">The Cut-off Rule Decision Flow</div>
+            <div class="mermaid">
+flowchart LR
+    A[State Variable S_t] --> B[Predict Expected Return]
+    B --> C{Is Return > Threshold?}
+    C -- Yes --> D[Action: Buy/Hold Asset]
+    C -- No --> E[Action: Skip/Sell Asset]
+    D --> F[Calculate Reward R]
+    E --> F
+            </div>
+            <div class="diagram-caption">How a predicted return is processed through a threshold to determine a portfolio action.</div>
+        </div>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>A cut-off rule transforms a continuous prediction into a discrete action. While a model might predict a range of potential returns for many assets, the decision policy $P(S_t)$ must ultimately choose which ones to hold. By establishing a threshold—the 'cut-off'—the system creates a binary boundary: if the predicted reward $R(S_t, a_t)$ exceeds this threshold, the action $a_t$ is to buy; otherwise, the action is to pass. This simplifies the optimization problem because the learner only needs to find the optimal threshold $ heta$ that maximizes the cumulative reward across the entire time series, balancing the risk of missing out on gains against the risk of holding low-performing assets.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>Decision logic used to select assets for a portfolio based on whether their predicted returns exceed a specific threshold.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Imagine an algorithm predicts the following returns: Stock A (12%), Stock B (4%), and Stock C (7%). If you set a cut-off rule of 6%, the algorithm automatically selects Stock A and Stock C for the portfolio while rejecting Stock B. If the market becomes more volatile, you might raise the cut-off to 10% to ensure you only pick the very best performers, which would leave you with only Stock A.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>Students often assume the cut-off should be zero, meaning they should buy anything with a positive predicted return. In practice, the cut-off must be higher than zero to account for transaction fees, taxes, and the 'opportunity cost' of not putting that money into a better-performing asset.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> In the context of portfolio construction, what is the primary purpose of a cut-off rule?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        To diversify a portfolio across as many sectors as possible
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        To determine asset inclusion based on whether predicted returns meet a minimum threshold
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To calculate the average historical volatility of all stocks in a market index
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To automatically rebalance portfolio weights on a monthly basis
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Cut-off rules act as a filtering mechanism that selects only those assets whose expected performance justifies their inclusion in the portfolio.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Cut-off rules act as a filtering mechanism that selects only those assets whose expected performance justifies their inclusion in the portfolio.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> What is the most likely outcome of increasing the return threshold in a cut-off rule selection process?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        The portfolio will contain a higher number of assets
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        The portfolio will contain a lower number of assets
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The transaction costs for the portfolio will naturally decrease to zero
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The predicted returns of the remaining assets will decrease
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Setting a higher threshold creates a stricter selection criteria, resulting in fewer assets being able to satisfy the requirement for inclusion.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Setting a higher threshold creates a stricter selection criteria, resulting in fewer assets being able to satisfy the requirement for inclusion.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> Which of the following logical statements best represents the application of a cut-off rule for an asset 'i'?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        Include 'i' if Predicted Return is less than the Cut-off Rate
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Include 'i' if Risk is greater than the Cut-off Rate
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        Include 'i' if Predicted Return is greater than or equal to the Cut-off Rate
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Include 'i' only if the Cut-off Rate is equal to zero
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Cut-off rules function by comparing an asset's predicted return against a specific hurdle rate to decide if it provides sufficient value for the portfolio.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Cut-off rules function by comparing an asset's predicted return against a specific hurdle rate to decide if it provides sufficient value for the portfolio.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-6" class="concept-section">
+            <h2>Backtesting and Rolling-Window Analysis</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Think of it like a chef practicing a new recipe: instead of trying it once, they cook it every Monday for a year using only the ingredients that were available that specific week. By the end of the year, they know if the recipe works in every season, not just during the summer harvest.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>In finance, market conditions change constantly; a strategy that works during a 'bull market' might fail during a 'crash.' Rolling-window analysis proves a model's reliability by testing it across multiple different historical periods to ensure its success wasn't just a fluke of timing.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="diagram-container">
+            <div class="diagram-title">Rolling-Window Process Flow</div>
+            <div class="mermaid">
+flowchart TD
+    subgraph Fold_1
+    T1[Train: Months 1-3] --> V1[Test: Month 4]
+    end
+    subgraph Fold_2
+    T2[Train: Months 2-4] --> V2[Test: Month 5]
+    end
+    subgraph Fold_3
+    T3[Train: Months 3-5] --> V3[Test: Month 6]
+    end
+    Fold_1 --> Fold_2
+    Fold_2 --> Fold_3
+    V1 & V2 & V3 --> Result[Aggregate Performance Metrics]
+            </div>
+            <div class="diagram-caption">How the training and testing windows shift forward through time to validate policy performance.</div>
+        </div>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Standard machine learning uses random splits, but time-series data requires maintaining chronological order to avoid 'looking into the future.' Rolling-window analysis addresses this by creating a sequence of training and testing blocks: you train your Reinforcement Learning policy on a fixed window of past data (e.g., months 1-6) and evaluate it on the immediate following period (month 7). Then, you 'roll' the entire window forward by one increment and repeat the process. This generates a series of out-of-sample performance metrics that account for time-varying parameters and market regimes, ensuring the learned policy is truly robust and not just overfitted to a specific historical moment.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>A robust evaluation methodology that divides time-series data into multiple overlapping training and testing segments to assess policy performance.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Imagine you have 12 months of Bitcoin prices. In Fold 1, you train your RL agent on Jan-Mar data and test its trades in April. In Fold 2, you shift the window to train on Feb-Apr and test in May. By the time you reach Fold 9 (training Sept-Nov, testing December), you have 9 separate 'report cards' that show exactly how your agent handles different levels of volatility.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>A frequent error is 'look-ahead bias,' where researchers accidentally use the global average or maximum of the entire dataset to normalize features in the training window, effectively giving the model 'cheating' hints about the future.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> In the context of time-series evaluation, what is the defining characteristic of a rolling-window analysis?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        Randomly shuffling all data points to create training and validation sets.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Evaluating a policy on the entire historical dataset simultaneously.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        Moving a fixed-size window across the timeline to create multiple overlapping train/test segments.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Exclusively using the oldest 20% of data for training and the newest 80% for testing.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Rolling-window analysis sequentially moves a window forward in time to simulate how a policy would have performed across different historical periods.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Rolling-window analysis sequentially moves a window forward in time to simulate how a policy would have performed across different historical periods.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> Why is rolling-window analysis considered more robust than a single static train-test split for time-series data?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        It allows the model to look at future data during the training phase.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        It tests the policy across different temporal regimes, reducing the risk of results being an artifact of a specific time period.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It significantly reduces the computational power required for backtesting.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It removes the need for any testing data by focusing only on training accuracy.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! By assessing performance over multiple overlapping segments, the methodology provides a broader view of stability and performance across varying market or environmental conditions.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. By assessing performance over multiple overlapping segments, the methodology provides a broader view of stability and performance across varying market or environmental conditions.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> When setting up a rolling-window backtest, what rule must be followed to avoid 'look-ahead bias'?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="true">
+                        The training data in any given window must chronologically precede the testing data.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The testing data must be selected from the middle of the training set.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Data should be randomly sampled from both the past and the future for every window.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The window size must decrease as you move closer to the present day.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! To ensure a valid simulation, the model must only be trained on information that would have been available at the time of the test, preventing the leakage of future information.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. To ensure a valid simulation, the model must only be trained on information that would have been available at the time of the test, preventing the leakage of future information.
+                    </div>
+                </div>
+                
+        </section>
+        
+            
+            <!-- Completion -->
+            <div style="margin-top: 4rem; padding: 2rem; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); border-radius: 12px; text-align: center; color: white;">
+                <h3 style="margin-bottom: 1rem;">Course Complete!</h3>
+                <p>You've reviewed all 6 main concepts. Keep practicing with the quizzes above.</p>
+            </div>
+        </main>
+
+        <div class="column-resizer" id="resizerRight" role="separator" aria-orientation="vertical" aria-label="Resize right sidebar"></div>
+
+        <!-- Right Sidebar: AI Assistant & Tools -->
+        <aside class="sidebar-right">
+            <div class="ai-chat">
+                <div class="ai-chat-header">
+                    <div>
+                        <h3 style="margin: 0;">AI Study Assistant</h3>
+                        <p style="font-size: 0.8rem; color: var(--text-tertiary); margin: 0;">Powered by Gemini</p>
+                    </div>
+                </div>
+                
+                <div class="ai-chat-messages" id="aiMessages">
+                    <div class="ai-message assistant">
+                        Hi! I'm your AI study assistant. Ask me anything about this topic, or request:
+                        <ul style="margin-top: 0.5rem; padding-left: 1.5rem; font-size: 0.9rem;">
+                            <li>Explanations in simpler terms</li>
+                            <li>More examples</li>
+                            <li>Practice questions</li>
+                            <li>Connections to other concepts</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="ai-input-group">
+                    <input 
+                        type="text" 
+                        class="ai-input" 
+                        id="aiInput" 
+                        placeholder="Ask a question..."
+                        onkeypress="if(event.key==='Enter') sendAIMessage()"
+                    />
+                    <button class="ai-send-btn" onclick="sendAIMessage()">Send</button>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div style="margin-top: 2rem;">
+                <h4 style="margin-bottom: 1rem; color: var(--text-tertiary);">Quick Actions</h4>
+                <button onclick="reviewAllQuizzes()" class="action-btn">
+                    Review All Quizzes
+                </button>
+                <button onclick="createSummary()" class="action-btn">
+                    Generate Summary
+                </button>
+                <button onclick="window.print()" class="action-btn">
+                    Print Notes
+                </button>
+            </div>
+            
+            <!-- Keyboard Shortcuts -->
+            <div style="margin-top: 2rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.85rem;">
+                <h5 style="margin-bottom: 0.75rem; color: var(--text-tertiary);">Shortcuts</h5>
+                <div id="shortcutsDisplay" style="color: var(--text-secondary); line-height: 1.8;">
+                    <div><kbd id="shortcutFocusAI">Alt+A</kbd> Focus AI</div>
+                    <div><kbd id="shortcutSummary">Alt+S</kbd> Summary</div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        
+        // ── Gemini Proxy Configuration ──
+        const GEMINI_PROXY_URL = '../api/gemini';
+        const LAYOUT_STORAGE_KEY = 'learning-layout-widths-v1';
+        
+        let courseContext = '';
+        let conversationHistory = [];
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+        
+        // ── Main Controller ──
+        class LearningPageController {
+            constructor() {
+                this.isMac = /Mac|iPhone|iPod|iPad/i.test(navigator.platform);
+                this.setupExpandables();
+                this.setupQuizzes();
+                this.setupProgressTracking();
+                this.setupScrollReveal();
+                this.setupCourseContext();
+                this.setupKeyboardShortcuts();
+                this.initializeMermaid();
+                this.initializeCharts();
+                this.updateShortcutsDisplay();
+                this.setupColumnResizers();
+            }
+            
+            initializeMermaid() {
+                if (typeof mermaid !== 'undefined') {
+                    mermaid.initialize({
+                        startOnLoad: true,
+                        theme: 'dark',
+                        themeVariables: {
+                            primaryColor: '#263352',
+                            primaryTextColor: '#edf2f7',
+                            primaryBorderColor: '#f6c177',
+                            lineColor: '#a0aec0',
+                            secondaryColor: '#1f2b47',
+                            tertiaryColor: '#1c2a45',
+                            background: '#16213e',
+                            mainBkg: '#263352',
+                            nodeBorder: '#f6c177',
+                            clusterBkg: '#1f2b47',
+                            fontSize: '14px'
+                        },
+                        flowchart: { curve: 'basis', padding: 20 },
+                        sequence: { actorMargin: 50 }
+                    });
+                }
+            }
+            
+            initializeCharts() {
+                if (typeof Chart !== 'undefined') {
+                    Chart.defaults.color = '#a0aec0';
+                    Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+                    Chart.defaults.font.family = "-apple-system, 'Helvetica Neue', sans-serif";
+                    Chart.defaults.responsive = true;
+                    Chart.defaults.maintainAspectRatio = true;
+                    Chart.defaults.plugins.legend.labels.usePointStyle = true;
+                }
+            }
+            
+            setupCourseContext() {
+                const mc = document.querySelector('.main-content');
+                if (mc) courseContext = mc.innerText.substring(0, 6000);
+            }
+            
+            setupExpandables() {
+                document.querySelectorAll('.expandable-header').forEach(header => {
+                    header.addEventListener('click', () => {
+                        header.parentElement.classList.toggle('open');
+                    });
+                });
+            }
+            
+            setupQuizzes() {
+                document.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.addEventListener('click', () => this.handleQuiz(opt));
+                });
+            }
+
+            handleQuiz(option) {
+                const quiz = option.closest('.quiz-container');
+                const isCorrect = option.dataset.correct === 'true';
+                
+                quiz.querySelectorAll('.quiz-option').forEach(o => {
+                    o.classList.remove('selected','correct','incorrect');
+                });
+                
+                option.classList.add('selected');
+                option.classList.add(isCorrect ? 'correct' : 'incorrect');
+                
+                if (!isCorrect) {
+                    quiz.querySelectorAll('.quiz-option').forEach(o => {
+                        if (o.dataset.correct === 'true') o.classList.add('correct');
+                    });
+                }
+                
+                const cf = quiz.querySelector('.quiz-feedback.correct');
+                const ic = quiz.querySelector('.quiz-feedback.incorrect');
+                if (isCorrect) { cf.classList.add('show'); ic.classList.remove('show'); }
+                else { ic.classList.add('show'); cf.classList.remove('show'); }
+            }
+
+            
+            setupProgressTracking() {
+                window.addEventListener('scroll', () => {
+                    const h = document.documentElement.scrollHeight - window.innerHeight;
+                    const p = h > 0 ? Math.min((window.scrollY / h) * 100, 100) : 0;
+                    document.getElementById('progressBar').style.width = p + '%';
+                });
+            }
+            
+            setupScrollReveal() {
+                const obs = new IntersectionObserver((entries) => {
+                    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('revealed'); });
+                }, { threshold: 0.08 });
+                document.querySelectorAll('.reveal-on-scroll').forEach(el => obs.observe(el));
+            }
+            
+            setupKeyboardShortcuts() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.altKey && e.key === 'a') {
+                        e.preventDefault();
+                        document.getElementById('aiInput')?.focus();
+                    }
+                    if (e.altKey && e.key === 's') {
+                        e.preventDefault();
+                        askSummary();
+                    }
+                });
+            }
+            
+            updateShortcutsDisplay() {
+                const prefix = this.isMac ? '⌥' : 'Alt+';
+                const focusEl = document.getElementById('shortcutFocusAI');
+                const summaryEl = document.getElementById('shortcutSummary');
+                if (focusEl) focusEl.textContent = prefix + 'A';
+                if (summaryEl) summaryEl.textContent = prefix + 'S';
+            }
+
+            setupColumnResizers() {
+                if (window.matchMedia('(max-width: 1200px)').matches) return;
+                const container = document.querySelector('.page-container');
+                const leftResizer = document.getElementById('resizerLeft');
+                const rightResizer = document.getElementById('resizerRight');
+                if (!container || !leftResizer || !rightResizer) return;
+
+                const minLeft = 200, maxLeft = 560;
+                const minRight = 220, maxRight = 560;
+                const minMain = 520;
+                let leftWidth = 260;
+                let rightWidth = 300;
+
+                const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+                const applyWidths = () => {
+                    container.style.setProperty('--left-width', leftWidth + 'px');
+                    container.style.setProperty('--right-width', rightWidth + 'px');
+                };
+                const getTotalWidth = () => container.getBoundingClientRect().width - 16;
+                const clampAll = () => {
+                    const total = getTotalWidth();
+                    leftWidth = clamp(leftWidth, minLeft, maxLeft);
+                    rightWidth = clamp(rightWidth, minRight, maxRight);
+                    if (total - leftWidth - rightWidth < minMain) {
+                        const overflow = minMain - (total - leftWidth - rightWidth);
+                        leftWidth = clamp(leftWidth - overflow / 2, minLeft, maxLeft);
+                        rightWidth = clamp(rightWidth - overflow / 2, minRight, maxRight);
+                        if (total - leftWidth - rightWidth < minMain) {
+                            const rightCap = clamp(total - leftWidth - minMain, minRight, maxRight);
+                            rightWidth = rightCap;
+                            leftWidth = clamp(total - rightWidth - minMain, minLeft, maxLeft);
+                        }
+                    }
+                };
+
+                try {
+                    const cached = JSON.parse(localStorage.getItem(LAYOUT_STORAGE_KEY) || '{}');
+                    if (Number.isFinite(cached.left)) leftWidth = cached.left;
+                    if (Number.isFinite(cached.right)) rightWidth = cached.right;
+                } catch {}
+                clampAll();
+                applyWidths();
+
+                const startDrag = (side) => (evt) => {
+                    evt.preventDefault();
+                    const rect = container.getBoundingClientRect();
+                    const total = getTotalWidth();
+                    const onMove = (moveEvt) => {
+                        if (side === 'left') {
+                            const rawLeft = moveEvt.clientX - rect.left;
+                            const maxAllowed = Math.min(maxLeft, total - rightWidth - minMain);
+                            leftWidth = clamp(rawLeft, minLeft, Math.max(minLeft, maxAllowed));
+                        } else {
+                            const rawRight = rect.right - moveEvt.clientX;
+                            const maxAllowed = Math.min(maxRight, total - leftWidth - minMain);
+                            rightWidth = clamp(rawRight, minRight, Math.max(minRight, maxAllowed));
+                        }
+                        applyWidths();
+                    };
+                    const stopMove = () => {
+                        document.body.style.userSelect = '';
+                        document.body.style.cursor = '';
+                        leftResizer.classList.remove('dragging');
+                        rightResizer.classList.remove('dragging');
+                        localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify({ left: leftWidth, right: rightWidth }));
+                        document.removeEventListener('pointermove', onMove);
+                        document.removeEventListener('pointerup', stopMove);
+                    };
+                    document.body.style.userSelect = 'none';
+                    document.body.style.cursor = 'col-resize';
+                    (side === 'left' ? leftResizer : rightResizer).classList.add('dragging');
+                    document.addEventListener('pointermove', onMove);
+                    document.addEventListener('pointerup', stopMove);
+                };
+
+                leftResizer.addEventListener('pointerdown', startDrag('left'));
+                rightResizer.addEventListener('pointerdown', startDrag('right'));
+                window.addEventListener('resize', () => {
+                    if (window.matchMedia('(max-width: 1200px)').matches) return;
+                    clampAll();
+                    applyWidths();
+                });
+            }
+        }
+        
+        // ── AI Chat (Real Gemini API) ──
+        async function sendAIMessage() {
+            const input = document.getElementById('aiInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+            
+            appendMsg('user', msg);
+            input.value = '';
+            input.disabled = true;
+            
+            const typingEl = appendMsg('assistant', '<span class="typing-dots"><span>.</span><span>.</span><span>.</span></span>');
+            
+            try {
+                const answer = await callGemini(msg);
+                typingEl.innerHTML = formatMd(answer);
+            } catch (err) {
+                const errMsg = err?.message || String(err);
+                let hint = 'Check console for details.';
+                if (window.location.protocol === 'file:' || errMsg.includes('Failed to fetch')) {
+                    const current = window.location.pathname.split('/').pop();
+                    hint = `Start local server: python3 serve.py --open html/${current} and ensure GEMINI_API_KEY exists in .env.local`;
+                }
+                typingEl.innerHTML = '⚠️ Error: ' + escapeHtml(errMsg) + '<br><small>' + escapeHtml(hint) + '</small>';
+                console.error('Gemini API error:', err);
+            } finally {
+                input.disabled = false;
+                input.focus();
+            }
+        }
+        
+        async function callGemini(userMessage) {
+            if (window.location.protocol === 'file:') {
+                throw new Error('This page is opened as file:// and cannot reach ../api/gemini');
+            }
+
+            const prompt = `You are a concise study assistant for this course.
+
+Course content (excerpt):
+${courseContext.substring(0, 3500)}
+
+Previous conversation:
+${conversationHistory.slice(-4).map(m => m.role + ': ' + m.content).join('\n')}
+
+Student question: ${userMessage}
+
+Instructions:
+- Answer in 3-6 sentences, be direct and complete
+- Always finish your sentences, never leave a thought incomplete
+- Use the course content as reference
+- If the question is in Chinese, answer in Chinese`;
+
+            const res = await fetch(GEMINI_PROXY_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    prompt: prompt,
+                    generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
+                })
+            });
+            
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(`API ${res.status}: ${errText.substring(0, 200)}`);
+            }
+            
+            const data = await res.json();
+            const candidate = data.candidates?.[0];
+            const answer = candidate?.content?.parts?.[0]?.text;
+            if (!answer) throw new Error('Empty response from API');
+            
+            // Check if response was truncated
+            if (candidate?.finishReason === 'MAX_TOKENS') {
+                conversationHistory.push({ role: 'user', content: userMessage }, { role: 'assistant', content: answer });
+                return answer + '...\n\n_(Response was trimmed. Ask a follow-up for more detail.)_';
+            }
+            
+            conversationHistory.push({ role: 'user', content: userMessage }, { role: 'assistant', content: answer });
+            return answer;
+        }
+        
+        function appendMsg(role, html) {
+            const container = document.getElementById('aiMessages');
+            const div = document.createElement('div');
+            div.className = 'ai-message ' + role;
+            div.innerHTML = html;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            return div;
+        }
+        
+        function formatMd(text) {
+            return text
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/`(.+?)`/g, '<code style="background:var(--bg-tertiary);padding:0.1em 0.4em;border-radius:3px;font-size:0.9em;">$1</code>')
+                .replace(/\n/g, '<br>');
+        }
+        
+        function askSummary() {
+            const input = document.getElementById('aiInput');
+            input.value = 'Please summarize the key concepts of this lesson in bullet points.';
+            sendAIMessage();
+        }
+        
+        function reviewAllQuizzes() {
+            const q = document.querySelector('.quiz-container');
+            if (q) q.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        function createSummary() { askSummary(); }
+        
+        // ── Sidebar Tabs ──
+        function switchSidebarTab(tabName) {
+            document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.sidebar-panel').forEach(p => p.style.display = 'none');
+            document.querySelector(`.sidebar-tab[data-tab="${tabName}"]`)?.classList.add('active');
+            const panel = document.getElementById('panel-' + tabName);
+            if (panel) panel.style.display = 'block';
+        }
+        
+        // ── Notes System ──
+        const NOTES_STORAGE_KEY = 'learning-notes-' + document.title;
+        const NOTES_FOCUS_KEY = NOTES_STORAGE_KEY + '-focus';
+        const NOTES_ACTIVE_KEY = NOTES_STORAGE_KEY + '-active';
+        const NOTES_DRAFT_KEY = NOTES_STORAGE_KEY + '-draft';
+        
+        function loadNotes() {
+            try {
+                const raw = JSON.parse(localStorage.getItem(NOTES_STORAGE_KEY) || '[]');
+                if (!Array.isArray(raw)) return [];
+                return raw.map((n, idx) => {
+                    const idNum = Number(n?.id);
+                    return {
+                        id: Number.isFinite(idNum) ? idNum : -(idx + 1),
+                        citation: typeof n?.citation === 'string' ? n.citation : (typeof n?.quote === 'string' ? n.quote : ''),
+                        body: typeof n?.body === 'string' ? n.body : (typeof n?.text === 'string' ? n.text : (typeof n?.content === 'string' ? n.content : '')),
+                        section: typeof n?.section === 'string' ? n.section : (typeof n?.title === 'string' ? n.title : ''),
+                        timestamp: typeof n?.timestamp === 'string' && n.timestamp
+                            ? n.timestamp
+                            : (typeof n?.created_at === 'string' && n.created_at ? n.created_at : new Date().toISOString())
+                    };
+                });
+            }
+            catch { return []; }
+        }
+        
+        function saveNotes(notes) {
+            localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(notes));
+            renderNotes();
+        }
+
+        function saveDraft(text) {
+            localStorage.setItem(NOTES_DRAFT_KEY, text || '');
+        }
+
+        function loadDraft() {
+            return localStorage.getItem(NOTES_DRAFT_KEY) || '';
+        }
+
+        function renderDraftPreview(text) {
+            const preview = document.getElementById('noteDraftPreviewContent');
+            if (!preview) return;
+            const clean = text || '';
+            if (!clean.trim()) {
+                preview.innerHTML = '<span style="color: var(--text-tertiary);">Type in the note box to preview Markdown rendering in real time.</span>';
+                return;
+            }
+            preview.innerHTML = renderNoteMarkdown(clean);
+        }
+
+        function handleNoteInputChange(value) {
+            saveDraft(value);
+            renderDraftPreview(value);
+        }
+
+        function initNoteComposer() {
+            const input = document.getElementById('noteInput');
+            if (!input) return;
+            const draft = loadDraft();
+            input.value = draft;
+            renderDraftPreview(draft);
+            input.addEventListener('input', () => {
+                handleNoteInputChange(input.value);
+            });
+            input.addEventListener('keydown', (e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    addFreeNote();
+                }
+            });
+        }
+
+        function getFocusedNoteId() {
+            const value = localStorage.getItem(NOTES_FOCUS_KEY);
+            return value ? Number(value) : null;
+        }
+
+        function getActiveNoteId() {
+            const value = localStorage.getItem(NOTES_ACTIVE_KEY);
+            return value ? Number(value) : null;
+        }
+
+        function setFocusedNoteId(id) {
+            if (!id) localStorage.removeItem(NOTES_FOCUS_KEY);
+            else localStorage.setItem(NOTES_FOCUS_KEY, String(id));
+        }
+
+        function setActiveNoteId(id) {
+            if (!id) localStorage.removeItem(NOTES_ACTIVE_KEY);
+            else localStorage.setItem(NOTES_ACTIVE_KEY, String(id));
+        }
+
+        function toggleFocusNote(id, e) {
+            e?.stopPropagation();
+            const focusedId = getFocusedNoteId();
+            setFocusedNoteId(focusedId === id ? null : id);
+            renderNotes();
+        }
+
+        function openNote(id) {
+            setActiveNoteId(id);
+            renderNotes();
+            switchSidebarTab('notes');
+        }
+
+        function ensureNoteReader() {
+            const panel = document.getElementById('panel-notes');
+            const notesList = document.getElementById('notesList');
+            if (!panel || !notesList) return null;
+            notesList.style.maxHeight = '32vh';
+
+            let reader = document.getElementById('noteReader');
+            if (!reader) {
+                reader = document.createElement('div');
+                reader.id = 'noteReader';
+                reader.className = 'note-reader';
+                notesList.insertAdjacentElement('afterend', reader);
+            }
+            return reader;
+        }
+
+        function renderNoteMarkdown(text) {
+            return escapeHtml(text || '')
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/`(.+?)`/g, '<code>$1</code>')
+                .replace(/\n/g, '<br>');
+        }
+
+        function renderNoteReader(notes) {
+            const reader = ensureNoteReader();
+            if (!reader) return;
+            if (notes.length === 0) {
+                reader.innerHTML = '<div class="reader-title">Reader</div><div class="reader-content">No notes yet.</div>';
+                return;
+            }
+
+            let activeId = getActiveNoteId();
+            let active = notes.find(n => n.id === activeId);
+            if (!active) {
+                active = notes[0];
+                setActiveNoteId(active.id);
+            }
+            const time = new Date(active.timestamp).toLocaleString();
+            const citationHtml = active.citation ? `<div class="note-citation">${escapeHtml(active.citation)}</div>` : '';
+            const activeBody = typeof active.body === 'string' ? active.body : '';
+            reader.innerHTML = `
+                <div class="reader-title">Reading • ${escapeHtml(active.section || 'General')} • ${time}</div>
+                ${citationHtml}
+                <div class="reader-content">${renderNoteMarkdown(activeBody)}</div>
+            `;
+        }
+        
+        function addNote(citation, body, section) {
+            const notes = loadNotes();
+            const note = {
+                id: Date.now(),
+                citation: citation || '',
+                body: body || '',
+                section: section || '',
+                timestamp: new Date().toISOString()
+            };
+            notes.push(note);
+            setActiveNoteId(note.id);
+            saveNotes(notes);
+            // Switch to notes tab
+            switchSidebarTab('notes');
+        }
+        
+        function addFreeNote() {
+            const input = document.getElementById('noteInput');
+            const text = input.value.trim();
+            if (!text) return;
+            addNote('', text, '');
+            input.value = '';
+            saveDraft('');
+            renderDraftPreview('');
+        }
+        
+        function deleteNote(id, e) {
+            e?.stopPropagation();
+            const notes = loadNotes().filter(n => n.id !== id);
+            if (getFocusedNoteId() === id) setFocusedNoteId(null);
+            if (getActiveNoteId() === id) setActiveNoteId(notes.length ? notes[0].id : null);
+            saveNotes(notes);
+        }
+        
+        function renderNotes() {
+            const notes = loadNotes();
+            const container = document.getElementById('notesList');
+            const counter = document.getElementById('notesCount');
+            if (!container) return;
+            
+            counter.textContent = notes.length + ' note' + (notes.length !== 1 ? 's' : '');
+            
+            if (notes.length === 0) {
+                container.innerHTML = '<p style="font-size:0.85rem; color:var(--text-tertiary); text-align:center; padding:2rem 0;">Select text and click "Add Note" to begin, or write freely below.</p>';
+                renderNoteReader(notes);
+                return;
+            }
+
+            const focusedId = getFocusedNoteId();
+            const activeId = getActiveNoteId();
+            const sortedNotes = [...notes].sort((a, b) => {
+                const aFocused = a.id === focusedId ? 1 : 0;
+                const bFocused = b.id === focusedId ? 1 : 0;
+                if (aFocused !== bFocused) return bFocused - aFocused;
+                return new Date(b.timestamp) - new Date(a.timestamp);
+            });
+
+            container.innerHTML = sortedNotes.map(n => {
+                const time = new Date(n.timestamp).toLocaleString();
+                const citationHtml = n.citation 
+                    ? `<div class="note-citation">${escapeHtml(n.citation)}</div>` 
+                    : '';
+                const noteBody = typeof n.body === 'string' ? n.body : '';
+                const preview = noteBody.length > 140 ? (noteBody.slice(0, 140) + '...') : noteBody;
+                const focusLabel = n.id === focusedId ? 'Unfocus' : 'Focus';
+                return `<div class="note-card ${n.id === activeId ? 'active' : ''} ${n.id === focusedId ? 'focused' : ''}" onclick="openNote(${n.id})">
+                    ${citationHtml}
+                    <div class="note-body">${escapeHtml(preview)}</div>
+                    <div class="note-meta">
+                        <span>${n.section ? escapeHtml(n.section) : ''} ${time}</span>
+                        <span>
+                            <button class="note-focus" onclick="toggleFocusNote(${n.id}, event)">${focusLabel}</button>
+                            <button class="note-delete" onclick="deleteNote(${n.id}, event)">Delete</button>
+                        </span>
+                    </div>
+                </div>`;
+            }).join('');
+            renderNoteReader(sortedNotes);
+        }
+        
+        function exportNotesToObsidian() {
+            const notes = loadNotes();
+            if (notes.length === 0) { alert('No notes to export.'); return; }
+            
+            const title = document.title.replace(' - Interactive Learning', '');
+            const sourceFile = document.querySelector('.main-content header p')?.textContent?.match(/Source: (.+)/)?.[1] || '';
+            
+            let md = `---
+tags: [lecture-notes, mfin7034]
+source: "${sourceFile}"
+date: ${new Date().toISOString().split('T')[0]}
+---
+
+`;
+            md += `# ${title}
+
+`;
+            md += `> [!info] Source
+> PDF: [[${sourceFile.replace('.pdf','')}]]
+
+`;
+            
+            notes.forEach((n, idx) => {
+                if (n.citation) {
+                    md += `> [!quote] Highlight
+> ${n.citation}
+
+`;
+                }
+                const noteBody = typeof n.body === 'string' ? n.body : '';
+                md += noteBody + `
+
+`;
+                if (idx < notes.length - 1) md += `---
+
+`;
+            });
+            
+            md += `
+## References
+
+- Source: ${sourceFile}
+- Generated: ${new Date().toLocaleString()}
+`;
+            
+            const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = title.replace(/[^a-zA-Z0-9一-鿿 ]/g, '_') + '.md';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+        
+        // ── Text Highlight & Selection ──
+        const highlightTooltip = document.createElement('div');
+        highlightTooltip.className = 'highlight-tooltip';
+        highlightTooltip.innerHTML = `
+            <button onclick="highlightSelection()">Highlight</button>
+            <button onclick="highlightAndNote()">+ Note</button>
+        `;
+        document.body.appendChild(highlightTooltip);
+        
+        document.addEventListener('mouseup', (e) => {
+            const sel = window.getSelection();
+            const text = sel.toString().trim();
+            
+            // Only show for selections within main content
+            const main = document.querySelector('.main-content');
+            if (!text || text.length < 3 || !main?.contains(sel.anchorNode)) {
+                highlightTooltip.classList.remove('show');
+                return;
+            }
+            
+            const range = sel.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+            highlightTooltip.style.left = rect.left + (rect.width / 2) - 60 + 'px';
+            highlightTooltip.style.top = rect.top - 40 + window.scrollY + 'px';
+            highlightTooltip.classList.add('show');
+        });
+        
+        document.addEventListener('mousedown', (e) => {
+            if (!highlightTooltip.contains(e.target)) {
+                highlightTooltip.classList.remove('show');
+            }
+        });
+        
+        function highlightSelection() {
+            const sel = window.getSelection();
+            if (!sel.rangeCount) return;
+            const range = sel.getRangeAt(0);
+            const mark = document.createElement('mark');
+            mark.className = 'text-highlight';
+            try {
+                range.surroundContents(mark);
+            } catch(e) {
+                // Cross-element selection: fall back
+                const text = sel.toString();
+                mark.textContent = text;
+                range.deleteContents();
+                range.insertNode(mark);
+            }
+            sel.removeAllRanges();
+            highlightTooltip.classList.remove('show');
+        }
+        
+        function highlightAndNote() {
+            const sel = window.getSelection();
+            const text = sel.toString().trim();
+            if (!text) return;
+            
+            // Find section context
+            let section = '';
+            let node = sel.anchorNode;
+            while (node && node !== document.body) {
+                if (node.classList?.contains('concept-section')) {
+                    const h2 = node.querySelector('h2');
+                    if (h2) section = h2.textContent;
+                    break;
+                }
+                node = node.parentNode;
+            }
+            
+            highlightSelection();
+            
+            openInlineSelectionNoteEditor(text, section, sel.getRangeAt(0).getBoundingClientRect());
+        }
+        
+
+        function closeInlineSelectionNoteEditor() {
+            document.getElementById('inlineSelectionNoteEditor')?.remove();
+        }
+
+        function openInlineSelectionNoteEditor(selectionText, section, rect) {
+            closeInlineSelectionNoteEditor();
+            const editor = document.createElement('div');
+            editor.id = 'inlineSelectionNoteEditor';
+            editor.style.position = 'absolute';
+            editor.style.zIndex = '10030';
+            editor.style.width = 'min(420px, 90vw)';
+            editor.style.background = 'var(--bg-card)';
+            editor.style.border = '1px solid var(--border-color)';
+            editor.style.borderRadius = '12px';
+            editor.style.boxShadow = '0 16px 36px rgba(0,0,0,0.32)';
+            editor.style.padding = '0.65rem';
+            editor.style.top = (window.scrollY + rect.bottom + 10) + 'px';
+            editor.style.left = Math.max(12, Math.min(window.scrollX + rect.left, window.scrollX + window.innerWidth - 440)) + 'px';
+            editor.innerHTML = `
+                <div style="font-size:0.78rem;color:var(--text-tertiary);margin-bottom:0.4rem;">Add note for selection</div>
+                <textarea id="inlineSelectionNoteInput" placeholder="Write note... (Markdown supported)" style="width:100%;min-height:88px;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border-color);border-radius:8px;padding:0.5rem;font-size:0.86rem;resize:vertical;"></textarea>
+                <div style="display:flex;justify-content:flex-end;gap:0.45rem;margin-top:0.45rem;">
+                    <button type="button" id="inlineSelectionNoteCancel" style="border:1px solid var(--border-color);background:var(--bg-elevated);color:var(--text-primary);border-radius:8px;padding:0.3rem 0.6rem;cursor:pointer;font-size:0.8rem;">Cancel</button>
+                    <button type="button" id="inlineSelectionNoteSave" style="border:1px solid rgba(163,217,165,.55);background:var(--bg-elevated);color:var(--accent-secondary);border-radius:8px;padding:0.3rem 0.6rem;cursor:pointer;font-size:0.8rem;">Save</button>
+                </div>
+            `;
+            document.body.appendChild(editor);
+            const input = editor.querySelector('#inlineSelectionNoteInput');
+            input?.focus();
+            editor.querySelector('#inlineSelectionNoteCancel')?.addEventListener('click', closeInlineSelectionNoteEditor);
+            editor.querySelector('#inlineSelectionNoteSave')?.addEventListener('click', () => {
+                const body = (input?.value || '').trim() || '(highlighted)';
+                addNote(selectionText, body, section);
+                closeInlineSelectionNoteEditor();
+            });
+        }
+
+        // ── Init ──
+        document.addEventListener('DOMContentLoaded', () => {
+            new LearningPageController();
+            
+            // Add reveal animation to concept sections
+            document.querySelectorAll('.feynman-block, .quiz-container, .expandable, .chart-container, .diagram-container, .comparison-block, .stats-grid').forEach(el => {
+                el.classList.add('reveal-on-scroll');
+            });
+            
+            // Re-init observer for dynamically added elements
+            const obs = new IntersectionObserver((entries) => {
+                entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('revealed'); });
+            }, { threshold: 0.08 });
+            document.querySelectorAll('.reveal-on-scroll').forEach(el => obs.observe(el));
+            
+            // Initialize note draft autosave + live markdown preview
+            initNoteComposer();
+            // Load saved notes
+            renderNotes();
+        });
+        
+        // Typing dots animation
+        const typingStyle = document.createElement('style');
+        typingStyle.textContent = `
+            .typing-dots span {
+                animation: blink 1.4s infinite;
+                font-size: 1.5em;
+                line-height: 1;
+            }
+            .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+            .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+            @keyframes blink {
+                0%, 60%, 100% { opacity: 0.2; }
+                30% { opacity: 1; }
+            }
+        `;
+        document.head.appendChild(typingStyle);
+    
+    </script>
+    
+    <!-- KaTeX auto-render -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: "$$", right: "$$", display: true},
+                        {left: "$", right: "$", display: false},
+                        {left: "\\(", right: "\\)", display: false},
+                        {left: "\\[", right: "\\]", display: true}
+                    ],
+                    throwOnError: false
+                });
+            }
+        });
+    </script>
+    <script src="./app-shell.js?v=10"></script>
+    <script src="./lecture-enhancements.js?v=4"></script>
+</body>
+</html>

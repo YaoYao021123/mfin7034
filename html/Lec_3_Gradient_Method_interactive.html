@@ -1,0 +1,2986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lec 3 Gradient Method - Interactive Learning</title>
+    
+    <!-- KaTeX for formula rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    
+    <!-- Mermaid for flowcharts and diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+    
+    <!-- Fonts: Noto Serif for body, Inter for headings -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        
+        :root {
+            /* Warm Academic Theme - Clean & Readable */
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #1f2b47;
+            --bg-elevated: #263352;
+            --bg-card: #1c2a45;
+            
+            --text-primary: #edf2f7;
+            --text-secondary: #a0aec0;
+            --text-tertiary: #718096;
+            
+            /* Warm Gold + Sage Green palette */
+            --accent-primary: #f6c177;
+            --accent-secondary: #a3d9a5;
+            --accent-tertiary: #c4b5fd;
+            --accent-warning: #fbbf24;
+            --accent-error: #fb7185;
+            --accent-info: #7dd3fc;
+            
+            --gradient-primary: linear-gradient(135deg, #f6c177 0%, #e8a87c 100%);
+            --gradient-heading: linear-gradient(135deg, #f6c177 0%, #c4b5fd 100%);
+            
+            --border-color: rgba(255, 255, 255, 0.06);
+            --border-hover: rgba(246, 193, 119, 0.25);
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+            
+            --font-body: 'Georgia', 'Times New Roman', 'Noto Serif SC', serif;
+            --font-heading: -apple-system, 'Helvetica Neue', 'PingFang SC', sans-serif;
+            --font-mono: 'SF Mono', 'Menlo', 'Monaco', monospace;
+            
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-primary: #faf8f5;
+                --bg-secondary: #f0ece4;
+                --bg-tertiary: #e8e2d8;
+                --bg-elevated: #ffffff;
+                --bg-card: #ffffff;
+                
+                --text-primary: #1c1917;
+                --text-secondary: #57534e;
+                --text-tertiary: #a8a29e;
+                
+                --accent-primary: #c2742f;
+                --accent-secondary: #3d8b40;
+                --accent-tertiary: #7c3aed;
+                --accent-warning: #b45309;
+                --accent-error: #dc2626;
+                
+                --gradient-heading: linear-gradient(135deg, #c2742f 0%, #7c3aed 100%);
+                
+                --border-color: rgba(0, 0, 0, 0.06);
+                --border-hover: rgba(194, 116, 47, 0.3);
+                --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+                --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+                --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+            }
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+        
+        .page-container {
+            --left-width: 260px;
+            --right-width: 300px;
+            display: grid;
+            grid-template-columns: minmax(200px, var(--left-width)) 8px minmax(0, 1fr) 8px minmax(220px, var(--right-width));
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        .column-resizer {
+            cursor: col-resize;
+            background: transparent;
+            transition: background-color 0.15s var(--ease);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            z-index: 5;
+        }
+        .column-resizer:hover,
+        .column-resizer.dragging {
+            background: rgba(246, 193, 119, 0.2);
+        }
+        
+        .sidebar-left, .sidebar-right {
+            background: var(--bg-secondary);
+            padding: 2rem 1.25rem;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-left {
+            border-right: 1px solid var(--border-color);
+        }
+        
+        .sidebar-right {
+            border-left: 1px solid var(--border-color);
+        }
+        
+        .main-content {
+            max-width: none;
+            min-width: 0;
+            width: 100%;
+            margin: 0 auto;
+            padding: 3rem 2.5rem;
+        }
+        
+        @media (max-width: 1200px) {
+            .page-container { grid-template-columns: 1fr; }
+            .sidebar-left, .sidebar-right, .column-resizer { display: none; }
+            .main-content { padding: 2rem 1.25rem; }
+        }
+        
+        h1 {
+            font-family: var(--font-heading);
+            font-size: clamp(1.875rem, 4vw, 2.5rem);
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.01em;
+            color: var(--text-primary);
+        }
+        
+        h2 {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 3.5rem;
+            margin-bottom: 1.25rem;
+            color: var(--accent-primary);
+            letter-spacing: -0.01em;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        h3 {
+            font-family: var(--font-heading);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+        }
+        
+        h4 {
+            font-family: var(--font-heading);
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        
+        h5 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.8;
+        }
+        
+        .feynman-block {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-left: 3px solid var(--accent-primary);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            transition: border-color 0.2s var(--ease);
+        }
+        
+        .feynman-block:hover {
+            border-color: var(--border-hover);
+        }
+        
+        .feynman-block .icon {
+            font-size: 1.75rem;
+            margin-bottom: 0.75rem;
+            display: inline-block;
+        }
+        
+        .expandable {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            margin: 1.5rem 0;
+            overflow: hidden;
+        }
+        
+        .expandable-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            cursor: pointer;
+            user-select: none;
+            font-weight: 500;
+            font-family: var(--font-heading);
+            transition: background 0.15s var(--ease);
+        }
+        
+        .expandable-header:hover {
+            background: var(--bg-tertiary);
+        }
+        
+        .expandable-icon {
+            transition: transform 0.25s var(--ease);
+            display: inline-block;
+            font-size: 0.8rem;
+        }
+        
+        .expandable.open .expandable-icon {
+            transform: rotate(180deg);
+        }
+        
+        .expandable-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s var(--ease);
+        }
+        
+        .expandable.open .expandable-content {
+            max-height: 5000px;
+        }
+        
+        .expandable-content-inner {
+            padding: 1.25rem;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .quiz-container {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border: 1px solid var(--border-color);
+        }
+        
+        .quiz-question {
+            font-size: 1.05rem;
+            font-family: var(--font-heading);
+            margin-bottom: 1.25rem;
+            color: var(--text-primary);
+        }
+        
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.625rem;
+        }
+        
+        .quiz-option {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.15s var(--ease);
+            font-size: 0.95rem;
+        }
+        
+        .quiz-option:hover {
+            border-color: var(--accent-primary);
+            padding-left: 1.25rem;
+        }
+        
+        .quiz-option.correct {
+            background: rgba(163, 217, 165, 0.2);
+            border-color: var(--accent-secondary);
+            color: var(--accent-secondary);
+        }
+        
+        .quiz-option.incorrect {
+            background: rgba(251, 113, 133, 0.15);
+            border-color: var(--accent-error);
+            color: var(--accent-error);
+        }
+        
+        .quiz-feedback {
+            margin-top: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-sm);
+            display: none;
+            font-size: 0.9rem;
+        }
+        
+        .quiz-feedback.show { display: block; }
+        .quiz-feedback.correct { background: rgba(163, 217, 165, 0.15); border: 1px solid var(--accent-secondary); }
+        .quiz-feedback.incorrect { background: rgba(251, 113, 133, 0.1); border: 1px solid var(--accent-error); }
+        
+        .progress-tracker {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--bg-secondary);
+            z-index: 1000;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: var(--gradient-primary);
+            width: 0%;
+            transition: width 0.2s var(--ease);
+        }
+        
+        .ai-chat {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+        }
+        
+        .ai-chat-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .ai-chat-messages {
+            max-height: 320px;
+            overflow-y: auto;
+            margin-bottom: 0.75rem;
+            padding: 0.75rem;
+            background: var(--bg-primary);
+            border-radius: var(--radius-sm);
+        }
+        
+        .ai-message {
+            margin-bottom: 0.75rem;
+            padding: 0.625rem 0.875rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+        
+        .ai-message.user {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            margin-left: 1.5rem;
+            font-weight: 500;
+        }
+        
+        .ai-message.assistant {
+            background: var(--bg-tertiary);
+            margin-right: 1.5rem;
+        }
+        
+        .ai-input-group { display: flex; gap: 0.5rem; }
+        
+        .ai-input {
+            flex: 1;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.625rem 0.75rem;
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+        }
+        
+        .ai-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+        
+        .ai-send-btn, .action-btn {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 0.625rem 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: var(--font-heading);
+            font-size: 0.85rem;
+            transition: opacity 0.15s;
+        }
+        
+        .action-btn {
+            width: 100%;
+            margin-bottom: 0.5rem;
+            text-align: left;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .ai-send-btn:hover { opacity: 0.85; }
+        .action-btn:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+        
+        kbd {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 0.15rem 0.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.8em;
+        }
+        
+        .toc-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: block;
+            padding: 0.375rem 0.5rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            font-family: var(--font-heading);
+            transition: color 0.15s, background 0.15s;
+        }
+        
+        .toc-link:hover {
+            color: var(--accent-primary);
+            background: var(--bg-tertiary);
+        }
+        
+        /* Scroll reveal - simple fade */
+        .reveal-on-scroll {
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity 0.5s var(--ease), transform 0.5s var(--ease);
+        }
+        .reveal-on-scroll.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--bg-elevated); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+        
+        ::selection { background: var(--accent-primary); color: var(--bg-primary); }
+        
+        /* Print */
+        @media print {
+            .sidebar-left, .sidebar-right, .progress-tracker { display: none; }
+            .page-container { grid-template-columns: 1fr; }
+            body { background: white; color: black; }
+        }
+        
+        /* ===========================================
+           DATA VISUALIZATION & CHARTS
+           =========================================== */
+        .chart-container {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+        .chart-container .chart-title {
+            font-family: var(--font-heading);
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            text-align: center;
+        }
+        .chart-container canvas { max-height: 380px; width: 100% !important; }
+        .chart-caption {
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+            text-align: center;
+            margin-top: 0.75rem;
+            font-style: italic;
+        }
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        .chart-grid .chart-container { margin: 0; }
+        
+        .diagram-container {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            overflow-x: auto;
+            text-align: center;
+        }
+        .diagram-container .diagram-title {
+            font-family: var(--font-heading);
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+        }
+        .diagram-container .mermaid { display: flex; justify-content: center; }
+        .diagram-container .mermaid svg { max-width: 100%; height: auto; }
+        .diagram-caption {
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+            text-align: center;
+            margin-top: 0.75rem;
+            font-style: italic;
+        }
+        
+        .comparison-block {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 1rem;
+            align-items: stretch;
+            margin: 2rem 0;
+        }
+        .comparison-side {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+        .comparison-side.left { border-top: 3px solid var(--accent-primary); }
+        .comparison-side.right { border-top: 3px solid var(--accent-secondary); }
+        .comparison-side h4 { margin-bottom: 0.75rem; }
+        .comparison-side ul { padding-left: 1.25rem; }
+        .comparison-side li { margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.95rem; }
+        .comparison-divider {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            color: var(--text-tertiary);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            transition: transform 0.15s var(--ease);
+        }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            display: block;
+            font-family: var(--font-heading);
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            margin-top: 0.25rem;
+        }
+        
+        @media (max-width: 768px) {
+            .comparison-block { grid-template-columns: 1fr; }
+            .comparison-divider { justify-content: center; padding: 0.5rem 0; }
+            .chart-grid { grid-template-columns: 1fr; }
+        }
+        
+        /* ===========================================
+           SIDEBAR TABS & PANELS
+           =========================================== */
+        .sidebar-tabs {
+            display: flex;
+            gap: 2px;
+            margin-bottom: 1rem;
+            background: var(--bg-primary);
+            border-radius: var(--radius-sm);
+            padding: 2px;
+        }
+        .sidebar-tab {
+            flex: 1;
+            padding: 0.5rem 0.25rem;
+            background: transparent;
+            border: none;
+            color: var(--text-tertiary);
+            font-family: var(--font-heading);
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.15s var(--ease);
+        }
+        .sidebar-tab:hover { color: var(--text-secondary); }
+        .sidebar-tab.active {
+            background: var(--bg-elevated);
+            color: var(--accent-primary);
+        }
+        
+        /* ===========================================
+           NOTES SYSTEM
+           =========================================== */
+        .note-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.625rem;
+            font-size: 0.85rem;
+            position: relative;
+            cursor: pointer;
+            transition: border-color 0.15s var(--ease), transform 0.15s var(--ease);
+        }
+        .note-card:hover { border-color: var(--border-hover); }
+        .note-card.active {
+            border-color: var(--accent-primary);
+            transform: translateY(-1px);
+        }
+        .note-card.focused {
+            border-left: 3px solid var(--accent-secondary);
+            padding-left: calc(0.625rem - 2px);
+        }
+        .note-card .note-citation {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            border-left: 2px solid var(--accent-primary);
+            padding-left: 0.5rem;
+            margin-bottom: 0.375rem;
+            font-style: italic;
+            line-height: 1.4;
+        }
+        .note-card .note-body {
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .note-card .note-meta {
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+            margin-top: 0.375rem;
+            display: flex;
+            justify-content: space-between;
+        }
+        .note-card .note-delete {
+            background: none;
+            border: none;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 0;
+        }
+        .note-card .note-delete:hover { color: var(--accent-error); }
+        .note-card .note-focus {
+            background: none;
+            border: none;
+            color: var(--accent-secondary);
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 0;
+            margin-right: 0.5rem;
+        }
+        .note-card .note-focus:hover { color: var(--accent-primary); }
+        .note-reader {
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-primary);
+            overflow-y: auto;
+            max-height: 34vh;
+        }
+        .note-reader .reader-title {
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            margin-bottom: 0.5rem;
+        }
+        .note-reader .reader-content {
+            color: var(--text-secondary);
+            line-height: 1.65;
+            font-size: 0.9rem;
+        }
+        .note-reader .reader-content code {
+            background: var(--bg-tertiary);
+            padding: 0.1em 0.35em;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+        .note-draft-preview {
+            margin-top: 0.5rem;
+            max-height: 20vh;
+        }
+        
+
+        
+        /* ===========================================
+           TEXT HIGHLIGHT
+           =========================================== */
+        .text-highlight {
+            background: rgba(246, 193, 119, 0.25);
+            border-bottom: 2px solid var(--accent-primary);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .text-highlight:hover {
+            background: rgba(246, 193, 119, 0.4);
+        }
+        
+        /* Highlight context menu */
+        .highlight-tooltip {
+            position: fixed;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-lg);
+            padding: 0.25rem;
+            display: none;
+            z-index: 1001;
+            gap: 2px;
+        }
+        .highlight-tooltip.show { display: flex; }
+        .highlight-tooltip button {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 0.375rem 0.625rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-family: var(--font-heading);
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        .highlight-tooltip button:hover {
+            background: var(--bg-tertiary);
+            color: var(--accent-primary);
+        }
+    
+    </style>
+    <link rel="stylesheet" href="./app-shell.css?v=10" />
+</head>
+<body data-shell-page="lecture">
+    <!-- Progress Tracker -->
+    <div class="progress-tracker">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="page-container">
+        <!-- Left Sidebar -->
+        <aside class="sidebar-left">
+            <!-- Sidebar Tabs -->
+            <div class="sidebar-tabs">
+                <button class="sidebar-tab active" data-tab="toc" onclick="switchSidebarTab('toc')">Contents</button>
+                <button class="sidebar-tab" data-tab="pdf" onclick="switchSidebarTab('pdf')">PDF</button>
+                <button class="sidebar-tab" data-tab="notes" onclick="switchSidebarTab('notes')">Notes</button>
+            </div>
+            
+            <!-- Tab: Table of Contents -->
+            <div class="sidebar-panel" id="panel-toc">
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin-bottom: 0.75rem;">
+                        <a href="#overview" class="toc-link">Overview</a>
+                    </li>
+                    
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-1" class="toc-link">Gradient Descent (GD)</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-2" class="toc-link">Learning Rate (Alpha)</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-3" class="toc-link">Model Parametrization</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-4" class="toc-link">Stochastic Gradient Descent (SGD)</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-5" class="toc-link">Computational Complexity</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-6" class="toc-link">Convexity</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-7" class="toc-link">Batch Size and Epochs</a>
+            </li>
+        
+                </ul>
+                
+                <div style="margin-top: 3rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.85rem;">
+                    <div style="color: var(--text-tertiary); margin-bottom: 0.5rem;">Course Stats</div>
+                    <div style="color: var(--text-secondary);">
+                        <div>7 Concepts</div>
+                        <div>10 Images</div>
+                        <div>36 Tables</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab: PDF Viewer -->
+            <div class="sidebar-panel" id="panel-pdf" style="display:none;">
+                <div id="pdfViewerContainer" style="height: calc(100vh - 80px); display: flex; flex-direction: column;">
+                    <p style="font-size: 0.85rem; color: var(--text-tertiary); margin-bottom: 0.75rem;">Source: Lec 3 Gradient Method.pdf</p>
+                    <iframe id="pdfFrame" src="../pdfs/Lec 3 Gradient Method.pdf" style="flex:1; width:100%; border:none; border-radius: var(--radius-sm); background: var(--bg-tertiary);"></iframe>
+                </div>
+            </div>
+            
+            <!-- Tab: Notes -->
+            <div class="sidebar-panel" id="panel-notes" style="display:none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                    <span style="font-size: 0.85rem; color: var(--text-tertiary);" id="notesCount">0 notes</span>
+                    <button onclick="exportNotesToObsidian()" class="action-btn" style="width:auto; padding: 0.4rem 0.75rem; font-size: 0.8rem;">Export .md</button>
+                </div>
+                                <div id="notesList" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 32vh; overflow-y: auto;"></div>
+                <div id="noteReader" class="note-reader">
+                    <div class="reader-title">Reading</div>
+                    <div class="reader-content">Click a note in history to read it here.</div>
+                </div>
+                <div style="margin-top: 0.75rem; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
+                    <textarea id="noteInput" oninput="handleNoteInputChange(this.value)" placeholder="Write a note (Markdown supported)..." style="width:100%; min-height: 80px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem; color: var(--text-primary); font-family: var(--font-mono); font-size: 0.85rem; resize: vertical;"></textarea>
+                    <div id="noteDraftPreview" class="note-reader note-draft-preview">
+                        <div class="reader-title">Live Preview</div>
+                        <div class="reader-content" id="noteDraftPreviewContent">Type in the note box to preview Markdown rendering in real time.</div>
+                    </div>
+                    <button onclick="addFreeNote()" class="action-btn" style="margin-top: 0.375rem;">Add Note</button>
+                </div>
+            </div>
+        </aside>
+
+        <div class="column-resizer" id="resizerLeft" role="separator" aria-orientation="vertical" aria-label="Resize left sidebar"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header id="overview">
+                <h1>Lec 3 Gradient Method</h1>
+                <p style="font-size: 1.1rem; color: var(--text-tertiary); margin-bottom: 2rem;">
+                    Interactive Learning Experience • Source: Lec 3 Gradient Method.pdf
+                </p>
+                
+                <!-- Course Overview -->
+                <div class="feynman-block" style="border-left-color: #9f7aea;">
+                    <h4>Course Overview</h4>
+                    <p><strong>Difficulty:</strong> Intermediate</p>
+                    
+                    <h5 style="margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--accent-primary);">Prerequisites:</h5>
+                    <ul style="margin-left: 1.5rem;">
+                        <li>Multivariate Calculus (Partial Derivatives and Gradients)</li><li>Linear Algebra (Matrix operations and inversion)</li><li>Basic Statistics (Loss functions and Linear Regression)</li><li>Introductory Programming (Loops and recursion)</li>
+                    </ul>
+                    
+                    <h5 style="margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--accent-secondary);">Learning Objectives:</h5>
+                    <ul style="margin-left: 1.5rem;">
+                        <li>Explain the computational limitations of matrix inversion in large-scale linear regression.</li><li>Derive and apply the Gradient Descent update rule for parameter estimation.</li><li>Compare and contrast the efficiency and behavior of Gradient Descent versus Stochastic Gradient Descent.</li><li>Analyze the impact of the learning rate and batch size on model convergence and the bias-variance trade-off.</li>
+                    </ul>
+                </div>
+            </header>
+
+            <!-- Concept Sections -->
+            
+        <section id="concept-1" class="concept-section">
+            <h2>Gradient Descent (GD)</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Imagine you are standing on a foggy mountain and need to reach the village at the very bottom. Since you cannot see the path, you feel the slope with your feet and take a step in the direction that goes downhill most steeply. You repeat this process, step by step, until the ground levels out, indicating you have reached the valley.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>Gradient Descent is the engine behind almost all modern AI, from simple price predictors to complex neural networks. It allows a computer to automatically 'learn' from its mistakes by adjusting its settings until its predictions are as accurate as possible.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="diagram-container">
+            <div class="diagram-title">The Gradient Descent Iterative Loop</div>
+            <div class="mermaid">
+flowchart TD
+    A[Start: Initial Random Weights] --> B[Calculate Prediction Error / Loss]
+    B --> C[Compute Gradient / Slope of Error]
+    C --> D[Update Weights: Move in Negative Direction of Gradient]
+    D --> E{Is Change Minimal?}
+    E -- No --> B
+    E -- Yes --> F[Stop: Minimum Found]
+            </div>
+            <div class="diagram-caption">How the algorithm iteratively refines parameters to minimize error.</div>
+        </div>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>In machine learning, we use a 'loss function' to measure the distance between a model's prediction and the actual truth. Gradient Descent is an iterative process that minimizes this error by calculating the 'gradient'—a mathematical value representing the slope of the loss function at a specific point. By taking steps in the opposite direction of the gradient, the algorithm effectively slides down the curve of the error function toward its lowest point (the local minimum). The size of these steps is determined by the 'learning rate'; if the rate is set correctly, the model eventually settles on the parameters that produce the smallest possible error.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>An iterative optimization algorithm for finding the local minimum of a loss function by taking steps proportional to the negative of the gradient.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Suppose you are trying to find the best weight for a linear regression model where the current error is 100. The algorithm calculates the gradient and finds that increasing the weight will decrease the error. If the gradient is 20 and your learning rate is 0.1, the algorithm updates the weight by subtracting 2 (20 * 0.1). In the next iteration, the error drops to 80, and the process repeats until the error stops shrinking.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>Many students think a higher learning rate will always lead to the bottom faster, but it actually causes the algorithm to 'overshoot' the minimum and bounce back and forth. Conversely, a learning rate that is too small may take an eternity to converge or get stuck in a shallow dip that isn't the true bottom.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> In which direction does the Gradient Descent algorithm move the parameters to find a local minimum?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        In the direction of the positive gradient
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        In the direction of the negative gradient
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Perpendicular to the gradient
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Towards the maximum value of the function
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Gradient Descent moves in the negative direction of the gradient because the gradient points toward the steepest ascent, and we seek the steepest descent to find a minimum.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Gradient Descent moves in the negative direction of the gradient because the gradient points toward the steepest ascent, and we seek the steepest descent to find a minimum.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> What determines the size of the steps taken during each iteration of Gradient Descent?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        The initial weight distribution
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The number of layers in the neural network
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        The product of the learning rate and the gradient
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The total number of data points in the dataset
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The step size is calculated by multiplying the gradient by a scalar called the learning rate, which controls how far the parameters are updated in each iteration.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The step size is calculated by multiplying the gradient by a scalar called the learning rate, which controls how far the parameters are updated in each iteration.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> Which of the following best describes the iterative nature of Gradient Descent?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        It calculates the global minimum in a single step using calculus.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It randomly guesses values until the loss function reaches zero.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        It repeatedly updates parameters based on the gradient until the loss function converges.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It increases the loss function at each step to explore the entire search space.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Gradient Descent is an iterative process that progressively updates model parameters to minimize the loss function until it reaches a point where the gradient is near zero.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Gradient Descent is an iterative process that progressively updates model parameters to minimize the loss function until it reaches a point where the gradient is near zero.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-2" class="concept-section">
+            <h2>Learning Rate (Alpha)</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Imagine you are hiking down a mountain to a valley in total darkness using only a flashlight that points at your feet. The learning rate is the size of your stride: take giant leaps and you might overshoot the valley and end up on another peak; take tiny shuffle-steps and you will be safe, but it will take you years to reach the bottom.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>The learning rate is the most important hyperparameter to tune because it directly controls whether a model successfully learns or fails entirely. In real-world applications like stock price prediction or medical diagnosis, an improper learning rate can lead to a model that either ignores critical patterns or generates wildly unstable and unreliable predictions.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="chart-container">
+            <div class="chart-title">Model Loss vs. Iterations by Learning Rate</div>
+            <canvas id="chart-2" style="max-height:380px;"></canvas>
+            <div class="chart-caption">High rates overshoot (oscillation), low rates are too slow, and optimal rates converge quickly.</div>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('chart-2');
+            if (ctx && typeof Chart !== 'undefined') {
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ["0", "1", "2", "3", "4", "5", "6"],
+                        datasets: [{"label": "High Alpha (Overshooting)", "data": [10, 2, 12, 1, 15, 0.5, 20], "borderColor": "#e53e3e", "backgroundColor": "transparent", "tension": 0.4, "fill": true}, {"label": "Optimal Alpha", "data": [10, 5, 2.5, 1.2, 0.6, 0.3, 0.1], "borderColor": "#38a169", "backgroundColor": "transparent", "tension": 0.4, "fill": true}, {"label": "Low Alpha (Slow)", "data": [10, 9.8, 9.6, 9.4, 9.2, 9.0, 8.8], "borderColor": "#3182ce", "backgroundColor": "transparent", "tension": 0.4, "fill": true}]
+                    },
+                    options: {
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            tooltip: { mode: 'index', intersect: false }
+                        },
+                        scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                x: { grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+                    }
+                });
+            }
+        });
+        </script>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>In gradient-based optimization, we calculate the 'gradient,' which tells us the direction of the steepest ascent on the error surface. Since we want to minimize error, we move in the opposite direction. The learning rate (Alpha) scales this movement; it determines how much we update our model's weights based on the error. If Alpha is too high, the updates are too aggressive, causing the model to jump back and forth across the 'valley' of minimum error without ever settling (high variance). If Alpha is too low, the model makes tiny, cautious updates that require massive amounts of computing power and time, and it may get stuck in minor 'dips' before reaching the true lowest point (high bias/slow convergence).</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>A hyperparameter that determines the step size at each iteration; it involves a trade-off where high rates increase speed but can cause instability (variance), while low rates are stable but slow (bias).</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Suppose your model's current error gradient is 10. With a high learning rate of 1.5, your next step moves the parameter by 15 units, potentially jumping right over the optimal solution. With a tiny learning rate of 0.0001, your parameter moves only 0.001 units, meaning you'll need thousands of iterations to see any real improvement. An optimal rate of 0.1 would move you 1 unit at a time, steadily and quickly approaching the bottom.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>A common mistake is assuming that if the model is training slowly, you should just keep increasing the learning rate indefinitely. In reality, a learning rate that is too high will eventually cause the loss to 'explode' or diverge, meaning the error gets larger instead of smaller.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> What is the primary function of the learning rate (alpha) in a machine learning algorithm?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        To determine the number of layers in a neural network
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        To control the step size at each iteration during optimization
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To define the number of features used in the training set
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To set the final accuracy goal for the model
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The learning rate is a hyperparameter that dictates the magnitude of updates made to the model's parameters at each step of the training process.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The learning rate is a hyperparameter that dictates the magnitude of updates made to the model's parameters at each step of the training process.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> Which of the following describes the trade-off associated with a high learning rate?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        It ensures stability but requires a very long training time.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It reduces variance but significantly increases the model's bias.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        It increases training speed but can lead to instability or failure to converge.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It guarantees the model will find the global minimum more accurately.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! While a high learning rate allows the model to learn faster, it risks overshooting the optimal solution, causing the optimization process to diverge or fluctuate.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. While a high learning rate allows the model to learn faster, it risks overshooting the optimal solution, causing the optimization process to diverge or fluctuate.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> What is a likely consequence of setting the learning rate (alpha) to a very small value?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="true">
+                        The training process will be stable but progress very slowly.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The model will immediately overshoot the minimum point.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The model will exhibit high variance and instability.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The algorithm will skip over the local minima during training.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! A low learning rate provides stability and small, precise updates, but it requires many more iterations to reach the minimum, resulting in slow training.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. A low learning rate provides stability and small, precise updates, but it requires many more iterations to reach the minimum, resulting in slow training.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-3" class="concept-section">
+            <h2>Model Parametrization</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Think of model parametrization like a high-end kitchen mixer with various dials. Instead of trying to invent a whole new way to bake, you use the mixer's existing knobs (parameters) to control the speed and duration to get the perfect dough.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>It transforms the impossible task of searching through every possible mathematical function into a solvable problem of adjusting specific numbers. This is the foundation of all AI training, allowing computers to 'learn' by fine-tuning weights until the error is minimized.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="diagram-container">
+            <div class="diagram-title">The Process of Model Parametrization</div>
+            <div class="mermaid">
+flowchart TD
+    A[Abstract Problem: Find f] --> B[Choose Function Class F]
+    B --> C[Define Parameters: w and b]
+    C --> D[Parametrized Model: f_w,b]
+    D --> E[Calculate Loss/Error]
+    E --> F[Gradient Method Adjusts Parameters]
+    F --> D
+            </div>
+            <div class="diagram-caption">How we turn an abstract function into a tunable mathematical model.</div>
+        </div>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Model parametrization is the process of defining a specific mathematical structure (a function class) that uses adjustable constants, called parameters, to represent relationships in data. Rather than looking for any arbitrary function 'f', we decide that 'f' will take a certain shape—like a straight line (linear) or a complex neural network—and then use parameters (weights and biases) to tweak that shape. This is crucial because it makes the problem 'differentiable,' meaning we can use the Gradient Method to calculate exactly how much to change each parameter to reduce the prediction error. Without parametrization, we wouldn't have a 'handle' to grab onto to improve the model.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>PAGE 4
+============================================================
+
+Model Parametrization
+
+•  For general Loss function  L n ( f  ), the optimization problem can be much
+more difficult than linear regression - non-linearity, non-convexity, etc.
+
+•  A general approach for finding minimal value of  L n ( f  ) is through the
+“Gradient” approach.
+
+•  The gradient approach takes some parametrization form of  f  , e.g.,
+</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>If you are predicting house prices based on square footage, you might parametrize your model as Price = (w * Area) + b. Here, 'w' (weight) and 'b' (bias) are your parameters. If your current 'w' predicts a price that is $50,000 too high, the Gradient Method tells you exactly how much to decrease 'w' and 'b' to make the prediction more accurate for the next house.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>A common error is confusing the 'parameters' with the 'input data'; parameters are the internal 'settings' the model learns, while the data is the external information fed into those settings.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> Why can the optimization of a general loss function L_n(f) be more difficult than standard linear regression?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        It always results in a linear solution.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        It may involve non-linearity and non-convexity.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It requires fewer computational resources.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It only applies to models with a single parameter.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The text specifies that general loss functions can present difficulties such as non-linearity and non-convexity that aren't as prevalent in simple linear regression.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The text specifies that general loss functions can present difficulties such as non-linearity and non-convexity that aren't as prevalent in simple linear regression.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> What is the general approach mentioned for finding the minimal value of a loss function L_n(f)?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        Randomized Sampling
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Manual Parameter Tuning
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        The Gradient approach
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The Exhaustive Search method
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! According to the content, the gradient approach is the general method used to find the minimum value of a loss function.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. According to the content, the gradient approach is the general method used to find the minimum value of a loss function.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> In the context of the gradient approach, what is necessary for the function f?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="true">
+                        A parametrization form
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        A non-differentiable structure
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Elimination of all variables
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It must be restricted to linear equations only
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The gradient approach requires the function to take on a parametrization form to facilitate the optimization process.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The gradient approach requires the function to take on a parametrization form to facilitate the optimization process.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-4" class="concept-section">
+            <h2>Stochastic Gradient Descent (SGD)</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Imagine trying to find the lowest point in a dark valley. Instead of waiting for a satellite to map the entire mountain range before you take a single step, you just feel the slope under your feet and move immediately. It's the difference between reading an entire cookbook before starting to cook versus tasting and adjusting the seasoning after every single ingredient you add.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>In modern AI, datasets are so massive (billions of parameters) that looking at every single data point before updating a model would take years. SGD allows researchers to train complex models like GPT-4 in weeks rather than lifetimes, making large-scale deep learning computationally feasible.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="comparison-block">
+            <div class="comparison-side left">
+                <h4>🔵 Batch Gradient Descent</h4>
+                <ul><li>Uses all data points for one update</li><li>Smooth, direct path to the minimum</li><li>Very slow for large datasets</li><li>High memory requirement</li></ul>
+            </div>
+            <div class="comparison-divider">vs</div>
+            <div class="comparison-side right">
+                <h4>🟢 Stochastic Gradient Descent</h4>
+                <ul><li>Uses 1 (or a few) data points per update</li><li>Noisy, zig-zag path to the minimum</li><li>Extremely fast and computationally efficient</li><li>Can 'jump' out of local minima</li></ul>
+            </div>
+        </div>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Standard Gradient Descent calculates the average error across the entire dataset to determine which direction to update the model's weights, which is slow and memory-intensive. Stochastic Gradient Descent (SGD) breaks this down by using only a single random data point—or a small 'mini-batch'—to estimate that direction. While this makes the path to the minimum look like a jagged zig-zag because individual samples can be outliers, the sheer speed of these frequent updates far outweighs the 'noise.' Surprisingly, this randomness actually helps the model 'jump' out of shallow local pits (local minima) that might trap a more precise, slower algorithm.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>A variation of gradient descent that updates parameters using only a subset (batch) of data at each step, allowing for faster convergence in large-scale datasets.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Suppose you are training a model to recognize cats using 100,000 images. With Batch Gradient Descent, you would process all 100,000 images before adjusting the model's 'cat-detecting' weights once. With SGD (using a batch size of 1), you adjust the weights 100,000 times in that same period. Even if some individual images (like a cat in a costume) give slightly 'wrong' directions, the 100,000 quick corrections will lead you to an accurate model much faster than one single massive update.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>Students often think the 'noisy' or zig-zagging path of SGD is a weakness that makes it less accurate than Batch Gradient Descent. In reality, this noise is a feature that helps the model explore the 'error landscape' better and prevents it from getting stuck in sub-optimal solutions.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> What is the primary difference between Stochastic Gradient Descent (SGD) and standard Batch Gradient Descent?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        SGD uses the entire dataset to calculate gradients for every parameter update.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        SGD updates parameters using only a subset or single data point at each step.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        SGD is only applicable to linear regression models.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        SGD requires significantly more memory to store the full dataset during training.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! SGD improves efficiency by updating parameters based on a small subset of data rather than waiting to process the entire dataset.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. SGD improves efficiency by updating parameters based on a small subset of data rather than waiting to process the entire dataset.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> Why is Stochastic Gradient Descent particularly useful for large-scale datasets?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        It guarantees that the loss function will decrease at every single iteration.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It finds the exact global minimum faster than any other optimization algorithm.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        It allows for faster convergence and lower memory usage by performing frequent updates.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It eliminates the need for choosing a learning rate.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! By processing smaller batches, SGD can perform multiple updates in the time it would take batch gradient descent to perform one, leading to faster progress on massive data.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. By processing smaller batches, SGD can perform multiple updates in the time it would take batch gradient descent to perform one, leading to faster progress on massive data.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> Which of the following is a characteristic of the optimization path taken by SGD?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="true">
+                        The path is noisier and more erratic compared to batch gradient descent.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The path is a perfectly straight line toward the global minimum.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The path is slower because it requires more data per step.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The path avoids all local minima automatically by using full-batch gradients.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Because SGD estimates the gradient from a subset of data, the updates have higher variance, resulting in a less smooth but often more exploratory convergence path.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Because SGD estimates the gradient from a subset of data, the updates have higher variance, resulting in a less smooth but often more exploratory convergence path.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-5" class="concept-section">
+            <h2>Computational Complexity</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Imagine you are trying to find the lowest point in a vast mountain range. Matrix inversion is like hiring a satellite to 3D-map every single inch of the range simultaneously to find the answer, while gradient methods are like walking downhill step-by-step until you reach the valley floor. As the mountain range gets larger, mapping everything becomes impossible, but walking downhill remains manageable.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>In modern AI, we often deal with millions of parameters (features). If we used traditional matrix methods, the computing power required would be so massive that training a model like ChatGPT would take centuries; gradient-based methods make this possible in weeks by being significantly more efficient.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="chart-container">
+            <div class="chart-title">Growth of Computational Cost: Matrix Inversion vs. Gradient Methods</div>
+            <canvas id="chart-5" style="max-height:380px;"></canvas>
+            <div class="chart-caption">As the number of features (p) increases, the cost of matrix inversion (p³) grows exponentially compared to the linear growth of gradient methods (np).</div>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('chart-5');
+            if (ctx && typeof Chart !== 'undefined') {
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+                        datasets: [{"label": "Matrix Inversion (p^3)", "data": [1000, 8000, 27000, 64000, 125000, 216000, 343000, 512000, 729000, 1000000], "borderColor": "#e53e3e", "backgroundColor": "rgba(229, 62, 62, 0.15)", "tension": 0.4, "fill": true}, {"label": "Gradient Method (np, where n=1000)", "data": [10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000], "borderColor": "#4299e1", "backgroundColor": "rgba(66, 153, 225, 0.15)", "tension": 0.4, "fill": true}]
+                    },
+                    options: {
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            tooltip: { mode: 'index', intersect: false }
+                        },
+                        scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                x: { grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+                    }
+                });
+            }
+        });
+        </script>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Computational complexity describes how the time or memory required by an algorithm grows as the size of the input increases. In the context of regressions, the classical closed-form solution requires inverting a matrix, which has a complexity of O(p³), meaning if you double the number of features (p), the work required increases eightfold. Gradient-based methods avoid the heavy cost of inversion by iteratively updating parameters using only the first derivative, resulting in a complexity of O(np). This linear relationship with the number of samples (n) and features (p) allows these algorithms to scale to high-dimensional 'Big Data' environments where traditional matrix algebra would cause a computer to crash or run indefinitely.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>The comparison of resource requirements, such as the O(p^3) cost of matrix inversion versus the O(np) cost of gradient-based methods in high-dimensional models.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Suppose you have a dataset with 1,000 features (p=1,000). A matrix inversion would require roughly 1,000³ or 1 billion operations to solve. If you use a gradient-based method on a dataset with 10,000 samples (n=10,000), one update step only requires 10,000 * 1,000 or 10 million operations. Even if the gradient method needs 50 steps to converge, it still only performs 500 million operations, making it twice as fast as the single matrix inversion for this relatively small scale.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>Students often assume 'complexity' refers to how difficult a concept is for a human to learn. In this context, it specifically refers to the mathematical relationship between the input size and the resources (time/memory) a computer consumes.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> In high-dimensional modeling, why are gradient-based methods often preferred over direct matrix inversion for parameter estimation?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        Matrix inversion has a linear complexity of O(p), making it too simple for complex models.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        The O(p^3) cost of matrix inversion becomes computationally prohibitive as the number of features p grows large.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Gradient-based methods always reach the global minimum in fewer iterations than matrix inversion.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Matrix inversion requires significantly more data samples (n) than gradient-based methods.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Matrix inversion scales cubically with the number of parameters, whereas gradient-based methods scale more efficiently, making them more suitable for high-dimensional data.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Matrix inversion scales cubically with the number of parameters, whereas gradient-based methods scale more efficiently, making them more suitable for high-dimensional data.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> If a model involves n samples and p features, what are the typical computational complexities for matrix inversion and a single iteration of a gradient-based method?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        Matrix inversion is O(np) and gradient-based is O(p^3).
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Matrix inversion is O(p^2) and gradient-based is O(n^2).
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        Matrix inversion is O(p^3) and gradient-based is O(np).
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Matrix inversion is O(log p) and gradient-based is O(p).
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Standard matrix inversion follows a cubic complexity O(p^3), while gradient-based methods typically scale linearly with the product of the number of samples and features O(np).
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Standard matrix inversion follows a cubic complexity O(p^3), while gradient-based methods typically scale linearly with the product of the number of samples and features O(np).
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> A data scientist decides to switch from an analytical solution involving matrix inversion to a gradient descent approach for a model where p = 50,000. What is the primary computational benefit of this switch?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        Reducing the memory requirement from O(np) to O(p^3).
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Improving the theoretical convergence rate to a global optimum.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Eliminating the need for any feature engineering or data preprocessing.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        Avoiding the cubic growth in resource requirements associated with inverting large matrices.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Switching to gradient-based methods avoids the intractable O(p^3) operations required to invert a 50,000 x 50,000 matrix.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Switching to gradient-based methods avoids the intractable O(p^3) operations required to invert a 50,000 x 50,000 matrix.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-6" class="concept-section">
+            <h2>Convexity</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Imagine a bowl versus a landscape of rolling hills. If you drop a marble into a bowl, it will always roll to the exact center (the global minimum) no matter where you start; if you drop it on rolling hills, it might get stuck in a small dip (a local minimum) halfway up a mountain.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>Convexity provides a mathematical guarantee that the 'best' version of a model can actually be found. In deep learning, most problems are non-convex, meaning we often have to settle for a 'good' solution because finding the absolute 'best' one is computationally exhausting.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="comparison-block">
+            <div class="comparison-side left">
+                <h4>🔵 Convex Function (e.g., Linear Regression)</h4>
+                <ul><li>Single global minimum (The 'Bottom')</li><li>Gradient always points toward the best solution</li><li>Initialization doesn't change the final result</li><li>Mathematically predictable and stable</li></ul>
+            </div>
+            <div class="comparison-divider">vs</div>
+            <div class="comparison-side right">
+                <h4>🟢 Non-Convex Function (e.g., Deep Learning)</h4>
+                <ul><li>Multiple local minima and saddle points</li><li>Gradient can get 'stuck' in suboptimal valleys</li><li>Starting values (initialization) are crucial</li><li>Optimization is much more difficult/unpredictable</li></ul>
+            </div>
+        </div>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>A function is convex if a line segment connecting any two points on its graph never dips below the graph itself. In optimization, this property is the 'holy grail' because it ensures that any local minimum found by the Gradient Method is also the global minimum. While the provided lecture notes show that Linear Regression with an L-2 loss is convex and easy to solve, more complex models (non-linear parametrizations) create 'wavy' loss landscapes. In these non-convex settings, the gradient might lead the model into a 'trap' or local valley, making the starting point of your optimization (initialization) critical to the model's eventual success.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>Model Parametrization
+
+•  For general Loss function  L n ( f  ), the optimization problem can be much
+more difficult than linear regression - non-linearity, non-convexity, etc.
+
+•  A general approach for finding minimal value of  L n ( f  ) is through the
+“Gradient” approach.
+
+•  The gradient approach takes some parametrization form of  f  , e.g.,
+
+[FORMULA]: f  ( X ) =  g ( X , β ), where  g  is fixed, and  β  ∈ R p   is a parameter of the
+
+model. For example:</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>In a convex Linear Regression model, if a weight of 1.0 gives an error of 10 and a weight of 3.0 gives an error of 10, any weight in between (like 2.0) is guaranteed to have an error of 10 or less. In a non-convex deep learning model, a weight of 2.0 could actually have an error of 50, creating a 'mountain' between two 'valleys.' This forces the gradient algorithm to choose one valley and stick with it, even if the other one is deeper.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>Many students assume that if Gradient Descent stops changing (the gradient is zero), they have found the most accurate model possible. In reality, they may have simply landed in a local minimum or a flat 'saddle point' while a much better solution exists elsewhere in the parameter space.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> When optimizing a general loss function L_n(f), why is model parametrization f(X) = g(X, β) typically employed?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        To ensure the loss function is always linear
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        To transform the search for an optimal function into a search for a finite set of parameters β
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To eliminate the need for gradient-based optimization
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To guarantee that the resulting optimization problem is convex
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Parametrization allows the optimization process to focus on finding a specific vector of parameters within a defined space rather than searching through all possible functions.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Parametrization allows the optimization process to focus on finding a specific vector of parameters within a defined space rather than searching through all possible functions.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> Which of the following describes a primary challenge when moving from linear regression to optimizing a general Loss function L_n(f)?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        The loss function is guaranteed to be convex
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The gradient approach becomes unusable
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        Non-linearity and non-convexity can make finding the global minimum much more difficult
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The parameter space β must always be a scalar
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Unlike simple linear regression, general loss functions may have non-convex landscapes where gradient-based methods can get stuck in local minima.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Unlike simple linear regression, general loss functions may have non-convex landscapes where gradient-based methods can get stuck in local minima.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> In the gradient approach where f(X) = g(X, β), what is the primary role of the gradient during the optimization of the parameter β?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        To redefine the fixed function g
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        To determine the direction and step for updating β to minimize the loss
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To increase the dimensionality of the input data X
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To prove that the model is perfectly linear
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The gradient provides the directional information needed to iteratively adjust the parameters β to reach the minimum value of the loss function.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The gradient provides the directional information needed to iteratively adjust the parameters β to reach the minimum value of the loss function.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-7" class="concept-section">
+            <h2>Batch Size and Epochs</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Imagine you are studying a 100-page textbook. An epoch is like reading the entire book once from cover to cover, while the batch size is how many pages you read before stopping to take notes and update your understanding.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>Batch sizes allow computers to process massive datasets that wouldn't fit in memory all at once. Balancing these two parameters ensures a model learns efficiently—fast enough to be practical, but steady enough to reach the most accurate solution.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="diagram-container">
+            <div class="diagram-title">The Training Cycle: Batch vs. Epoch</div>
+            <div class="mermaid">
+flowchart TD
+    Start[Start Training] --> Epoch{Start New Epoch}
+    Epoch --> Batch1[Process Batch 1: 100 Samples] 
+    Batch1 --> Update1[Update Model Weights]
+    Update1 --> Batch2[Process Batch 2: 100 Samples]
+    Batch2 --> Update2[Update Model Weights]
+    Update2 --> More[...Continue until 1,000 samples...]
+    More --> EndEpoch[Epoch Complete]
+    EndEpoch -->|Repeat N times| Epoch
+    EndEpoch --> Final[Final Optimized Model]
+            </div>
+            <div class="diagram-caption">This flow shows how multiple batches complete a single epoch, which is then repeated for better learning.</div>
+        </div>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>In gradient-based learning, we aim to minimize a loss function by updating model parameters. If the batch size is '1' (Stochastic Gradient Descent), the model updates after every single data point, which is fast but erratic. If the batch size equals the total dataset (Batch Gradient Descent), the update is very stable but computationally expensive and slow. Using a 'Mini-batch' size provides a middle ground: it calculates the average error for a small group of samples and updates the model, repeating this through several 'iterations' until the entire dataset (one epoch) has been processed. Multiple epochs are usually required because the model needs to see the same data several times to gradually fine-tune its weights toward the minimum error.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>In SGD, the batch size refers to the number of samples used per update, while an epoch represents one full pass through the entire training dataset.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>If you have a dataset of 1,000 images and set your batch size to 100, it will take 10 iterations (1,000 / 100) to complete 1 epoch. If you train for 5 epochs, your model will make a total of 50 updates to its weights. By the end of the process, the model has 'seen' every image exactly 5 times.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>Many students believe that a larger batch size is always better for accuracy, but very large batches can actually cause the model to get stuck in 'local minima' and fail to generalize well to new data.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> What does the term 'batch size' specifically refer to in Stochastic Gradient Descent (SGD)?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        The total number of samples in the entire training dataset.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The number of times the model passes through the full dataset.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        The number of training samples used to calculate the gradient and update the weights in a single iteration.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The total number of epochs required to reach the optimal solution.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! Batch size defines the subset of training data used to perform a single weight update during the training process.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Batch size defines the subset of training data used to perform a single weight update during the training process.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> In machine learning training, what constitutes one full 'epoch'?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        A single update of the model's weights using one batch.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        One complete pass of the learning algorithm through the entire training dataset.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The process of shuffling the data before training begins.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The time it takes for the model to reach 100% accuracy on the training set.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! An epoch is complete when every sample in the training dataset has been used exactly once to update the model.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. An epoch is complete when every sample in the training dataset has been used exactly once to update the model.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> If a dataset contains 1,000 samples and the batch size is set to 50, how many weight updates will occur in one epoch?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        1 update
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        20 updates
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        50 updates
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        1,000 updates
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        ✓ Correct! The number of updates per epoch is calculated by dividing the total samples (1,000) by the batch size (50), resulting in 20 iterations.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The number of updates per epoch is calculated by dividing the total samples (1,000) by the batch size (50), resulting in 20 iterations.
+                    </div>
+                </div>
+                
+        </section>
+        
+            
+            <!-- Completion -->
+            <div style="margin-top: 4rem; padding: 2rem; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); border-radius: 12px; text-align: center; color: white;">
+                <h3 style="margin-bottom: 1rem;">Course Complete!</h3>
+                <p>You've reviewed all 7 main concepts. Keep practicing with the quizzes above.</p>
+            </div>
+        </main>
+
+        <div class="column-resizer" id="resizerRight" role="separator" aria-orientation="vertical" aria-label="Resize right sidebar"></div>
+
+        <!-- Right Sidebar: AI Assistant & Tools -->
+        <aside class="sidebar-right">
+            <div class="ai-chat">
+                <div class="ai-chat-header">
+                    <div>
+                        <h3 style="margin: 0;">AI Study Assistant</h3>
+                        <p style="font-size: 0.8rem; color: var(--text-tertiary); margin: 0;">Powered by Gemini</p>
+                    </div>
+                </div>
+                
+                <div class="ai-chat-messages" id="aiMessages">
+                    <div class="ai-message assistant">
+                        Hi! I'm your AI study assistant. Ask me anything about this topic, or request:
+                        <ul style="margin-top: 0.5rem; padding-left: 1.5rem; font-size: 0.9rem;">
+                            <li>Explanations in simpler terms</li>
+                            <li>More examples</li>
+                            <li>Practice questions</li>
+                            <li>Connections to other concepts</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="ai-input-group">
+                    <input 
+                        type="text" 
+                        class="ai-input" 
+                        id="aiInput" 
+                        placeholder="Ask a question..."
+                        onkeypress="if(event.key==='Enter') sendAIMessage()"
+                    />
+                    <button class="ai-send-btn" onclick="sendAIMessage()">Send</button>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div style="margin-top: 2rem;">
+                <h4 style="margin-bottom: 1rem; color: var(--text-tertiary);">Quick Actions</h4>
+                <button onclick="reviewAllQuizzes()" class="action-btn">
+                    Review All Quizzes
+                </button>
+                <button onclick="createSummary()" class="action-btn">
+                    Generate Summary
+                </button>
+                <button onclick="window.print()" class="action-btn">
+                    Print Notes
+                </button>
+            </div>
+            
+            <!-- Keyboard Shortcuts -->
+            <div style="margin-top: 2rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.85rem;">
+                <h5 style="margin-bottom: 0.75rem; color: var(--text-tertiary);">Shortcuts</h5>
+                <div id="shortcutsDisplay" style="color: var(--text-secondary); line-height: 1.8;">
+                    <div><kbd id="shortcutFocusAI">Alt+A</kbd> Focus AI</div>
+                    <div><kbd id="shortcutSummary">Alt+S</kbd> Summary</div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        
+        // ── Gemini Proxy Configuration ──
+        const GEMINI_PROXY_URL = '../api/gemini';
+        const LAYOUT_STORAGE_KEY = 'learning-layout-widths-v1';
+        
+        let courseContext = '';
+        let conversationHistory = [];
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        
+        // ── Main Controller ──
+        class LearningPageController {
+            constructor() {
+                this.isMac = /Mac|iPhone|iPod|iPad/i.test(navigator.platform);
+                this.setupExpandables();
+                this.setupQuizzes();
+                this.setupProgressTracking();
+                this.setupScrollReveal();
+                this.setupCourseContext();
+                this.setupKeyboardShortcuts();
+                this.initializeMermaid();
+                this.initializeCharts();
+                this.updateShortcutsDisplay();
+                this.setupColumnResizers();
+            }
+            
+            initializeMermaid() {
+                if (typeof mermaid !== 'undefined') {
+                    mermaid.initialize({
+                        startOnLoad: true,
+                        theme: 'dark',
+                        themeVariables: {
+                            primaryColor: '#263352',
+                            primaryTextColor: '#edf2f7',
+                            primaryBorderColor: '#f6c177',
+                            lineColor: '#a0aec0',
+                            secondaryColor: '#1f2b47',
+                            tertiaryColor: '#1c2a45',
+                            background: '#16213e',
+                            mainBkg: '#263352',
+                            nodeBorder: '#f6c177',
+                            clusterBkg: '#1f2b47',
+                            fontSize: '14px'
+                        },
+                        flowchart: { curve: 'basis', padding: 20 },
+                        sequence: { actorMargin: 50 }
+                    });
+                }
+            }
+            
+            initializeCharts() {
+                if (typeof Chart !== 'undefined') {
+                    Chart.defaults.color = '#a0aec0';
+                    Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+                    Chart.defaults.font.family = "-apple-system, 'Helvetica Neue', sans-serif";
+                    Chart.defaults.responsive = true;
+                    Chart.defaults.maintainAspectRatio = true;
+                    Chart.defaults.plugins.legend.labels.usePointStyle = true;
+                }
+            }
+            
+            setupCourseContext() {
+                const mc = document.querySelector('.main-content');
+                if (mc) courseContext = mc.innerText.substring(0, 6000);
+            }
+            
+            setupExpandables() {
+                document.querySelectorAll('.expandable-header').forEach(header => {
+                    header.addEventListener('click', () => {
+                        header.parentElement.classList.toggle('open');
+                    });
+                });
+            }
+            
+            setupQuizzes() {
+                document.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.addEventListener('click', () => this.handleQuiz(opt));
+                });
+            }
+
+            handleQuiz(option) {
+                const quiz = option.closest('.quiz-container');
+                const isCorrect = option.dataset.correct === 'true';
+                
+                quiz.querySelectorAll('.quiz-option').forEach(o => {
+                    o.classList.remove('selected','correct','incorrect');
+                });
+                
+                option.classList.add('selected');
+                option.classList.add(isCorrect ? 'correct' : 'incorrect');
+                
+                if (!isCorrect) {
+                    quiz.querySelectorAll('.quiz-option').forEach(o => {
+                        if (o.dataset.correct === 'true') o.classList.add('correct');
+                    });
+                }
+                
+                const cf = quiz.querySelector('.quiz-feedback.correct');
+                const ic = quiz.querySelector('.quiz-feedback.incorrect');
+                if (isCorrect) { cf.classList.add('show'); ic.classList.remove('show'); }
+                else { ic.classList.add('show'); cf.classList.remove('show'); }
+            }
+
+            
+            setupProgressTracking() {
+                window.addEventListener('scroll', () => {
+                    const h = document.documentElement.scrollHeight - window.innerHeight;
+                    const p = h > 0 ? Math.min((window.scrollY / h) * 100, 100) : 0;
+                    document.getElementById('progressBar').style.width = p + '%';
+                });
+            }
+            
+            setupScrollReveal() {
+                const obs = new IntersectionObserver((entries) => {
+                    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('revealed'); });
+                }, { threshold: 0.08 });
+                document.querySelectorAll('.reveal-on-scroll').forEach(el => obs.observe(el));
+            }
+            
+            setupKeyboardShortcuts() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.altKey && e.key === 'a') {
+                        e.preventDefault();
+                        document.getElementById('aiInput')?.focus();
+                    }
+                    if (e.altKey && e.key === 's') {
+                        e.preventDefault();
+                        askSummary();
+                    }
+                });
+            }
+            
+            updateShortcutsDisplay() {
+                const prefix = this.isMac ? '⌥' : 'Alt+';
+                const focusEl = document.getElementById('shortcutFocusAI');
+                const summaryEl = document.getElementById('shortcutSummary');
+                if (focusEl) focusEl.textContent = prefix + 'A';
+                if (summaryEl) summaryEl.textContent = prefix + 'S';
+            }
+
+            setupColumnResizers() {
+                if (window.matchMedia('(max-width: 1200px)').matches) return;
+                const container = document.querySelector('.page-container');
+                const leftResizer = document.getElementById('resizerLeft');
+                const rightResizer = document.getElementById('resizerRight');
+                if (!container || !leftResizer || !rightResizer) return;
+
+                const minLeft = 200, maxLeft = 560;
+                const minRight = 220, maxRight = 560;
+                const minMain = 520;
+                let leftWidth = 260;
+                let rightWidth = 300;
+
+                const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+                const applyWidths = () => {
+                    container.style.setProperty('--left-width', leftWidth + 'px');
+                    container.style.setProperty('--right-width', rightWidth + 'px');
+                };
+                const getTotalWidth = () => container.getBoundingClientRect().width - 16;
+                const clampAll = () => {
+                    const total = getTotalWidth();
+                    leftWidth = clamp(leftWidth, minLeft, maxLeft);
+                    rightWidth = clamp(rightWidth, minRight, maxRight);
+                    if (total - leftWidth - rightWidth < minMain) {
+                        const overflow = minMain - (total - leftWidth - rightWidth);
+                        leftWidth = clamp(leftWidth - overflow / 2, minLeft, maxLeft);
+                        rightWidth = clamp(rightWidth - overflow / 2, minRight, maxRight);
+                        if (total - leftWidth - rightWidth < minMain) {
+                            const rightCap = clamp(total - leftWidth - minMain, minRight, maxRight);
+                            rightWidth = rightCap;
+                            leftWidth = clamp(total - rightWidth - minMain, minLeft, maxLeft);
+                        }
+                    }
+                };
+
+                try {
+                    const cached = JSON.parse(localStorage.getItem(LAYOUT_STORAGE_KEY) || '{}');
+                    if (Number.isFinite(cached.left)) leftWidth = cached.left;
+                    if (Number.isFinite(cached.right)) rightWidth = cached.right;
+                } catch {}
+                clampAll();
+                applyWidths();
+
+                const startDrag = (side) => (evt) => {
+                    evt.preventDefault();
+                    const rect = container.getBoundingClientRect();
+                    const total = getTotalWidth();
+                    const onMove = (moveEvt) => {
+                        if (side === 'left') {
+                            const rawLeft = moveEvt.clientX - rect.left;
+                            const maxAllowed = Math.min(maxLeft, total - rightWidth - minMain);
+                            leftWidth = clamp(rawLeft, minLeft, Math.max(minLeft, maxAllowed));
+                        } else {
+                            const rawRight = rect.right - moveEvt.clientX;
+                            const maxAllowed = Math.min(maxRight, total - leftWidth - minMain);
+                            rightWidth = clamp(rawRight, minRight, Math.max(minRight, maxAllowed));
+                        }
+                        applyWidths();
+                    };
+                    const stopMove = () => {
+                        document.body.style.userSelect = '';
+                        document.body.style.cursor = '';
+                        leftResizer.classList.remove('dragging');
+                        rightResizer.classList.remove('dragging');
+                        localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify({ left: leftWidth, right: rightWidth }));
+                        document.removeEventListener('pointermove', onMove);
+                        document.removeEventListener('pointerup', stopMove);
+                    };
+                    document.body.style.userSelect = 'none';
+                    document.body.style.cursor = 'col-resize';
+                    (side === 'left' ? leftResizer : rightResizer).classList.add('dragging');
+                    document.addEventListener('pointermove', onMove);
+                    document.addEventListener('pointerup', stopMove);
+                };
+
+                leftResizer.addEventListener('pointerdown', startDrag('left'));
+                rightResizer.addEventListener('pointerdown', startDrag('right'));
+                window.addEventListener('resize', () => {
+                    if (window.matchMedia('(max-width: 1200px)').matches) return;
+                    clampAll();
+                    applyWidths();
+                });
+            }
+        }
+        
+        // ── AI Chat (Real Gemini API) ──
+        async function sendAIMessage() {
+            const input = document.getElementById('aiInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+            
+            appendMsg('user', msg);
+            input.value = '';
+            input.disabled = true;
+            
+            const typingEl = appendMsg('assistant', '<span class="typing-dots"><span>.</span><span>.</span><span>.</span></span>');
+            
+            try {
+                const answer = await callGemini(msg);
+                typingEl.innerHTML = formatMd(answer);
+            } catch (err) {
+                const errMsg = err?.message || String(err);
+                let hint = 'Check console for details.';
+                if (window.location.protocol === 'file:' || errMsg.includes('Failed to fetch')) {
+                    const current = window.location.pathname.split('/').pop();
+                    hint = `Start local server: python3 serve.py --open html/${current} and ensure GEMINI_API_KEY exists in .env.local`;
+                }
+                typingEl.innerHTML = '⚠️ Error: ' + escapeHtml(errMsg) + '<br><small>' + escapeHtml(hint) + '</small>';
+                console.error('Gemini API error:', err);
+            } finally {
+                input.disabled = false;
+                input.focus();
+            }
+        }
+        
+        async function callGemini(userMessage) {
+            if (window.location.protocol === 'file:') {
+                throw new Error('This page is opened as file:// and cannot reach ../api/gemini');
+            }
+
+            const prompt = `You are a concise study assistant for this course.
+
+Course content (excerpt):
+${courseContext.substring(0, 3500)}
+
+Previous conversation:
+${conversationHistory.slice(-4).map(m => m.role + ': ' + m.content).join('\n')}
+
+Student question: ${userMessage}
+
+Instructions:
+- Answer in 3-6 sentences, be direct and complete
+- Always finish your sentences, never leave a thought incomplete
+- Use the course content as reference
+- If the question is in Chinese, answer in Chinese`;
+
+            const res = await fetch(GEMINI_PROXY_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    prompt: prompt,
+                    generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
+                })
+            });
+            
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(`API ${res.status}: ${errText.substring(0, 200)}`);
+            }
+            
+            const data = await res.json();
+            const candidate = data.candidates?.[0];
+            const answer = candidate?.content?.parts?.[0]?.text;
+            if (!answer) throw new Error('Empty response from API');
+            
+            // Check if response was truncated
+            if (candidate?.finishReason === 'MAX_TOKENS') {
+                conversationHistory.push({ role: 'user', content: userMessage }, { role: 'assistant', content: answer });
+                return answer + '...\n\n_(Response was trimmed. Ask a follow-up for more detail.)_';
+            }
+            
+            conversationHistory.push({ role: 'user', content: userMessage }, { role: 'assistant', content: answer });
+            return answer;
+        }
+        
+        function appendMsg(role, html) {
+            const container = document.getElementById('aiMessages');
+            const div = document.createElement('div');
+            div.className = 'ai-message ' + role;
+            div.innerHTML = html;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            return div;
+        }
+        
+        function formatMd(text) {
+            return text
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/`(.+?)`/g, '<code style="background:var(--bg-tertiary);padding:0.1em 0.4em;border-radius:3px;font-size:0.9em;">$1</code>')
+                .replace(/\n/g, '<br>');
+        }
+        
+        function askSummary() {
+            const input = document.getElementById('aiInput');
+            input.value = 'Please summarize the key concepts of this lesson in bullet points.';
+            sendAIMessage();
+        }
+        
+        function reviewAllQuizzes() {
+            const q = document.querySelector('.quiz-container');
+            if (q) q.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        function createSummary() { askSummary(); }
+        
+        // ── Sidebar Tabs ──
+        function switchSidebarTab(tabName) {
+            document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.sidebar-panel').forEach(p => p.style.display = 'none');
+            document.querySelector(`.sidebar-tab[data-tab="${tabName}"]`)?.classList.add('active');
+            const panel = document.getElementById('panel-' + tabName);
+            if (panel) panel.style.display = 'block';
+        }
+        // ── Notes System ──
+        const NOTES_STORAGE_KEY = 'learning-notes-' + document.title;
+        const NOTES_FOCUS_KEY = NOTES_STORAGE_KEY + '-focus';
+        const NOTES_ACTIVE_KEY = NOTES_STORAGE_KEY + '-active';
+        const NOTES_DRAFT_KEY = NOTES_STORAGE_KEY + '-draft';
+        
+        function loadNotes() {
+            try {
+                const raw = JSON.parse(localStorage.getItem(NOTES_STORAGE_KEY) || '[]');
+                if (!Array.isArray(raw)) return [];
+                return raw.map((n, idx) => {
+                    const idNum = Number(n?.id);
+                    return {
+                        id: Number.isFinite(idNum) ? idNum : -(idx + 1),
+                        citation: typeof n?.citation === 'string' ? n.citation : (typeof n?.quote === 'string' ? n.quote : ''),
+                        body: typeof n?.body === 'string' ? n.body : (typeof n?.text === 'string' ? n.text : (typeof n?.content === 'string' ? n.content : '')),
+                        section: typeof n?.section === 'string' ? n.section : (typeof n?.title === 'string' ? n.title : ''),
+                        timestamp: typeof n?.timestamp === 'string' && n.timestamp
+                            ? n.timestamp
+                            : (typeof n?.created_at === 'string' && n.created_at ? n.created_at : new Date().toISOString())
+                    };
+                });
+            }
+            catch { return []; }
+        }
+        
+                function saveNotes(notes) {
+            localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(notes));
+            renderNotes();
+        }
+
+        function saveDraft(text) {
+            localStorage.setItem(NOTES_DRAFT_KEY, text || '');
+        }
+
+        function loadDraft() {
+            return localStorage.getItem(NOTES_DRAFT_KEY) || '';
+        }
+
+        function renderDraftPreview(text) {
+            const preview = document.getElementById('noteDraftPreviewContent');
+            if (!preview) return;
+            const clean = text || '';
+            if (!clean.trim()) {
+                preview.innerHTML = '<span style="color: var(--text-tertiary);">Type in the note box to preview Markdown rendering in real time.</span>';
+                return;
+            }
+            preview.innerHTML = renderNoteMarkdown(clean);
+        }
+
+        function handleNoteInputChange(value) {
+            saveDraft(value);
+            renderDraftPreview(value);
+        }
+
+        function initNoteComposer() {
+            const input = document.getElementById('noteInput');
+            if (!input) return;
+            const draft = loadDraft();
+            input.value = draft;
+            renderDraftPreview(draft);
+            input.addEventListener('input', () => {
+                handleNoteInputChange(input.value);
+            });
+            input.addEventListener('keydown', (e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    addFreeNote();
+                }
+            });
+        }
+
+        function getFocusedNoteId() {
+            const value = localStorage.getItem(NOTES_FOCUS_KEY);
+            return value ? Number(value) : null;
+        }
+
+        function getActiveNoteId() {
+            const value = localStorage.getItem(NOTES_ACTIVE_KEY);
+            return value ? Number(value) : null;
+        }
+
+        function setFocusedNoteId(id) {
+            if (!id) localStorage.removeItem(NOTES_FOCUS_KEY);
+            else localStorage.setItem(NOTES_FOCUS_KEY, String(id));
+        }
+
+        function setActiveNoteId(id) {
+            if (!id) localStorage.removeItem(NOTES_ACTIVE_KEY);
+            else localStorage.setItem(NOTES_ACTIVE_KEY, String(id));
+        }
+
+        function toggleFocusNote(id, e) {
+            e?.stopPropagation();
+            const focusedId = getFocusedNoteId();
+            setFocusedNoteId(focusedId === id ? null : id);
+            renderNotes();
+        }
+
+        function openNote(id) {
+            setActiveNoteId(id);
+            renderNotes();
+            switchSidebarTab('notes');
+        }
+
+        function ensureNoteReader() {
+            const panel = document.getElementById('panel-notes');
+            const notesList = document.getElementById('notesList');
+            if (!panel || !notesList) return null;
+            notesList.style.maxHeight = '32vh';
+
+            let reader = document.getElementById('noteReader');
+            if (!reader) {
+                reader = document.createElement('div');
+                reader.id = 'noteReader';
+                reader.className = 'note-reader';
+                notesList.insertAdjacentElement('afterend', reader);
+            }
+            return reader;
+        }
+
+        function renderNoteMarkdown(text) {
+            return escapeHtml(text || '')
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/`(.+?)`/g, '<code>$1</code>')
+                .replace(/\n/g, '<br>');
+        }
+
+        function renderNoteReader(notes) {
+            const reader = ensureNoteReader();
+            if (!reader) return;
+            if (notes.length === 0) {
+                reader.innerHTML = '<div class="reader-title">Reader</div><div class="reader-content">No notes yet.</div>';
+                return;
+            }
+
+            let activeId = getActiveNoteId();
+            let active = notes.find(n => n.id === activeId);
+            if (!active) {
+                active = notes[0];
+                setActiveNoteId(active.id);
+            }
+            const time = new Date(active.timestamp).toLocaleString();
+            const citationHtml = active.citation ? `<div class="note-citation">${escapeHtml(active.citation)}</div>` : '';
+            const activeBody = typeof active.body === 'string' ? active.body : '';
+            reader.innerHTML = `
+                <div class="reader-title">Reading • ${escapeHtml(active.section || 'General')} • ${time}</div>
+                ${citationHtml}
+                <div class="reader-content">${renderNoteMarkdown(activeBody)}</div>
+            `;
+        }
+        
+        function addNote(citation, body, section) {
+            const notes = loadNotes();
+            const note = {
+                id: Date.now(),
+                citation: citation || '',
+                body: body || '',
+                section: section || '',
+                timestamp: new Date().toISOString()
+            };
+            notes.push(note);
+            setActiveNoteId(note.id);
+            saveNotes(notes);
+            // Switch to notes tab
+            switchSidebarTab('notes');
+        }
+        
+        function addFreeNote() {
+            const input = document.getElementById('noteInput');
+            const text = input.value.trim();
+            if (!text) return;
+            addNote('', text, '');
+            input.value = '';
+            saveDraft('');
+            renderDraftPreview('');
+        }
+        
+        function deleteNote(id, e) {
+            e?.stopPropagation();
+            const notes = loadNotes().filter(n => n.id !== id);
+            if (getFocusedNoteId() === id) setFocusedNoteId(null);
+            if (getActiveNoteId() === id) setActiveNoteId(notes.length ? notes[0].id : null);
+            saveNotes(notes);
+        }
+        
+        function renderNotes() {
+            const notes = loadNotes();
+            const container = document.getElementById('notesList');
+            const counter = document.getElementById('notesCount');
+            if (!container) return;
+            
+            counter.textContent = notes.length + ' note' + (notes.length !== 1 ? 's' : '');
+            
+            if (notes.length === 0) {
+                container.innerHTML = '<p style="font-size:0.85rem; color:var(--text-tertiary); text-align:center; padding:2rem 0;">Select text and click "Add Note" to begin, or write freely below.</p>';
+                renderNoteReader(notes);
+                return;
+            }
+
+            const focusedId = getFocusedNoteId();
+            const activeId = getActiveNoteId();
+            const sortedNotes = [...notes].sort((a, b) => {
+                const aFocused = a.id === focusedId ? 1 : 0;
+                const bFocused = b.id === focusedId ? 1 : 0;
+                if (aFocused !== bFocused) return bFocused - aFocused;
+                return new Date(b.timestamp) - new Date(a.timestamp);
+            });
+
+            container.innerHTML = sortedNotes.map(n => {
+                const time = new Date(n.timestamp).toLocaleString();
+                const citationHtml = n.citation 
+                    ? `<div class="note-citation">${escapeHtml(n.citation)}</div>` 
+                    : '';
+                const noteBody = typeof n.body === 'string' ? n.body : '';
+                const preview = noteBody.length > 140 ? (noteBody.slice(0, 140) + '...') : noteBody;
+                const focusLabel = n.id === focusedId ? 'Unfocus' : 'Focus';
+                return `<div class="note-card ${n.id === activeId ? 'active' : ''} ${n.id === focusedId ? 'focused' : ''}" onclick="openNote(${n.id})">
+                    ${citationHtml}
+                    <div class="note-body">${escapeHtml(preview)}</div>
+                    <div class="note-meta">
+                        <span>${n.section ? escapeHtml(n.section) : ''} ${time}</span>
+                        <span>
+                            <button class="note-focus" onclick="toggleFocusNote(${n.id}, event)">${focusLabel}</button>
+                            <button class="note-delete" onclick="deleteNote(${n.id}, event)">Delete</button>
+                        </span>
+                    </div>
+                </div>`;
+            }).join('');
+            renderNoteReader(sortedNotes);
+        }
+        
+        function exportNotesToObsidian() {
+            const notes = loadNotes();
+            if (notes.length === 0) { alert('No notes to export.'); return; }
+            
+            const title = document.title.replace(' - Interactive Learning', '');
+            const sourceFile = document.querySelector('.main-content header p')?.textContent?.match(/Source: (.+)/)?.[1] || '';
+            
+            let md = `---
+tags: [lecture-notes, mfin7034]
+source: "${sourceFile}"
+date: ${new Date().toISOString().split('T')[0]}
+---
+
+`;
+            md += `# ${title}
+
+`;
+            md += `> [!info] Source
+> PDF: [[${sourceFile.replace('.pdf','')}]]
+
+`;
+            
+            notes.forEach((n, idx) => {
+                if (n.citation) {
+                    md += `> [!quote] Highlight
+> ${n.citation}
+
+`;
+                }
+                const noteBody = typeof n.body === 'string' ? n.body : '';
+                md += noteBody + `
+
+`;
+                if (idx < notes.length - 1) md += `---
+
+`;
+            });
+            
+            md += `
+## References
+
+- Source: ${sourceFile}
+- Generated: ${new Date().toLocaleString()}
+`;
+            
+            const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = title.replace(/[^a-zA-Z0-9一-鿿 ]/g, '_') + '.md';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+        
+        // ── Text Highlight & Selection ──
+        const highlightTooltip = document.createElement('div');
+        highlightTooltip.className = 'highlight-tooltip';
+        highlightTooltip.innerHTML = `
+            <button onclick="highlightSelection()">Highlight</button>
+            <button onclick="highlightAndNote()">+ Note</button>
+        `;
+        document.body.appendChild(highlightTooltip);
+        
+        document.addEventListener('mouseup', (e) => {
+            const sel = window.getSelection();
+            const text = sel.toString().trim();
+            
+            // Only show for selections within main content
+            const main = document.querySelector('.main-content');
+            if (!text || text.length < 3 || !main?.contains(sel.anchorNode)) {
+                highlightTooltip.classList.remove('show');
+                return;
+            }
+            
+            const range = sel.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+            highlightTooltip.style.left = rect.left + (rect.width / 2) - 60 + 'px';
+            highlightTooltip.style.top = rect.top - 40 + window.scrollY + 'px';
+            highlightTooltip.classList.add('show');
+        });
+        
+        document.addEventListener('mousedown', (e) => {
+            if (!highlightTooltip.contains(e.target)) {
+                highlightTooltip.classList.remove('show');
+            }
+        });
+        
+        function highlightSelection() {
+            const sel = window.getSelection();
+            if (!sel.rangeCount) return;
+            const range = sel.getRangeAt(0);
+            const mark = document.createElement('mark');
+            mark.className = 'text-highlight';
+            try {
+                range.surroundContents(mark);
+            } catch(e) {
+                // Cross-element selection: fall back
+                const text = sel.toString();
+                mark.textContent = text;
+                range.deleteContents();
+                range.insertNode(mark);
+            }
+            sel.removeAllRanges();
+            highlightTooltip.classList.remove('show');
+        }
+        
+        function highlightAndNote() {
+            const sel = window.getSelection();
+            const text = sel.toString().trim();
+            if (!text) return;
+            
+            // Find section context
+            let section = '';
+            let node = sel.anchorNode;
+            while (node && node !== document.body) {
+                if (node.classList?.contains('concept-section')) {
+                    const h2 = node.querySelector('h2');
+                    if (h2) section = h2.textContent;
+                    break;
+                }
+                node = node.parentNode;
+            }
+            
+            highlightSelection();
+            
+            openInlineSelectionNoteEditor(text, section, sel.getRangeAt(0).getBoundingClientRect());
+        }
+        
+
+        function closeInlineSelectionNoteEditor() {
+            document.getElementById('inlineSelectionNoteEditor')?.remove();
+        }
+
+        function openInlineSelectionNoteEditor(selectionText, section, rect) {
+            closeInlineSelectionNoteEditor();
+            const editor = document.createElement('div');
+            editor.id = 'inlineSelectionNoteEditor';
+            editor.style.position = 'absolute';
+            editor.style.zIndex = '10030';
+            editor.style.width = 'min(420px, 90vw)';
+            editor.style.background = 'var(--bg-card)';
+            editor.style.border = '1px solid var(--border-color)';
+            editor.style.borderRadius = '12px';
+            editor.style.boxShadow = '0 16px 36px rgba(0,0,0,0.32)';
+            editor.style.padding = '0.65rem';
+            editor.style.top = (window.scrollY + rect.bottom + 10) + 'px';
+            editor.style.left = Math.max(12, Math.min(window.scrollX + rect.left, window.scrollX + window.innerWidth - 440)) + 'px';
+            editor.innerHTML = `
+                <div style="font-size:0.78rem;color:var(--text-tertiary);margin-bottom:0.4rem;">Add note for selection</div>
+                <textarea id="inlineSelectionNoteInput" placeholder="Write note... (Markdown supported)" style="width:100%;min-height:88px;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border-color);border-radius:8px;padding:0.5rem;font-size:0.86rem;resize:vertical;"></textarea>
+                <div style="display:flex;justify-content:flex-end;gap:0.45rem;margin-top:0.45rem;">
+                    <button type="button" id="inlineSelectionNoteCancel" style="border:1px solid var(--border-color);background:var(--bg-elevated);color:var(--text-primary);border-radius:8px;padding:0.3rem 0.6rem;cursor:pointer;font-size:0.8rem;">Cancel</button>
+                    <button type="button" id="inlineSelectionNoteSave" style="border:1px solid rgba(163,217,165,.55);background:var(--bg-elevated);color:var(--accent-secondary);border-radius:8px;padding:0.3rem 0.6rem;cursor:pointer;font-size:0.8rem;">Save</button>
+                </div>
+            `;
+            document.body.appendChild(editor);
+            const input = editor.querySelector('#inlineSelectionNoteInput');
+            input?.focus();
+            editor.querySelector('#inlineSelectionNoteCancel')?.addEventListener('click', closeInlineSelectionNoteEditor);
+            editor.querySelector('#inlineSelectionNoteSave')?.addEventListener('click', () => {
+                const body = (input?.value || '').trim() || '(highlighted)';
+                addNote(selectionText, body, section);
+                closeInlineSelectionNoteEditor();
+            });
+        }
+
+        // ── Init ──
+        document.addEventListener('DOMContentLoaded', () => {
+            new LearningPageController();
+            
+            // Add reveal animation to concept sections
+            document.querySelectorAll('.feynman-block, .quiz-container, .expandable, .chart-container, .diagram-container, .comparison-block, .stats-grid').forEach(el => {
+                el.classList.add('reveal-on-scroll');
+            });
+            
+            // Re-init observer for dynamically added elements
+            const obs = new IntersectionObserver((entries) => {
+                entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('revealed'); });
+            }, { threshold: 0.08 });
+            document.querySelectorAll('.reveal-on-scroll').forEach(el => obs.observe(el));
+            
+            // Initialize note draft autosave + live markdown preview
+            initNoteComposer();
+            // Load saved notes
+            renderNotes();
+        });
+        
+        // Typing dots animation
+        const typingStyle = document.createElement('style');
+        typingStyle.textContent = `
+            .typing-dots span {
+                animation: blink 1.4s infinite;
+                font-size: 1.5em;
+                line-height: 1;
+            }
+            .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+            .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+            @keyframes blink {
+                0%, 60%, 100% { opacity: 0.2; }
+                30% { opacity: 1; }
+            }
+        `;
+        document.head.appendChild(typingStyle);
+    
+    </script>
+    
+    <!-- KaTeX auto-render -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: "$$", right: "$$", display: true},
+                        {left: "$", right: "$", display: false},
+                        {left: "\\(", right: "\\)", display: false},
+                        {left: "\\[", right: "\\]", display: true}
+                    ],
+                    throwOnError: false
+                });
+            }
+        });
+    </script>
+    <script src="./app-shell.js?v=10"></script>
+    <script src="./lecture-enhancements.js?v=4"></script>
+</body>
+</html>

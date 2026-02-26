@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1a1a2e" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Lecture Portal</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./app-shell.css?v=10" />
+    <style>
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #1f2b47;
+            --bg-elevated: #263352;
+            --bg-card: #1c2a45;
+
+            --text-primary: #edf2f7;
+            --text-secondary: #a0aec0;
+            --text-tertiary: #718096;
+
+            --accent-primary: #f6c177;
+            --accent-secondary: #a3d9a5;
+
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(246, 193, 119, 0.35);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.32);
+            --shadow-lg: 0 14px 30px rgba(0, 0, 0, 0.4);
+            --font-body: 'Georgia', 'Times New Roman', 'Noto Serif SC', serif;
+            --font-heading: -apple-system, 'Helvetica Neue', 'PingFang SC', sans-serif;
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-primary: #faf8f5;
+                --bg-secondary: #f0ece4;
+                --bg-tertiary: #e8e2d8;
+                --bg-elevated: #ffffff;
+                --bg-card: #ffffff;
+                --text-primary: #1c1917;
+                --text-secondary: #57534e;
+                --text-tertiary: #a8a29e;
+                --accent-primary: #c2742f;
+                --accent-secondary: #3d8b40;
+                --border-color: rgba(0, 0, 0, 0.08);
+                --border-hover: rgba(194, 116, 47, 0.3);
+                --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+                --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.14);
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 32px 18px 124px;
+        }
+        .header {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+        h1 {
+            font-family: var(--font-heading);
+            font-size: clamp(1.65rem, 4.2vw, 2.3rem);
+            line-height: 1.2;
+            margin-bottom: 6px;
+            letter-spacing: -0.01em;
+        }
+        .sub { color: var(--text-tertiary); font-size: 0.95rem; }
+        .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 10px 12px;
+            border-radius: 12px;
+            min-width: min(320px, 78vw);
+            box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.18);
+            -webkit-backdrop-filter: blur(16px) saturate(145%);
+            backdrop-filter: blur(16px) saturate(145%);
+        }
+        .btn {
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            padding: 9px 12px;
+            border-radius: 12px;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+            transition: border-color 0.18s ease, transform 0.18s ease;
+            -webkit-backdrop-filter: blur(14px) saturate(135%);
+            backdrop-filter: blur(14px) saturate(135%);
+        }
+        .btn:hover { border-color: var(--border-hover); transform: translateY(-1px); }
+        .stats { margin-top: 16px; color: var(--text-secondary); font-size: 0.9rem; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 14px;
+            margin-top: 16px;
+        }
+        .card {
+            border: 1px solid var(--border-color);
+            background:
+                linear-gradient(145deg, rgba(255,255,255,0.11), rgba(255,255,255,0.02) 42%, rgba(255,255,255,0.01)),
+                rgba(29, 42, 69, 0.58);
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: var(--shadow-md);
+            transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+            position: relative;
+            overflow: hidden;
+            -webkit-backdrop-filter: blur(22px) saturate(165%);
+            backdrop-filter: blur(22px) saturate(165%);
+        }
+        .card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        .title {
+            font-family: var(--font-heading);
+            font-size: 1.04rem;
+            font-weight: 650;
+            line-height: 1.35;
+            margin-bottom: 8px;
+        }
+        .meta { color: var(--text-tertiary); font-size: 0.82rem; margin-bottom: 12px; }
+        .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .actions .btn.open {
+            border-color: rgba(246, 193, 119, 0.45);
+            background: rgba(246, 193, 119, 0.12);
+            color: var(--accent-primary);
+        }
+        .actions .btn.pdf {
+            border-color: rgba(163, 217, 165, 0.45);
+            background: rgba(163, 217, 165, 0.12);
+            color: var(--accent-secondary);
+        }
+        .empty { margin-top: 20px; color: var(--text-tertiary); }
+        .install-tip { margin-top: 10px; color: var(--text-tertiary); font-size: 0.82rem; }
+        @media (prefers-color-scheme: light) {
+            input, .btn {
+                background: rgba(255, 255, 255, 0.82);
+                box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.8);
+            }
+            .card {
+                background:
+                    linear-gradient(135deg, rgba(255,255,255,0.92), rgba(255,255,255,0.68) 35%, rgba(255,255,255,0.62)),
+                    rgba(255,255,255,0.78);
+            }
+        }
+    </style>
+</head>
+<body data-shell-page="portal">
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>Lectures Portal</h1>
+                <div class="sub">Open lectures fast, continue notes, and jump to PDFs from one workspace.</div>
+            </div>
+            <div class="toolbar">
+                <input id="searchInput" type="text" placeholder="Search by lecture number or keyword..." />
+                <a class="btn" href="../demo.html">Demo</a>
+            </div>
+        </div>
+
+        <div class="stats" id="stats">Syncing lecture index...</div>
+        <div class="install-tip">Tip: open any lecture to continue AI chat, notes, and quiz progress.</div>
+        <div id="lectureGrid" class="grid"></div>
+        <div id="empty" class="empty" style="display:none;">No lecture matched your search.</div>
+    </div>
+
+    <script>
+        let lectures = [];
+        const normalizePath = (href) => {
+            if (!href) return href;
+            if (/^(https?:)?\/\//i.test(href)) return href;
+            if (href.startsWith('/html/')) return `.${href.slice('/html'.length)}`;
+            if (href.startsWith('/pdfs/')) return `..${href}`;
+            if (href.startsWith('/')) {
+                const marker = '/html/';
+                const idx = window.location.pathname.toLowerCase().indexOf(marker);
+                const prefix = idx >= 0 ? window.location.pathname.slice(0, idx) : '';
+                return `${prefix}${href}`;
+            }
+            return href;
+        };
+
+        function render(items) {
+            const grid = document.getElementById('lectureGrid');
+            const empty = document.getElementById('empty');
+            grid.innerHTML = items.map(l => {
+                const pdfBtn = l.pdf_path
+                    ? `<a class="btn pdf" target="_blank" href="${normalizePath(l.pdf_path)}">Open PDF</a>`
+                    : '';
+                return `
+                    <div class="card">
+                        <div class="title">${l.title}</div>
+                        <div class="meta">Updated: ${l.updated_at.replace('T', ' ')}</div>
+                        <div class="actions">
+                            <a class="btn open" href="${normalizePath(l.html_path)}" data-open-lecture="${normalizePath(l.html_path)}">Open Interactive Page</a>
+                            ${pdfBtn}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            empty.style.display = items.length ? 'none' : 'block';
+            document.getElementById('stats').textContent = `${items.length} lecture(s) shown`;
+        }
+
+        async function loadLectures() {
+            const stats = document.getElementById('stats');
+            try {
+                const res = await fetch('../api/lectures');
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                lectures = data.lectures || [];
+                stats.textContent = `${data.count || lectures.length} lecture(s) loaded`;
+                render(lectures);
+            } catch (e) {
+                try {
+                    const fallback = await fetch('./lectures.json');
+                    if (!fallback.ok) throw new Error(`HTTP ${fallback.status}`);
+                    const data = await fallback.json();
+                    lectures = data.lectures || [];
+                    stats.textContent = `${data.count || lectures.length} lecture(s) loaded (static mode)`;
+                    render(lectures);
+                } catch (fallbackError) {
+                    stats.textContent = `Load failed: ${fallbackError.message}`;
+                }
+            }
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const q = e.target.value.trim().toLowerCase();
+            render(!q ? lectures : lectures.filter(l => l.title.toLowerCase().includes(q)));
+        });
+
+        document.addEventListener('click', (e) => {
+            const link = e.target.closest('[data-open-lecture]');
+            if (!link) return;
+            localStorage.setItem('lecture-last-opened', link.getAttribute('data-open-lecture'));
+        });
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.getRegistrations()
+                    .then((regs) => regs.forEach((r) => r.unregister()))
+                    .catch(() => {});
+            });
+        }
+
+        loadLectures();
+    </script>
+    <script src="./app-shell.js?v=10"></script>
+    <script src="./lecture-enhancements.js?v=4"></script>
+</body>
+</html>

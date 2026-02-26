@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Learning Demo - Feature Showcase</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --accent-blue: #58a6ff;
+            --accent-purple: #a371f7;
+            --accent-green: #3fb950;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --gradient: linear-gradient(135deg, #58a6ff 0%, #a371f7 100%);
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 20% 50%, rgba(88, 166, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(163, 113, 247, 0.1) 0%, transparent 50%);
+            animation: gradientShift 15s ease infinite;
+            z-index: -1;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(5%, 5%) rotate(3deg); }
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+        
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 6rem 0 4rem;
+            position: relative;
+        }
+        
+        .hero h1 {
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 800;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1.5rem;
+            animation: fadeInUp 0.8s ease-out;
+        }
+        
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto 3rem;
+            animation: fadeInUp 1s ease-out;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 1.2s ease-out;
+        }
+        
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background: var(--gradient);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(88, 166, 255, 0.4);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--bg-secondary);
+            border-color: var(--accent-blue);
+        }
+        
+        /* Demo Grid */
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin: 4rem 0;
+        }
+        
+        .demo-card {
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .demo-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(88, 166, 255, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .demo-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-blue);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+        
+        .demo-card:hover::before {
+            opacity: 1;
+        }
+        
+        .demo-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+            animation: iconFloat 3s ease-in-out infinite;
+        }
+        
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .demo-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+        
+        .demo-card p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+        
+        /* Interactive Demo - Quiz */
+        .quiz-demo {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        .quiz-question {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+        
+        .quiz-option {
+            background: var(--bg-secondary);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .quiz-option:hover {
+            border-color: var(--accent-blue);
+            transform: translateX(5px);
+        }
+        
+        .quiz-option.correct {
+            background: rgba(63, 185, 80, 0.2);
+            border-color: var(--accent-green);
+        }
+        
+        /* Interactive Demo - Expandable */
+        .expandable-demo {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+        
+        .expandable-header {
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s ease;
+        }
+        
+        .expandable-header:hover {
+            background: var(--bg-secondary);
+        }
+        
+        .expandable-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .expandable-demo.open .expandable-content {
+            max-height: 500px;
+        }
+        
+        .expandable-inner {
+            padding: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-secondary);
+        }
+        
+        .expand-icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .expandable-demo.open .expand-icon {
+            transform: rotate(180deg);
+        }
+        
+        /* Interactive Demo - AI Chat */
+        .chat-demo {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .chat-message {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .chat-message.user {
+            background: var(--accent-blue);
+            color: white;
+            margin-left: 2rem;
+        }
+        
+        .chat-message.assistant {
+            background: var(--bg-secondary);
+            margin-right: 2rem;
+        }
+        
+        .chat-input-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .chat-input {
+            flex: 1;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.75rem;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: inherit;
+        }
+        
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+        
+        /* Features Section */
+        .features {
+            margin: 6rem 0;
+        }
+        
+        .features h2 {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 3rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .feature-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+        
+        .feature-content h4 {
+            font-size: 1.125rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .feature-content p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .demo-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="hero">
+            <h1>Interactive Learning Demo</h1>
+            <p>Experience the future of education with AI-powered, interactive HTML learning pages. Transform static PDFs into engaging study materials.</p>
+            <div class="hero-buttons">
+                <a href="html/Lec1_FinTech_AI_Interactive.html" class="btn btn-primary">
+                    🚀 View Full Example
+                </a>
+                <button onclick="scrollToDemo()" class="btn btn-secondary">
+                    👀 Try Interactive Demos
+                </button>
+            </div>
+        </div>
+
+        <!-- Demo Cards -->
+        <div class="demo-grid" id="demo-section">
+            <!-- Interactive Quiz Card -->
+            <div class="demo-card">
+                <span class="demo-icon">🎯</span>
+                <h3>Interactive Quizzes</h3>
+                <p>Click to answer and get instant feedback with visual effects</p>
+                
+                <div class="quiz-demo">
+                    <div class="quiz-question">What is FinTech?</div>
+                    <div class="quiz-option" onclick="answerQuiz(this, false)">
+                        A) Traditional banking only
+                    </div>
+                    <div class="quiz-option" onclick="answerQuiz(this, true)">
+                        B) Financial technology innovation
+                    </div>
+                    <div class="quiz-option" onclick="answerQuiz(this, false)">
+                        C) A type of cryptocurrency
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expandable Content Card -->
+            <div class="demo-card">
+                <span class="demo-icon">📖</span>
+                <h3>Expandable Sections</h3>
+                <p>Click to reveal detailed explanations and examples</p>
+                
+                <div class="expandable-demo" onclick="toggleExpand(this)">
+                    <div class="expandable-header">
+                        <span>Click to expand</span>
+                        <span class="expand-icon">▼</span>
+                    </div>
+                    <div class="expandable-content">
+                        <div class="expandable-inner">
+                            This is hidden content that smoothly expands when you click. Perfect for keeping the page clean while providing deep-dive information when needed. You can include formulas, examples, and detailed explanations here.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Chat Card -->
+            <div class="demo-card">
+                <span class="demo-icon">🤖</span>
+                <h3>AI Study Assistant</h3>
+                <p>Real-time AI chat powered by Gemini API</p>
+                
+                <div class="chat-demo" id="chat-messages">
+                    <div class="chat-message assistant">
+                        👋 Hi! Ask me anything about the course material.
+                    </div>
+                </div>
+                <div class="chat-input-group">
+                    <input type="text" class="chat-input" id="demo-chat-input" placeholder="Ask a question..." onkeypress="if(event.key==='Enter') sendDemoMessage()">
+                    <button class="btn btn-primary" onclick="sendDemoMessage()">Send</button>
+                </div>
+            </div>
+
+            <!-- Progress Tracking Card -->
+            <div class="demo-card">
+                <span class="demo-icon">📊</span>
+                <h3>Progress Tracking</h3>
+                <p>Visual progress bar that tracks your reading</p>
+                
+                <div style="margin-top: 1rem;">
+                    <div style="background: var(--bg-tertiary); height: 8px; border-radius: 4px; overflow: hidden;">
+                        <div style="background: var(--gradient); height: 100%; width: 65%; transition: width 0.3s ease; animation: progressGrow 2s ease-in-out infinite;"></div>
+                    </div>
+                    <p style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-secondary);">65% Complete</p>
+                </div>
+            </div>
+
+            <!-- Animations Card -->
+            <div class="demo-card">
+                <span class="demo-icon">✨</span>
+                <h3>Smooth Animations</h3>
+                <p>Beautiful transitions and hover effects throughout</p>
+                
+                <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
+                    <div class="animation-demo" style="background: var(--bg-tertiary); padding: 1rem; border-radius: 8px; transition: all 0.3s ease;">
+                        Hover Me
+                    </div>
+                </div>
+            </div>
+
+            <!-- Themes Card -->
+            <div class="demo-card">
+                <span class="demo-icon">🎨</span>
+                <h3>Beautiful Themes</h3>
+                <p>Auto-adapts to light/dark mode preferences</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1rem;">
+                    <div style="background: var(--bg-tertiary); padding: 0.75rem; border-radius: 8px; text-align: center; font-size: 0.875rem;">
+                        🌙 Dark
+                    </div>
+                    <div style="background: #e6edf3; color: #0d1117; padding: 0.75rem; border-radius: 8px; text-align: center; font-size: 0.875rem;">
+                        ☀️ Light
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="features">
+            <h2>Why Interactive Learning?</h2>
+            <div class="feature-list">
+                <div class="feature-item">
+                    <span class="feature-icon">🧠</span>
+                    <div class="feature-content">
+                        <h4>Feynman Technique</h4>
+                        <p>Simple analogies, deep explanations, and practical examples</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <span class="feature-icon">🤖</span>
+                    <div class="feature-content">
+                        <h4>AI-Powered</h4>
+                        <p>Content expanded and enhanced with Gemini AI</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <span class="feature-icon">📱</span>
+                    <div class="feature-content">
+                        <h4>Fully Responsive</h4>
+                        <p>Works perfectly on desktop, tablet, and mobile</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <span class="feature-icon">⚡</span>
+                    <div class="feature-content">
+                        <h4>Lightning Fast</h4>
+                        <p>Single HTML file, no dependencies required</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <span class="feature-icon">🎓</span>
+                    <div class="feature-content">
+                        <h4>Active Learning</h4>
+                        <p>Interactive quizzes with instant feedback</p>
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <span class="feature-icon">🎨</span>
+                    <div class="feature-content">
+                        <h4>Beautiful Design</h4>
+                        <p>Modern UI inspired by top design systems</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div style="text-align: center; margin: 6rem 0;">
+            <h2 style="font-size: 2rem; margin-bottom: 1rem;">Ready to Transform Your Learning?</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 2rem;">View the full interactive example now</p>
+            <a href="html/Lec1_FinTech_AI_Interactive.html" class="btn btn-primary" style="font-size: 1.125rem; padding: 1.25rem 2.5rem;">
+                🚀 View Full Example
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function answerQuiz(option, isCorrect) {
+            const parent = option.parentElement;
+            const options = parent.querySelectorAll('.quiz-option');
+            
+            options.forEach(opt => {
+                opt.style.pointerEvents = 'none';
+                opt.style.opacity = '0.5';
+            });
+            
+            option.style.opacity = '1';
+            
+            if (isCorrect) {
+                option.classList.add('correct');
+                option.innerHTML = '✓ ' + option.innerHTML;
+                
+                // Confetti effect
+                for (let i = 0; i < 20; i++) {
+                    createConfetti(option);
+                }
+            } else {
+                option.style.background = 'rgba(248, 81, 73, 0.2)';
+                option.style.borderColor = '#f85149';
+            }
+            
+            setTimeout(() => {
+                options.forEach(opt => {
+                    opt.style.pointerEvents = 'auto';
+                    opt.style.opacity = '1';
+                });
+                option.classList.remove('correct');
+                option.style.background = '';
+                option.style.borderColor = '';
+                option.innerHTML = option.innerHTML.replace('✓ ', '');
+            }, 3000);
+        }
+        
+        function createConfetti(element) {
+            const colors = ['#58a6ff', '#a371f7', '#3fb950', '#ff7b72'];
+            const confetti = document.createElement('div');
+            confetti.style.position = 'fixed';
+            confetti.style.width = '10px';
+            confetti.style.height = '10px';
+            confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.borderRadius = '50%';
+            
+            const rect = element.getBoundingClientRect();
+            confetti.style.left = rect.left + rect.width / 2 + 'px';
+            confetti.style.top = rect.top + rect.height / 2 + 'px';
+            confetti.style.pointerEvents = 'none';
+            confetti.style.zIndex = '10000';
+            
+            document.body.appendChild(confetti);
+            
+            const angle = Math.random() * Math.PI * 2;
+            const velocity = 2 + Math.random() * 3;
+            let x = 0, y = 0, opacity = 1;
+            
+            function animate() {
+                x += Math.cos(angle) * velocity;
+                y += Math.sin(angle) * velocity + y * 0.1;
+                opacity -= 0.02;
+                
+                confetti.style.transform = `translate(${x}px, ${y}px)`;
+                confetti.style.opacity = opacity;
+                
+                if (opacity > 0) {
+                    requestAnimationFrame(animate);
+                } else {
+                    confetti.remove();
+                }
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        
+        function toggleExpand(element) {
+            element.classList.toggle('open');
+        }
+        
+        function sendDemoMessage() {
+            const input = document.getElementById('demo-chat-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            const container = document.getElementById('chat-messages');
+            
+            const userMsg = document.createElement('div');
+            userMsg.className = 'chat-message user';
+            userMsg.textContent = message;
+            container.appendChild(userMsg);
+            
+            input.value = '';
+            
+            setTimeout(() => {
+                const aiMsg = document.createElement('div');
+                aiMsg.className = 'chat-message assistant';
+                aiMsg.textContent = '🤖 This is a demo! In the real version, I\'d answer: "' + message + '" using Gemini AI with course context.';
+                container.appendChild(aiMsg);
+                container.scrollTop = container.scrollHeight;
+            }, 1000);
+            
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        function scrollToDemo() {
+            document.getElementById('demo-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        
+        // Add hover effect to animation demo
+        document.addEventListener('DOMContentLoaded', () => {
+            const animDemo = document.querySelector('.animation-demo');
+            if (animDemo) {
+                animDemo.addEventListener('mouseenter', () => {
+                    animDemo.style.transform = 'scale(1.1) rotate(2deg)';
+                    animDemo.style.boxShadow = '0 10px 30px rgba(88, 166, 255, 0.4)';
+                });
+                animDemo.addEventListener('mouseleave', () => {
+                    animDemo.style.transform = 'scale(1) rotate(0deg)';
+                    animDemo.style.boxShadow = 'none';
+                });
+            }
+        });
+        
+        // Progress animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes progressGrow {
+                0%, 100% { width: 65%; }
+                50% { width: 75%; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+.env.local
+__pycache__/
+*.pyc
+.DS_Store
+extracted/
+.claude/.DS_Store
+.claude/skill/*/

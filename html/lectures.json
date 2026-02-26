@@ -1,0 +1,71 @@
+{
+  "lectures": [
+    {
+      "title": "Lec 1 Fintech and Artificial Intelligence",
+      "html_path": "./Lec_1_Fintech_and_Artificial_Intelligence_interactive.html",
+      "pdf_path": "../pdfs/Lec 1 Fintech and Artificial Intelligence.pdf",
+      "updated_at": "2026-02-25T17:36:17"
+    },
+    {
+      "title": "Lec 2 Regression and Prediction ML",
+      "html_path": "./Lec_2_Regression_and_Prediction_ML_interactive.html",
+      "pdf_path": "../pdfs/Lec 2 Regression and Prediction ML.pdf",
+      "updated_at": "2026-02-25T17:36:17"
+    },
+    {
+      "title": "Lec 3 Gradient Method",
+      "html_path": "./Lec_3_Gradient_Method_interactive.html",
+      "pdf_path": "../pdfs/Lec 3 Gradient Method.pdf",
+      "updated_at": "2026-02-25T17:36:17"
+    },
+    {
+      "title": "Lec 4 factor model v2",
+      "html_path": "./Lec_4_factor_model_v2_interactive.html",
+      "pdf_path": "../pdfs/Lec 4 factor model v2.pdf",
+      "updated_at": "2026-02-25T17:36:17"
+    },
+    {
+      "title": "Lec 5 Lubos Pastor JMP",
+      "html_path": "./Lec_5_Lubos_Pastor_JMP_interactive.html",
+      "pdf_path": "../pdfs/Lec 5 Lubos_Pastor_JMP.pdf",
+      "updated_at": "2026-02-25T17:36:17"
+    },
+    {
+      "title": "Lec 5 Mean-Variance Optimization",
+      "html_path": "./Lec_5_Mean-Variance_Optimization_interactive.html",
+      "pdf_path": "../pdfs/Lec 5 Mean-Variance Optimization.pdf",
+      "updated_at": "2026-02-25T17:36:17"
+    },
+    {
+      "title": "Lec 6 RL V2",
+      "html_path": "./Lec_6_RL_V2_interactive.html",
+      "pdf_path": "../pdfs/Lec 6 RL V2.pdf",
+      "updated_at": "2026-02-25T17:36:17"
+    },
+    {
+      "title": "Lec 7-8 risk v2",
+      "html_path": "./Lec_7-8_risk_v2_interactive.html",
+      "pdf_path": "../pdfs/Lec 7-8 risk_v2.pdf",
+      "updated_at": "2026-02-25T17:36:17"
+    },
+    {
+      "title": "Lec 9 Fraud-ML-2",
+      "html_path": "./Lec_9_Fraud-ML-2_interactive.html",
+      "pdf_path": "../pdfs/Lec 9 Fraud-ML-2.pdf",
+      "updated_at": "2026-02-25T17:36:17"
+    },
+    {
+      "title": "Lec 10 LLM v1.3",
+      "html_path": "./Lec_10_LLM_v1.3_interactive.html",
+      "pdf_path": "../pdfs/Lec 10 LLM_v1.3.pdf",
+      "updated_at": "2026-02-25T17:36:17"
+    },
+    {
+      "title": "Lec 11-NLP",
+      "html_path": "./Lec_11-NLP_interactive.html",
+      "pdf_path": "../pdfs/Lec 11-NLP.pdf",
+      "updated_at": "2026-02-25T17:36:17"
+    }
+  ],
+  "count": 11
+}
