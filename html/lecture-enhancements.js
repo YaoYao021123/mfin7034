@@ -659,7 +659,30 @@
       openInlineNoteEditor(text, section, rect);
     };
 
-    // Touch support: on mobile, touchend fires after selection via long-press
+    // ── Fix: correct tooltip position for position:fixed (remove erroneous scrollY) ──
+    // The original mouseup handler does: top = rect.top - 40 + scrollY, which is wrong
+    // for position:fixed (rect.top is already viewport-relative). We run AFTER the
+    // original listener and override with the correct coordinates + viewport clamping.
+    function fixTooltipPosition() {
+      const tooltip = document.querySelector('.highlight-tooltip');
+      if (!tooltip?.classList.contains('show')) return;
+      const sel = window.getSelection();
+      if (!sel?.rangeCount) return;
+      try {
+        const rect = sel.getRangeAt(0).getBoundingClientRect();
+        if (!rect.width && !rect.height) { tooltip.classList.remove('show'); return; }
+        const tipW = tooltip.offsetWidth || 130;
+        const left = Math.max(4, Math.min(window.innerWidth - tipW - 4, rect.left + rect.width / 2 - tipW / 2));
+        // Show above selection; flip below if there's no room at top
+        const top = rect.top >= 52 ? rect.top - 44 : rect.bottom + 8;
+        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${top}px`;
+      } catch {}
+    }
+
+    document.addEventListener('mouseup', fixTooltipPosition);
+
+    // Touch / mobile: fire after long-press selection finalises
     document.addEventListener('touchend', () => {
       setTimeout(() => {
         const tooltip = document.querySelector('.highlight-tooltip');
@@ -672,13 +695,16 @@
           return;
         }
         try {
-          const range = sel.getRangeAt(0);
-          const rect = range.getBoundingClientRect();
-          tooltip.style.left = `${Math.max(4, rect.left + rect.width / 2 - 60)}px`;
-          tooltip.style.top = `${rect.top - 44 + window.scrollY}px`;
+          const rect = sel.getRangeAt(0).getBoundingClientRect();
+          if (!rect.width && !rect.height) return;
+          const tipW = tooltip.offsetWidth || 130;
+          const left = Math.max(4, Math.min(window.innerWidth - tipW - 4, rect.left + rect.width / 2 - tipW / 2));
+          const top = rect.top >= 52 ? rect.top - 44 : rect.bottom + 8;
+          tooltip.style.left = `${left}px`;
+          tooltip.style.top = `${top}px`;
           tooltip.classList.add('show');
         } catch {}
-      }, 120);
+      }, 150);
     }, { passive: true });
   }
 
