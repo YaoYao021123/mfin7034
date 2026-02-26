@@ -114,7 +114,7 @@
       .inline-note-actions { display:flex; justify-content:flex-end; gap:.45rem; margin-top:.45rem; }
       .inline-note-actions button { border:1px solid var(--border-color, rgba(255,255,255,0.16)); background: var(--bg-elevated,#263352); color: var(--text-primary,#edf2f7); border-radius:8px; padding:.3rem .6rem; cursor:pointer; font-size:.8rem; }
       .inline-note-actions .save { border-color: rgba(163,217,165,.55); color: var(--accent-secondary,#a3d9a5); }
-      #notesList { max-height: 196px !important; overflow-y: auto !important; }
+      #notesList { max-height: 150px !important; overflow-y: auto !important; }
     `;
     document.head.appendChild(style);
   }
@@ -522,6 +522,7 @@
     document.getElementById('mobSheet').classList.add('open');
     document.body.style.overflow = 'hidden';
     if (tabName) requestAnimationFrame(() => window._origSwitchSidebarTab?.(tabName));
+    if (tabName === 'pdf') setTimeout(() => window._patchMobilePDF?.(), 80);
     if (selector.includes('right')) {
       setTimeout(() => sidebar.querySelector('#aiInput, .ai-input')?.focus(), 200);
     }
@@ -583,6 +584,54 @@
         document.querySelector('.sidebar-right')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
     };
+  }
+
+  // ── Mobile PDF viewer fallback ────────────────────────────────────────────
+
+  function patchMobilePDF() {
+    // Only activate on mobile/tablet devices where iframe PDF is unsupported
+    const isMobileBrowser = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (!isMobileBrowser) return;
+
+    const dopatch = () => {
+      const frame = document.getElementById('pdfFrame');
+      if (!frame || frame._mobPDFDone) return;
+      frame._mobPDFDone = true;
+
+      const src = frame.getAttribute('src') || '';
+      const absUrl = new URL(src, window.location.href).href;
+      const isOnline = !['localhost', '127.0.0.1', ''].includes(window.location.hostname);
+      const gdocsUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(absUrl)}&embedded=true`;
+
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'display:flex;flex-direction:column;gap:10px;flex:1;min-height:0;';
+      wrap.innerHTML = `
+        <a href="${escapeHtml(src)}" target="_blank" rel="noopener"
+           style="display:block;text-align:center;padding:11px 16px;background:var(--bg-elevated,#263352);border:1px solid var(--border-color,rgba(255,255,255,.14));border-radius:8px;color:var(--accent-primary,#f6c177);text-decoration:none;font-size:0.9rem;font-weight:500;">
+          📄 Open PDF in browser
+        </a>
+        ${isOnline
+          ? `<iframe src="${gdocsUrl}" style="flex:1;width:100%;min-height:58svh;border:none;border-radius:8px;background:#fff;" loading="lazy" title="PDF viewer"></iframe>`
+          : `<p style="text-align:center;color:var(--text-tertiary,#8898aa);font-size:.85rem;margin-top:1rem;line-height:1.6;">
+               Inline PDF preview is not supported on this device.<br>
+               Tap <strong>Open PDF in browser</strong> above to read it.
+             </p>`
+        }
+      `;
+      frame.replaceWith(wrap);
+    };
+
+    // Patch immediately (in case panel-pdf is already visible)
+    dopatch();
+
+    // Also patch when PDF tab is switched to
+    const pdfPanel = document.getElementById('panel-pdf');
+    if (pdfPanel) {
+      new MutationObserver(dopatch).observe(pdfPanel, { attributes: true, attributeFilter: ['style'] });
+    }
+
+    // Expose for external call (e.g. after mobile drawer opens)
+    window._patchMobilePDF = dopatch;
   }
 
   // ── Text-selection tooltip: add touch/mobile support ──────────────────────
@@ -1060,6 +1109,7 @@
     try { patchNoteFunctions(); } catch {}
     try { patchHighlightAndNote(); } catch {}
     try { patchAIChatHeader(); } catch {}
+    try { patchMobilePDF(); } catch {}
     try { initMobileDrawer(); } catch {}
     try {
       const noteInput = document.getElementById('noteInput');
