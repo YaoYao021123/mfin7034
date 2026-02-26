@@ -79,6 +79,16 @@ python3 serve.py --open html/index.html
 
 Use the portal page to open any generated lecture HTML directly.
 
+### Standard maintenance commands
+
+```bash
+# Sync portal lecture index JSON
+python3 scripts/sync_lectures_json.py
+
+# Run normalization checks
+bash scripts/check_project.sh
+```
+
 ## 🌐 Deploy frontend to GitHub Pages
 
 1. Push this repository to GitHub (branch `main`).
@@ -115,6 +125,9 @@ Notes:
 ├── generate_html.py               # HTML generator with AI
 ├── serve.py                       # Local server + Gemini proxy
 ├── run.sh                         # One-click workflow
+├── scripts/
+│   ├── sync_lectures_json.py      # Generate html/lectures.json
+│   └── check_project.sh           # Syntax/security/placeholder checks
 │
 ├── .env.local                     # API keys (not in git)
 └── README.md                      # This file

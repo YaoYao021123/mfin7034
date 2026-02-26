@@ -16,6 +16,8 @@ This document defines the standard workflow and quality gates for this project.
    - `python3 generate_html.py "extracted/<name>" "html/<name>_interactive.html"`
 4. Launch portal:
    - `python3 serve.py --open html/index.html`
+5. Sync static index when files change:
+   - `python3 scripts/sync_lectures_json.py`
 
 ## 3) Hard Quality Gates (Must Pass)
 
@@ -48,7 +50,14 @@ Expected: no matches.
 ```bash
 python3 -m py_compile generate_html.py serve.py extract_pdf.py
 bash -n run.sh
+bash scripts/check_project.sh
 ```
+
+## 6) Folder and code normalization
+
+- Keep generated pages only in `html/`, source PDFs in `pdfs/`, and extraction cache in `extracted/`.
+- Keep secret values only in `.env.local`; commit-safe template must stay in `.env.example`.
+- Keep deploy and maintenance scripts centralized in `scripts/`.
 
 ## 4) Mobile App Feature (PWA)
 
