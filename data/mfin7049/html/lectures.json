@@ -1,0 +1,159 @@
+{
+  "lectures": [
+    {
+      "title": "MFin Course Outline 2025-2026",
+      "slug": "MFin_Course_Outline_2025-2026",
+      "html_path": "./MFin_Course_Outline_2025-2026_interactive.html",
+      "pdf_path": "../pdfs/MFin Course Outline 2025-2026.pdf",
+      "updated_at": "2026-03-30T20:25:05"
+    },
+    {
+      "title": "Slides - 10",
+      "slug": "Slides_-_10",
+      "html_path": "./Slides_-_10_interactive.html",
+      "pdf_path": "../pdfs/Slides - 10.pdf",
+      "updated_at": "2026-03-30T20:25:14"
+    },
+    {
+      "title": "Slides - 11",
+      "slug": "Slides_-_11",
+      "html_path": "./Slides_-_11_interactive.html",
+      "pdf_path": "../pdfs/Slides - 11.pdf",
+      "updated_at": "2026-03-30T20:25:19"
+    },
+    {
+      "title": "Slides - 12",
+      "slug": "Slides_-_12",
+      "html_path": "./Slides_-_12_interactive.html",
+      "pdf_path": "../pdfs/Slides - 12.pdf",
+      "updated_at": "2026-03-30T20:25:23"
+    },
+    {
+      "title": "Slides - 13",
+      "slug": "Slides_-_13",
+      "html_path": "./Slides_-_13_interactive.html",
+      "pdf_path": "../pdfs/Slides - 13.pdf",
+      "updated_at": "2026-03-30T20:25:28"
+    },
+    {
+      "title": "Slides - 14",
+      "slug": "Slides_-_14",
+      "html_path": "./Slides_-_14_interactive.html",
+      "pdf_path": "../pdfs/Slides - 14.pdf",
+      "updated_at": "2026-03-30T20:25:33"
+    },
+    {
+      "title": "Slides - 15",
+      "slug": "Slides_-_15",
+      "html_path": "./Slides_-_15_interactive.html",
+      "pdf_path": "../pdfs/Slides - 15.pdf",
+      "updated_at": "2026-03-30T20:25:37"
+    },
+    {
+      "title": "Slides - 16",
+      "slug": "Slides_-_16",
+      "html_path": "./Slides_-_16_interactive.html",
+      "pdf_path": "../pdfs/Slides - 16.pdf",
+      "updated_at": "2026-03-30T20:25:42"
+    },
+    {
+      "title": "Slides - 17",
+      "slug": "Slides_-_17",
+      "html_path": "./Slides_-_17_interactive.html",
+      "pdf_path": "../pdfs/Slides - 17.pdf",
+      "updated_at": "2026-03-30T20:25:46"
+    },
+    {
+      "title": "Slides - 1",
+      "slug": "Slides_-_1",
+      "html_path": "./Slides_-_1_interactive.html",
+      "pdf_path": "../pdfs/Slides - 1.pdf",
+      "updated_at": "2026-03-30T20:25:09"
+    },
+    {
+      "title": "Slides - 2",
+      "slug": "Slides_-_2",
+      "html_path": "./Slides_-_2_interactive.html",
+      "pdf_path": "../pdfs/Slides - 2.pdf",
+      "updated_at": "2026-03-30T20:25:51"
+    },
+    {
+      "title": "Slides - 3",
+      "slug": "Slides_-_3",
+      "html_path": "./Slides_-_3_interactive.html",
+      "pdf_path": "../pdfs/Slides - 3.pdf",
+      "updated_at": "2026-03-30T20:25:55"
+    },
+    {
+      "title": "Slides - 4",
+      "slug": "Slides_-_4",
+      "html_path": "./Slides_-_4_interactive.html",
+      "pdf_path": "../pdfs/Slides - 4.pdf",
+      "updated_at": "2026-03-30T20:25:59"
+    },
+    {
+      "title": "Slides - 5",
+      "slug": "Slides_-_5",
+      "html_path": "./Slides_-_5_interactive.html",
+      "pdf_path": "../pdfs/Slides - 5.pdf",
+      "updated_at": "2026-03-30T20:26:04"
+    },
+    {
+      "title": "Slides - 6",
+      "slug": "Slides_-_6",
+      "html_path": "./Slides_-_6_interactive.html",
+      "pdf_path": "../pdfs/Slides - 6.pdf",
+      "updated_at": "2026-03-30T20:26:08"
+    },
+    {
+      "title": "Slides - 7",
+      "slug": "Slides_-_7",
+      "html_path": "./Slides_-_7_interactive.html",
+      "pdf_path": "../pdfs/Slides - 7.pdf",
+      "updated_at": "2026-03-30T20:26:13"
+    },
+    {
+      "title": "Slides - 8",
+      "slug": "Slides_-_8",
+      "html_path": "./Slides_-_8_interactive.html",
+      "pdf_path": "../pdfs/Slides - 8.pdf",
+      "updated_at": "2026-03-30T20:26:17"
+    },
+    {
+      "title": "Slides - 9",
+      "slug": "Slides_-_9",
+      "html_path": "./Slides_-_9_interactive.html",
+      "pdf_path": "../pdfs/Slides - 9.pdf",
+      "updated_at": "2026-03-30T20:26:22"
+    },
+    {
+      "title": "Slides - Introduction",
+      "slug": "Slides_-_Introduction",
+      "html_path": "./Slides_-_Introduction_interactive.html",
+      "pdf_path": "../pdfs/Slides - Introduction.pdf",
+      "updated_at": "2026-03-30T20:26:26"
+    },
+    {
+      "title": "Teaching Notes-1",
+      "slug": "Teaching_Notes-1",
+      "html_path": "./Teaching_Notes-1_interactive.html",
+      "pdf_path": "../pdfs/Teaching Notes-1.pdf",
+      "updated_at": "2026-03-30T20:26:31"
+    },
+    {
+      "title": "Teaching Notes-2",
+      "slug": "Teaching_Notes-2",
+      "html_path": "./Teaching_Notes-2_interactive.html",
+      "pdf_path": "../pdfs/Teaching Notes-2.pdf",
+      "updated_at": "2026-03-30T20:26:35"
+    },
+    {
+      "title": "Teaching Notes-3",
+      "slug": "Teaching_Notes-3",
+      "html_path": "./Teaching_Notes-3_interactive.html",
+      "pdf_path": "../pdfs/Teaching Notes-3.pdf",
+      "updated_at": "2026-03-30T20:26:39"
+    }
+  ],
+  "count": 22
+}

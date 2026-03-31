@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MFIN7049 - Lecture Portal</title>
+    <link rel="stylesheet" href="../../../html/app-shell.css?v=16" />
+    <style>
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #1f2b47;
+            --bg-elevated: #263352;
+            --bg-card: #1c2a45;
+            --text-primary: #edf2f7;
+            --text-secondary: #a0aec0;
+            --text-tertiary: #718096;
+            --accent-primary: #c4a7e7;
+            --accent-secondary: #a3d9a5;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(246, 193, 119, 0.35);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.32);
+            --shadow-lg: 0 14px 30px rgba(0, 0, 0, 0.4);
+            --font-body: 'Georgia', 'Times New Roman', 'Noto Serif SC', serif;
+            --font-heading: -apple-system, 'Helvetica Neue', 'PingFang SC', sans-serif;
+            --glow-warm: rgba(246, 193, 119, 0.14);
+        }
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-primary: #faf8f5;
+                --bg-secondary: #f0ece4;
+                --bg-tertiary: #e8e2d8;
+                --bg-elevated: #ffffff;
+                --bg-card: #ffffff;
+                --text-primary: #1c1917;
+                --text-secondary: #57534e;
+                --text-tertiary: #a8a29e;
+                --border-color: rgba(0, 0, 0, 0.08);
+                --border-hover: rgba(194, 116, 47, 0.3);
+                --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+                --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.14);
+                --glow-warm: rgba(194, 116, 47, 0.08);
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: var(--font-body);
+            background: radial-gradient(50vw 50vw at 10% 10%, var(--glow-warm), transparent 70%), var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+        .container { max-width: 1180px; margin: 0 auto; padding: 32px 18px 124px; }
+        .breadcrumb { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-tertiary); font-family: var(--font-heading); margin-bottom: 20px; }
+        .breadcrumb a { color: var(--accent-primary); text-decoration: none; }
+        .breadcrumb a:hover { opacity: 0.8; }
+        .breadcrumb-sep { opacity: 0.5; }
+        .header { display: flex; gap: 14px; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; margin-bottom: 14px; }
+        .header-left { flex: 1; min-width: 280px; }
+        .course-code {
+            display: inline-block;
+            font-family: var(--font-heading);
+            font-size: 0.78rem;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 4px 10px;
+            background: rgba(246, 193, 119, 0.12);
+            border: 1px solid rgba(246, 193, 119, 0.25);
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+        h1 {
+            font-family: var(--font-heading);
+            font-size: clamp(2.5rem, 5.7vw, 4.45rem);
+            line-height: 1.06;
+            margin-bottom: 14px;
+            letter-spacing: -0.03em;
+            max-width: 980px;
+        }
+        .sub { color: var(--text-secondary); max-width: 980px; line-height: 1.55; font-size: 1rem; margin-bottom: 28px; }
+        .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .toolbar input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 10px 12px;
+            border-radius: 12px;
+            min-width: min(320px, 78vw);
+            box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.18);
+            -webkit-backdrop-filter: blur(16px) saturate(145%);
+            backdrop-filter: blur(16px) saturate(145%);
+        }
+        .btn {
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            padding: 9px 14px;
+            border-radius: 12px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-family: var(--font-heading);
+            font-size: 0.9rem;
+            transition: border-color 0.18s ease, transform 0.18s ease;
+            -webkit-backdrop-filter: blur(14px) saturate(135%);
+            backdrop-filter: blur(14px) saturate(135%);
+        }
+        .btn:hover { border-color: var(--border-hover); transform: translateY(-1px); }
+        .btn.primary {
+            border-color: rgba(246, 193, 119, 0.45);
+            background: rgba(246, 193, 119, 0.12);
+            color: var(--accent-primary);
+        }
+        .stats { margin-top: 16px; color: var(--text-secondary); font-size: 0.9rem; }
+        .empty { margin-top: 20px; color: var(--text-tertiary); }
+        .grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-top: 16px;
+            align-items: stretch;
+        }
+        .card {
+            border: 1px solid var(--border-color);
+            background:
+                linear-gradient(145deg, rgba(255,255,255,0.11), rgba(255,255,255,0.02) 42%, rgba(255,255,255,0.01)),
+                rgba(29, 42, 69, 0.58);
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: var(--shadow-md);
+            transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
+            position: relative;
+            overflow: hidden;
+            -webkit-backdrop-filter: blur(22px) saturate(165%);
+            backdrop-filter: blur(22px) saturate(165%);
+            flex: 1 1 360px;
+            max-width: 760px;
+        }
+        .card:hover { border-color: var(--border-hover); transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+        .card[data-context-target] { cursor: context-menu; }
+        .title { font-family: var(--font-heading); font-size: 1.04rem; font-weight: 650; line-height: 1.35; margin-bottom: 10px; }
+        .meta { color: var(--text-tertiary); font-size: 0.82rem; margin-bottom: 18px; }
+        .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .actions .btn {
+            padding: 14px 28px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+        .actions .btn.open {
+            border-color: rgba(246, 193, 119, 0.45);
+            background: rgba(246, 193, 119, 0.12);
+            color: var(--accent-primary);
+        }
+        .actions .btn.pdf {
+            border-color: rgba(163, 217, 165, 0.45);
+            background: rgba(163, 217, 165, 0.12);
+            color: var(--accent-secondary);
+        }
+        .context-menu {
+            position: fixed;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 6px 0;
+            min-width: 180px;
+            box-shadow: var(--shadow-lg);
+            z-index: 3000;
+            display: none;
+        }
+        .context-menu.is-open { display: block; }
+        .context-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            font-family: var(--font-heading);
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .context-menu-item:hover { background: var(--bg-tertiary); }
+        .context-menu-item.danger { color: #ef4444; }
+        .context-menu-item.danger:hover { background: rgba(239, 68, 68, 0.1); }
+        .context-menu-divider { height: 1px; background: var(--border-color); margin: 6px 0; }
+        .toast-container {
+            position: fixed;
+            bottom: 100px;
+            right: 24px;
+            z-index: 2500;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px 18px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 280px;
+            max-width: 400px;
+        }
+        .toast.success { border-left: 3px solid var(--accent-secondary); }
+        .toast.error { border-left: 3px solid #ef4444; }
+        .toast.loading { border-left: 3px solid var(--accent-primary); }
+        .toast-icon { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
+        .toast-content { flex: 1; }
+        .toast-title { font-family: var(--font-heading); font-size: 0.9rem; font-weight: 600; margin-bottom: 2px; }
+        .toast-message { font-size: 0.8rem; color: var(--text-secondary); }
+        .toast-close { background: none; border: none; color: var(--text-tertiary); cursor: pointer; padding: 4px; font-size: 1.1rem; }
+        .toast-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @media (prefers-color-scheme: light) {
+            .toolbar input, .btn {
+                background: rgba(255, 255, 255, 0.82);
+                box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.8);
+            }
+            .card {
+                background:
+                    linear-gradient(135deg, rgba(255,255,255,0.92), rgba(255,255,255,0.68) 35%, rgba(255,255,255,0.62)),
+                    rgba(255,255,255,0.78);
+            }
+        }
+        @media (max-width: 720px) {
+            .toolbar { width: 100%; }
+            .toolbar input { min-width: 100%; width: 100%; }
+            .toolbar .btn { width: 100%; justify-content: center; }
+            .toast-container { right: 12px; left: 12px; }
+            .toast { min-width: 0; max-width: none; }
+            h1 { font-size: clamp(2rem, 12vw, 3rem); }
+            .actions .btn { width: auto; padding: 12px 22px; }
+        }
+    </style>
+</head>
+<body data-shell-page="portal" data-course-id="mfin7049">
+    <div class="container">
+        <nav class="breadcrumb">
+            <a href="../../../">Platform Home</a>
+            <span class="breadcrumb-sep">›</span>
+            <span>MFIN7049</span>
+        </nav>
+
+        <div class="header">
+            <div class="header-left">
+                <div class="course-code">MFIN7049 • HKU Business School</div>
+                <h1>Financial Data Analytics</h1>
+                <div class="sub">Comprehensive coverage of financial data analysis techniques including statistical methods, data visualization, and practical applications in finance.</div>
+            </div>
+            <div class="toolbar">
+                <input id="searchInput" type="text" placeholder="Search by lecture number or keyword..." />
+                <button class="btn primary" id="addLectureBtn" type="button">+ Add Lecture</button>
+                <input id="uploadInput" type="file" accept=".pdf" hidden />
+            </div>
+        </div>
+
+        <div class="stats" id="stats">Syncing lecture index...</div>
+        <div id="lectureGrid" class="grid"></div>
+        <div id="empty" class="empty" style="display:none;">No lecture matched your search.</div>
+    </div>
+
+    <div class="context-menu" id="contextMenu">
+        <div class="context-menu-item" data-action="open">Open Lecture</div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" data-action="copy">Copy Link</div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item danger" data-action="delete">Delete Lecture</div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        const COURSE_ID = document.body.dataset.courseId || 'mfin7049';
+        const uploadInput = document.getElementById('uploadInput');
+        const contextMenu = document.getElementById('contextMenu');
+        const toastContainer = document.getElementById('toastContainer');
+        const statusLabel = {
+            queued: 'Queued in the background',
+            extracting: 'Preparing files',
+            extracting_content: 'Extracting PDF content',
+            generating_html: 'Generating interactive HTML',
+            complete: 'Lecture ready'
+        };
+        let lectures = [];
+        let contextTarget = null;
+
+        const normalizePath = (href) => {
+            if (!href) return href;
+            if (/^(https?:)?\/\//i.test(href)) return href;
+            if (href.startsWith('./') || href.startsWith('../')) return href;
+            return './' + href;
+        };
+
+        function showToast(type, title, message, duration = 5000) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const iconMap = { success: '[OK]', error: '[!]', loading: '' };
+            toast.innerHTML = `
+                <div class="toast-icon">${type === 'loading' ? '<div class="toast-spinner"></div>' : iconMap[type]}</div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close" type="button">&times;</button>
+            `;
+            toast.querySelector('.toast-close').addEventListener('click', () => toast.remove());
+            toastContainer.appendChild(toast);
+            if (type !== 'loading' && duration > 0) {
+                setTimeout(() => toast.remove(), duration);
+            }
+            return toast;
+        }
+
+        function shouldUseNativeContextMenu(target) {
+            if (!target) return true;
+            if (target.closest('input, textarea, [contenteditable="true"]')) {
+                return true;
+            }
+            const selectedText = window.getSelection && window.getSelection().toString().trim();
+            return Boolean(selectedText);
+        }
+
+        function showContextMenu(event, lectureSlug) {
+            event.preventDefault();
+            contextTarget = lectureSlug;
+            contextMenu.style.left = event.pageX + 'px';
+            contextMenu.style.top = event.pageY + 'px';
+            contextMenu.classList.add('is-open');
+        }
+
+        function hideContextMenu() {
+            contextMenu.classList.remove('is-open');
+            contextTarget = null;
+        }
+
+        function render(items) {
+            const grid = document.getElementById('lectureGrid');
+            const empty = document.getElementById('empty');
+            grid.innerHTML = items.map((lecture) => {
+                const pdfBtn = lecture.pdf_path
+                    ? `<a class="btn pdf" target="_blank" href="${normalizePath(lecture.pdf_path)}">Open PDF</a>`
+                    : '';
+                const lectureHref = normalizePath(lecture.html_path);
+                return `
+                    <div class="card" data-context-target data-lecture-slug="${lecture.slug}">
+                        <div class="title">${lecture.title}</div>
+                        <div class="meta">Updated: ${lecture.updated_at.replace('T', ' ')}</div>
+                        <div class="actions">
+                            <a class="btn open" href="${lectureHref}" data-open-lecture="${lectureHref}">Open Interactive Page</a>
+                            ${pdfBtn}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            empty.style.display = items.length ? 'none' : 'block';
+            document.getElementById('stats').textContent = `${items.length} lecture(s) shown`;
+        }
+
+        async function loadLectures() {
+            const stats = document.getElementById('stats');
+            try {
+                const res = await fetch(`../../../api/lectures?course=${encodeURIComponent(COURSE_ID)}`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                lectures = data.lectures || [];
+                stats.textContent = `${data.count || lectures.length} lecture(s) loaded`;
+                render(lectures);
+            } catch (error) {
+                try {
+                    const fallback = await fetch('./lectures.json');
+                    if (!fallback.ok) throw new Error(`HTTP ${fallback.status}`);
+                    const data = await fallback.json();
+                    lectures = data.lectures || [];
+                    stats.textContent = `${data.count || lectures.length} lecture(s) loaded (static mode)`;
+                    render(lectures);
+                } catch (fallbackError) {
+                    stats.textContent = `Load failed: ${fallbackError.message}`;
+                    lectures = [];
+                    render([]);
+                }
+            }
+        }
+
+        async function uploadPdf(file) {
+            if (!file || file.type !== 'application/pdf') {
+                showToast('error', 'Invalid File', 'Please select a PDF file.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('action', 'add_lecture');
+            formData.append('course_id', COURSE_ID);
+
+            const loadingToast = showToast('loading', 'Processing PDF...', 'Queued in the background', 0);
+
+            try {
+                const uploadRes = await fetch('../../../api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const uploadData = await uploadRes.json();
+                if (!uploadRes.ok) {
+                    throw new Error(uploadData.error || 'Upload failed');
+                }
+
+                const taskId = uploadData.task_id;
+                let completed = false;
+                while (!completed) {
+                    await new Promise((resolve) => setTimeout(resolve, 2000));
+                    const statusRes = await fetch(`../../../api/upload/status?task_id=${encodeURIComponent(taskId)}`);
+                    const statusData = await statusRes.json();
+                    if (!statusRes.ok) {
+                        throw new Error(statusData.error || `Status check failed (${statusRes.status})`);
+                    }
+
+                    if (statusData.status === 'complete') {
+                        completed = true;
+                        loadingToast.remove();
+                        await loadLectures();
+                        showToast('success', 'Lecture Ready', 'The new lecture has been added to this portal.', 7000);
+                    } else if (statusData.status === 'error') {
+                        throw new Error(statusData.error || 'Processing failed');
+                    } else {
+                        const message = statusData.message || statusLabel[statusData.status] || 'Still processing...';
+                        const messageNode = loadingToast.querySelector('.toast-message');
+                        if (messageNode) messageNode.textContent = message;
+                    }
+                }
+            } catch (error) {
+                loadingToast.remove();
+                showToast('error', 'Upload Failed', error.message);
+            } finally {
+                uploadInput.value = '';
+            }
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (event) => {
+            const query = event.target.value.trim().toLowerCase();
+            render(!query ? lectures : lectures.filter((lecture) => lecture.title.toLowerCase().includes(query)));
+        });
+
+        document.getElementById('addLectureBtn').addEventListener('click', () => uploadInput.click());
+        uploadInput.addEventListener('change', (event) => uploadPdf(event.target.files[0]));
+
+        document.addEventListener('click', (event) => {
+            const link = event.target.closest('[data-open-lecture]');
+            if (!link) return;
+            localStorage.setItem('lecture-last-opened', link.getAttribute('data-open-lecture'));
+        });
+
+        contextMenu.querySelectorAll('.context-menu-item').forEach((item) => {
+            item.addEventListener('click', async () => {
+                const lecture = lectures.find((entry) => entry.slug === contextTarget);
+                const action = item.dataset.action;
+
+                if (!lecture) {
+                    hideContextMenu();
+                    return;
+                }
+
+                if (action === 'open') {
+                    window.location.href = normalizePath(lecture.html_path);
+                } else if (action === 'copy') {
+                    const absoluteUrl = new URL(normalizePath(lecture.html_path), window.location.href);
+                    navigator.clipboard.writeText(absoluteUrl.href);
+                    showToast('success', 'Copied', 'Lecture link copied to clipboard');
+                } else if (action === 'delete') {
+                    if (confirm(`Delete "${lecture.title}"? This will move it to the recycle bin.`)) {
+                        const loadingToast = showToast('loading', 'Deleting...', 'Moving lecture to recycle bin', 0);
+                        try {
+                            const response = await fetch('../../../api/recycle', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    target_type: 'lecture',
+                                    course_id: COURSE_ID,
+                                    lecture_slug: lecture.slug
+                                })
+                            });
+                            const result = await response.json();
+                            if (!response.ok) {
+                                throw new Error(result.error || 'Delete failed');
+                            }
+                            loadingToast.remove();
+                            await loadLectures();
+                            showToast('success', 'Moved to Recycle Bin', result.message || 'Lecture deleted');
+                        } catch (error) {
+                            loadingToast.remove();
+                            showToast('error', 'Delete Failed', error.message);
+                        }
+                    }
+                }
+                hideContextMenu();
+            });
+        });
+
+        document.addEventListener('click', hideContextMenu);
+        document.addEventListener('contextmenu', (event) => {
+            if (shouldUseNativeContextMenu(event.target)) {
+                hideContextMenu();
+                return;
+            }
+            const card = event.target.closest('[data-context-target]');
+            if (card) {
+                showContextMenu(event, card.dataset.lectureSlug);
+            } else {
+                hideContextMenu();
+            }
+        });
+
+        loadLectures();
+    </script>
+    <script src="../../../html/app-shell.js?v=16"></script>
+</body>
+</html>

@@ -20,7 +20,7 @@ GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-3-flash-preview')
 
 if not GEMINI_API_KEY:
-    print("❌ Error: GEMINI_API_KEY not found in .env.local")
+    print("[ERROR] Error: GEMINI_API_KEY not found in .env.local")
     sys.exit(1)
 
 genai.configure(api_key=GEMINI_API_KEY)
@@ -46,6 +46,49 @@ def _normalize_text(value):
     if not isinstance(value, str):
         return ""
     return " ".join(value.split())
+
+
+def make_safe_filename(value):
+    text = _normalize_text(value)
+    text = re.sub(r"[^\w\s\-.]", "", text, flags=re.UNICODE)
+    text = text.replace("-", "_")
+    text = re.sub(r"\s+", "_", text)
+    text = re.sub(r"_+", "_", text)
+    return text.strip("._") or "interactive_lecture"
+
+
+def compute_output_asset_paths(output_path, source_file):
+    output_path = Path(output_path)
+    output_dir = output_path.parent if str(output_path.parent) else Path(".")
+    project_root = Path.cwd()
+
+    try:
+        rel_parts = output_dir.resolve().relative_to(project_root.resolve()).parts
+    except ValueError:
+        rel_parts = output_dir.parts
+
+    shared_html_dir = project_root / "html"
+    if len(rel_parts) >= 3 and rel_parts[0] == "data" and rel_parts[2] == "html":
+        pdf_target = project_root / rel_parts[0] / rel_parts[1] / "pdfs" / source_file
+    else:
+        pdf_target = project_root / "pdfs" / source_file
+
+    def relative_path(target):
+        return os.path.relpath(target, start=output_dir).replace("\\", "/")
+
+    return {
+        "pdf_src": relative_path(pdf_target),
+        "shell_css_src": relative_path(shared_html_dir / "app-shell.css"),
+        "shell_js_src": relative_path(shared_html_dir / "app-shell.js"),
+        "enhancements_js_src": relative_path(shared_html_dir / "lecture-enhancements.js"),
+    }
+
+
+def build_source_label(title, source_file):
+    stem = Path(source_file).stem
+    if re.fullmatch(r"upload[_ ]\d{8,}[_ ]\d+", stem, flags=re.IGNORECASE):
+        return f"{title}.pdf"
+    return source_file
 
 
 def _is_generic_or_empty(text):
@@ -92,7 +135,7 @@ def sanitize_expansion(concept_name, original_text, expansion):
 def analyze_content(text_content, title):
     """Use AI to analyze content and identify main concepts"""
     
-    print("\n🤖 Analyzing content with AI...")
+    print("\n[AI] Analyzing content with AI...")
     
     prompt = f"""Analyze this course lecture content and identify the main concepts for learning.
 
@@ -121,10 +164,10 @@ Format as valid JSON only, no markdown or explanation."""
             result_text = result_text.strip()
         
         analysis = json.loads(result_text)
-        print(f"  ✓ Identified {len(analysis.get('main_concepts', []))} main concepts")
+        print(f"  [OK] Identified {len(analysis.get('main_concepts', []))} main concepts")
         return analysis
     except Exception as e:
-        print(f"  ⚠️  Warning: AI analysis failed: {e}")
+        print(f"  [WARN]  Warning: AI analysis failed: {e}")
         # Return default structure
         return {
             "main_concepts": [{"name": "Overview", "description": "Introduction to the topic"}],
@@ -191,9 +234,9 @@ Never use generic filler text such as "This concept is like a familiar everyday 
             return sanitize_expansion(concept_name, original_text, expansion)
         except Exception as e:
             last_error = e
-            print(f"    ⚠️  Expand attempt {attempt + 1} failed for {concept_name}: {e}")
+            print(f"    [WARN]  Expand attempt {attempt + 1} failed for {concept_name}: {e}")
 
-    print(f"    ⚠️  Using contextual fallback for {concept_name}: {last_error}")
+    print(f"    [WARN]  Using contextual fallback for {concept_name}: {last_error}")
     return build_contextual_fallback_expansion(concept_name, original_text)
 
 
@@ -226,14 +269,14 @@ Return as JSON array of 3 questions."""
         questions = json.loads(result_text)
         return questions[:3]  # Ensure only 3 questions
     except Exception as e:
-        print(f"    ⚠️  Could not generate quiz: {e}")
+        print(f"    [WARN]  Could not generate quiz: {e}")
         return []
 
 
 def generate_html(extracted_dir, output_file):
     """Generate interactive HTML from extracted content"""
     
-    print(f"\n🎨 Generating interactive HTML...")
+    print(f"\n[GEN] Generating interactive HTML...")
     print("="*60)
     
     extracted_path = Path(extracted_dir)
@@ -247,7 +290,7 @@ def generate_html(extracted_dir, output_file):
         full_text = f.read()
     
     title = data['title']
-    print(f"📄 Title: {title}")
+    print(f"[DOC] Title: {title}")
     
     # Analyze content with AI
     analysis = analyze_content(full_text, title)
@@ -255,7 +298,7 @@ def generate_html(extracted_dir, output_file):
     # Prepare main concepts for expansion
     main_concepts = analysis.get('main_concepts', [])[:8]  # Limit to 8 concepts
     
-    print(f"\n📝 Expanding concepts with Feynman technique...")
+    print(f"\n[INFO] Expanding concepts with Feynman technique...")
     expanded_concepts = []
     
     for i, concept in enumerate(main_concepts, 1):
@@ -292,18 +335,21 @@ def generate_html(extracted_dir, output_file):
             'quiz': quiz_questions
         })
         
-        print("✓")
+        print("[OK]")
     
     # Generate HTML
-    print(f"\n🔨 Building HTML...")
+    print(f"\n[BUILD] Building HTML...")
     output_path = Path(output_file)
-    output_dir = output_path.parent if str(output_path.parent) else Path('.')
-    pdf_src = os.path.relpath(Path('pdfs') / data['source_file'], start=output_dir).replace('\\', '/')
+    asset_paths = compute_output_asset_paths(output_path, data["source_file"])
 
     html = generate_html_template(
         title=title,
         source_file=data['source_file'],
-        pdf_src=pdf_src,
+        source_label=build_source_label(title, data["source_file"]),
+        pdf_src=asset_paths["pdf_src"],
+        shell_css_src=asset_paths["shell_css_src"],
+        shell_js_src=asset_paths["shell_js_src"],
+        enhancements_js_src=asset_paths["enhancements_js_src"],
         analysis=analysis,
         concepts=expanded_concepts,
         images=data.get('total_images', 0),
@@ -316,7 +362,7 @@ def generate_html(extracted_dir, output_file):
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(html)
     
-    print(f"✅ HTML generated: {output_file}")
+    print(f"[OK] HTML generated: {output_file}")
     print(f"   Size: {len(html)} bytes")
     print(f"   Concepts: {len(expanded_concepts)}")
     
@@ -444,7 +490,7 @@ def build_visualization_html(viz, concept_index):
     return ""
 
 
-def generate_html_template(title, source_file, pdf_src, analysis, concepts, images, tables, extracted_dir):
+def generate_html_template(title, source_file, source_label, pdf_src, shell_css_src, shell_js_src, enhancements_js_src, analysis, concepts, images, tables, extracted_dir):
     """Generate the complete HTML template"""
     
     # Generate concept sections
@@ -485,7 +531,7 @@ def generate_html_template(title, source_file, pdf_src, analysis, concepts, imag
                         {options_html}
                     </div>
                     <div class="quiz-feedback correct">
-                        ✓ Correct! {q.get('explanation', '')}
+                        [OK] Correct! {q.get('explanation', '')}
                     </div>
                     <div class="quiz-feedback incorrect">
                         ✗ Not quite. {q.get('explanation', '')}
@@ -583,7 +629,7 @@ def generate_html_template(title, source_file, pdf_src, analysis, concepts, imag
     <!-- Fonts: Noto Serif for body, Inter for headings -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./app-shell.css?v=10">
+    <link rel="stylesheet" href="{shell_css_src}?v=10">
     
     <style>
         {get_css_styles()}
@@ -627,7 +673,7 @@ def generate_html_template(title, source_file, pdf_src, analysis, concepts, imag
             <!-- Tab: PDF Viewer -->
             <div class="sidebar-panel" id="panel-pdf" style="display:none;">
                 <div id="pdfViewerContainer" style="height: calc(100vh - 80px); display: flex; flex-direction: column;">
-                    <p style="font-size: 0.85rem; color: var(--text-tertiary); margin-bottom: 0.75rem;">Source: {source_file}</p>
+                    <p style="font-size: 0.85rem; color: var(--text-tertiary); margin-bottom: 0.75rem;">Source: {source_label}</p>
                     <iframe id="pdfFrame" src="{pdf_src}" style="flex:1; width:100%; border:none; border-radius: var(--radius-sm); background: var(--bg-tertiary);"></iframe>
                 </div>
             </div>
@@ -661,7 +707,7 @@ def generate_html_template(title, source_file, pdf_src, analysis, concepts, imag
             <header id="overview">
                 <h1>{title}</h1>
                 <p style="font-size: 1.1rem; color: var(--text-tertiary); margin-bottom: 2rem;">
-                    Interactive Learning Experience • Source: {source_file}
+                    Interactive Learning Experience • Source: {source_label}
                 </p>
                 
                 <!-- Course Overview -->
@@ -755,8 +801,8 @@ def generate_html_template(title, source_file, pdf_src, analysis, concepts, imag
     <script>
         {get_javascript()}
     </script>
-    <script src="./app-shell.js?v=10"></script>
-    <script src="./lecture-enhancements.js?v=4"></script>
+    <script src="{shell_js_src}?v=10"></script>
+    <script src="{enhancements_js_src}?v=4"></script>
     
     <!-- KaTeX auto-render -->
     <script>
@@ -1807,7 +1853,7 @@ def get_javascript():
                     const current = window.location.pathname.split('/').pop();
                     hint = `Start local server: python3 serve.py --open html/${current} and ensure GEMINI_API_KEY exists in .env.local`;
                 }
-                typingEl.innerHTML = '⚠️ Error: ' + escapeHtml(errMsg) + '<br><small>' + escapeHtml(hint) + '</small>';
+                typingEl.innerHTML = '[WARN] Error: ' + escapeHtml(errMsg) + '<br><small>' + escapeHtml(hint) + '</small>';
                 console.error('Gemini API error:', err);
             } finally {
                 input.disabled = false;
@@ -2321,7 +2367,7 @@ Instructions:
 def visual_review(html_content, output_file):
     """Perform automated visual review and self-correction on generated HTML"""
     
-    print(f"\n🔍 Visual Review & Self-Correction...")
+    print(f"\n[CHECK] Visual Review & Self-Correction...")
     print("="*60)
     
     issues = []
@@ -2329,15 +2375,15 @@ def visual_review(html_content, output_file):
     
     # Check 1: Chart.js CDN present
     if 'chart.js' not in html_content and 'Chart' not in html_content:
-        issues.append("⚠️  Chart.js CDN missing")
+        issues.append("[WARN]  Chart.js CDN missing")
     else:
-        print("  ✓ Chart.js CDN present")
+        print("  [OK] Chart.js CDN present")
     
     # Check 2: Mermaid CDN present
     if 'mermaid' not in html_content.lower():
-        issues.append("⚠️  Mermaid CDN missing")
+        issues.append("[WARN]  Mermaid CDN missing")
     else:
-        print("  ✓ Mermaid CDN present")
+        print("  [OK] Mermaid CDN present")
     
     # Check 3: Every concept section has at least one visualization
     sections = re.findall(r'<section id="concept-(\d+)".*?</section>', html_content, re.DOTALL)
@@ -2354,9 +2400,9 @@ def visual_review(html_content, output_file):
         ])
         if has_viz:
             viz_count += 1
-            print(f"  ✓ Concept {idx}: has visualization")
+            print(f"  [OK] Concept {idx}: has visualization")
         else:
-            issues.append(f"⚠️  Concept {idx}: missing visualization")
+            issues.append(f"[WARN]  Concept {idx}: missing visualization")
     
     total_concepts = len(concept_sections) - 1
     
@@ -2365,26 +2411,26 @@ def visual_review(html_content, output_file):
     chart_inits = re.findall(r"getElementById\('(chart-\d+)'\)", html_content)
     for cid in canvas_ids:
         if cid in chart_inits:
-            print(f"  ✓ Chart '{cid}': canvas & init matched")
+            print(f"  [OK] Chart '{cid}': canvas & init matched")
         else:
-            issues.append(f"⚠️  Chart '{cid}': canvas exists but no Chart.js init found")
+            issues.append(f"[WARN]  Chart '{cid}': canvas exists but no Chart.js init found")
     
     # Check 5: Mermaid syntax basic validation
     mermaid_blocks = re.findall(r'<div class="mermaid">(.*?)</div>', html_content, re.DOTALL)
     for midx, block in enumerate(mermaid_blocks):
         block = block.strip()
         if block and any(kw in block for kw in ['flowchart', 'graph', 'sequenceDiagram', 'classDiagram', 'timeline', 'mindmap', 'pie', 'gantt']):
-            print(f"  ✓ Mermaid block {midx+1}: valid diagram type")
+            print(f"  [OK] Mermaid block {midx+1}: valid diagram type")
         elif block:
-            issues.append(f"⚠️  Mermaid block {midx+1}: may have invalid syntax")
+            issues.append(f"[WARN]  Mermaid block {midx+1}: may have invalid syntax")
     
     # Check 6: No unclosed HTML tags (basic)
     open_divs = html_content.count('<div')
     close_divs = html_content.count('</div>')
     if abs(open_divs - close_divs) > 2:
-        issues.append(f"⚠️  Unbalanced div tags: {open_divs} open vs {close_divs} close")
+        issues.append(f"[WARN]  Unbalanced div tags: {open_divs} open vs {close_divs} close")
     else:
-        print(f"  ✓ Div tags balanced: {open_divs}/{close_divs}")
+        print(f"  [OK] Div tags balanced: {open_divs}/{close_divs}")
     
     # Check 7: No placeholder text (including generic fallback sentences)
     placeholder_patterns = [
@@ -2404,60 +2450,74 @@ def visual_review(html_content, output_file):
             placeholder_hits.extend(found)
 
     if placeholder_hits:
-        issues.append(f"⚠️  Found {len(placeholder_hits)} placeholder(s): {placeholder_hits[:3]}")
+        issues.append(f"[WARN]  Found {len(placeholder_hits)} placeholder(s): {placeholder_hits[:3]}")
     else:
-        print("  ✓ No placeholder text found")
+        print("  [OK] No placeholder text found")
     
     # Check 8: KaTeX delimiters balanced
     dollar_singles = len(re.findall(r'(?<!\$)\$(?!\$)', html_content))
     if dollar_singles % 2 != 0:
-        issues.append(f"⚠️  Unbalanced $ delimiters ({dollar_singles} found)")
+        issues.append(f"[WARN]  Unbalanced $ delimiters ({dollar_singles} found)")
     
     # Check 9: Quiz options have data-correct attributes
     quiz_options = re.findall(r'class="quiz-option"', html_content)
     data_correct = re.findall(r'data-correct="(true|false)"', html_content)
     if quiz_options and len(data_correct) < len(quiz_options):
-        issues.append(f"⚠️  Some quiz options missing data-correct attribute")
+        issues.append(f"[WARN]  Some quiz options missing data-correct attribute")
     elif quiz_options:
-        print(f"  ✓ All {len(quiz_options)} quiz options have data-correct")
+        print(f"  [OK] All {len(quiz_options)} quiz options have data-correct")
     
     # Summary
     print(f"\n{'='*60}")
     viz_ratio = (viz_count / max(total_concepts, 1)) * 100
-    print(f"📊 Visualization coverage: {viz_count}/{total_concepts} concepts ({viz_ratio:.0f}%)")
-    print(f"📊 Charts: {len(canvas_ids)} | Mermaid diagrams: {len(mermaid_blocks)}")
+    print(f"[STATS] Visualization coverage: {viz_count}/{total_concepts} concepts ({viz_ratio:.0f}%)")
+    print(f"[STATS] Charts: {len(canvas_ids)} | Mermaid diagrams: {len(mermaid_blocks)}")
     
     if issues:
-        print(f"\n⚠️  {len(issues)} issue(s) found:")
+        print(f"\n[WARN]  {len(issues)} issue(s) found:")
         for issue in issues:
             print(f"   {issue}")
     else:
-        print(f"\n✅ All visual checks passed!")
+        print(f"\n[OK] All visual checks passed!")
     
-    print(f"\n🔍 Visual Review Score: {max(0, 9 - len(issues))}/9 checks passed")
+    print(f"\n[CHECK] Visual Review Score: {max(0, 9 - len(issues))}/9 checks passed")
     
     return issues
 
 
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: python generate_html.py <extracted_dir> [output_file]")
-        print("\nExample:")
-        print("  python generate_html.py 'extracted/Lec 1 Fintech and Artificial Intelligence'")
-        sys.exit(1)
+    import argparse
     
-    extracted_dir = sys.argv[1]
+    parser = argparse.ArgumentParser(description="Generate interactive HTML from extracted PDF content.")
+    parser.add_argument("extracted_dir", help="Path to extracted content directory")
+    parser.add_argument("output_file", nargs="?", default=None, help="Output HTML file path")
+    parser.add_argument("--output", dest="output_dir", help="Output directory for HTML file")
+    args = parser.parse_args()
+    
+    extracted_dir = args.extracted_dir
     
     if not os.path.exists(extracted_dir):
-        print(f"❌ Error: Extracted directory not found: {extracted_dir}")
+        print(f"[ERROR] Error: Extracted directory not found: {extracted_dir}")
         sys.exit(1)
     
-    # Default output file
-    if len(sys.argv) >= 3:
-        output_file = sys.argv[2]
+    extracted_path = Path(extracted_dir)
+    title_for_filename = extracted_path.name
+    extracted_json = extracted_path / "extracted_content.json"
+    if extracted_json.exists():
+        try:
+            with open(extracted_json, "r", encoding="utf-8") as f:
+                title_for_filename = json.load(f).get("title") or title_for_filename
+        except (OSError, json.JSONDecodeError):
+            pass
+
+    safe_name = make_safe_filename(title_for_filename)
+    
+    if args.output_file:
+        output_file = args.output_file
+    elif args.output_dir:
+        output_file = f"{args.output_dir}/{safe_name}_interactive.html"
     else:
-        dir_name = os.path.basename(extracted_dir.rstrip('/'))
-        output_file = f"html/{dir_name}_interactive.html"
+        output_file = f"html/{safe_name}_interactive.html"
     
     try:
         output_path = generate_html(extracted_dir, output_file)
@@ -2467,13 +2527,13 @@ def main():
             html_content = f.read()
         issues = visual_review(html_content, output_file)
         
-        print(f"\n✨ Success! Open the file to view:")
+        print(f"\n[OK] Success! Open the file to view:")
         print(f"   {output_path}")
         if issues:
-            print(f"   ⚠️  {len(issues)} visual issue(s) to check manually")
+            print(f"   [WARN]  {len(issues)} visual issue(s) to check manually")
         return 0
     except Exception as e:
-        print(f"\n❌ Error during HTML generation: {e}")
+        print(f"\n[ERROR] Error during HTML generation: {e}")
         import traceback
         traceback.print_exc()
         return 1

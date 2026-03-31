@@ -1,0 +1,42 @@
+{
+  "courses": [
+    {
+      "id": "mfin7034",
+      "code": "MFIN7034",
+      "name": "Machine Learning and Artificial Intelligence",
+      "description": "Explore AI-enhanced interactive lectures covering fintech, regression, gradient methods, factor models, optimization, reinforcement learning, risk analysis, fraud detection, LLMs, and NLP.",
+      "school": "HKU Business School",
+      "color": "#f6c177",
+      "icon": "7034",
+      "lectureCount": 11,
+      "createdAt": "2026-01-15T00:00:00Z",
+      "updatedAt": "2026-03-30T00:00:00Z"
+    },
+    {
+      "id": "mfin7049",
+      "code": "MFIN7049",
+      "name": "Financial Data Analytics",
+      "description": "Comprehensive coverage of financial data analysis techniques including statistical methods, data visualization, and practical applications in finance.",
+      "school": "HKU Business School",
+      "color": "#c4a7e7",
+      "icon": "7049",
+      "lectureCount": 22,
+      "createdAt": "2026-03-30T00:00:00Z",
+      "updatedAt": "2026-03-30T00:00:00Z"
+    },
+    {
+      "id": "mfin7002",
+      "code": "MFIN7002",
+      "name": "Investment Analysis and Portfolio Management",
+      "description": "",
+      "school": "",
+      "color": "#f6c177",
+      "icon": "7002",
+      "lectureCount": 1,
+      "createdAt": "2026-03-31T10:35:06",
+      "updatedAt": "2026-03-31T10:38:25"
+    }
+  ],
+  "version": "1.0.0",
+  "lastUpdated": "2026-03-31T10:38:25"
+}

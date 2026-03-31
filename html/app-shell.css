@@ -84,8 +84,34 @@
 }
 
 .ios26-shell__icon {
-    font-size: 1.04rem;
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
     line-height: 1;
+}
+
+.ios26-shell__glyph {
+    width: 18px;
+    height: 18px;
+    display: block;
+}
+
+.ios26-shell__glyph path,
+.ios26-shell__glyph line,
+.ios26-shell__glyph polyline,
+.ios26-shell__glyph rect,
+.ios26-shell__glyph circle {
+    stroke: currentColor;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+}
+
+.ios26-shell__glyph-fill {
+    fill: currentColor !important;
+    stroke: none !important;
 }
 
 .ios26-shell__label {

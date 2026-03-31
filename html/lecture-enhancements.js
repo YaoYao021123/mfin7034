@@ -608,7 +608,7 @@
       wrap.innerHTML = `
         <a href="${escapeHtml(src)}" target="_blank" rel="noopener"
            style="display:block;text-align:center;padding:11px 16px;background:var(--bg-elevated,#263352);border:1px solid var(--border-color,rgba(255,255,255,.14));border-radius:8px;color:var(--accent-primary,#f6c177);text-decoration:none;font-size:0.9rem;font-weight:500;">
-          📄 Open PDF in browser
+          Doc Open PDF in browser
         </a>
         ${isOnline
           ? `<iframe src="${gdocsUrl}" style="flex:1;width:100%;min-height:58svh;border:none;border-radius:8px;background:#fff;" loading="lazy" title="PDF viewer"></iframe>`

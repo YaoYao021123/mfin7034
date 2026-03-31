@@ -1,0 +1,3234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lecture 5: Portfolio Theory and Practice - Interactive Learning</title>
+    
+    <!-- KaTeX for formula rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    
+    <!-- Chart.js for data visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    
+    <!-- Mermaid for flowcharts and diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+    
+    <!-- Fonts: Noto Serif for body, Inter for headings -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../../html/app-shell.css?v=10">
+    
+    <style>
+        
+        :root {
+            /* Warm Academic Theme - Clean & Readable */
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #1f2b47;
+            --bg-elevated: #263352;
+            --bg-card: #1c2a45;
+            
+            --text-primary: #edf2f7;
+            --text-secondary: #a0aec0;
+            --text-tertiary: #718096;
+            
+            /* Warm Gold + Sage Green palette */
+            --accent-primary: #f6c177;
+            --accent-secondary: #a3d9a5;
+            --accent-tertiary: #c4b5fd;
+            --accent-warning: #fbbf24;
+            --accent-error: #fb7185;
+            --accent-info: #7dd3fc;
+            
+            --gradient-primary: linear-gradient(135deg, #f6c177 0%, #e8a87c 100%);
+            --gradient-heading: linear-gradient(135deg, #f6c177 0%, #c4b5fd 100%);
+            
+            --border-color: rgba(255, 255, 255, 0.06);
+            --border-hover: rgba(246, 193, 119, 0.25);
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+            
+            --font-body: 'Georgia', 'Times New Roman', 'Noto Serif SC', serif;
+            --font-heading: -apple-system, 'Helvetica Neue', 'PingFang SC', sans-serif;
+            --font-mono: 'SF Mono', 'Menlo', 'Monaco', monospace;
+            
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-primary: #faf8f5;
+                --bg-secondary: #f0ece4;
+                --bg-tertiary: #e8e2d8;
+                --bg-elevated: #ffffff;
+                --bg-card: #ffffff;
+                
+                --text-primary: #1c1917;
+                --text-secondary: #57534e;
+                --text-tertiary: #a8a29e;
+                
+                --accent-primary: #c2742f;
+                --accent-secondary: #3d8b40;
+                --accent-tertiary: #7c3aed;
+                --accent-warning: #b45309;
+                --accent-error: #dc2626;
+                
+                --gradient-heading: linear-gradient(135deg, #c2742f 0%, #7c3aed 100%);
+                
+                --border-color: rgba(0, 0, 0, 0.06);
+                --border-hover: rgba(194, 116, 47, 0.3);
+                --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+                --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+                --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+            }
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+        
+        .page-container {
+            --left-width: 260px;
+            --right-width: 300px;
+            display: grid;
+            grid-template-columns: minmax(200px, var(--left-width)) 8px minmax(0, 1fr) 8px minmax(220px, var(--right-width));
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        .column-resizer {
+            cursor: col-resize;
+            background: transparent;
+            transition: background-color 0.15s var(--ease);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            z-index: 5;
+        }
+        .column-resizer:hover,
+        .column-resizer.dragging {
+            background: rgba(246, 193, 119, 0.2);
+        }
+        
+        .sidebar-left, .sidebar-right {
+            background: var(--bg-secondary);
+            padding: 2rem 1.25rem;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-left {
+            border-right: 1px solid var(--border-color);
+        }
+        
+        .sidebar-right {
+            border-left: 1px solid var(--border-color);
+        }
+        
+        .main-content {
+            max-width: none;
+            min-width: 0;
+            width: 100%;
+            margin: 0 auto;
+            padding: 3rem 2.5rem;
+        }
+        
+        @media (max-width: 1200px) {
+            .page-container { grid-template-columns: 1fr; }
+            .sidebar-left, .sidebar-right, .column-resizer { display: none; }
+            .main-content { padding: 2rem 1.25rem; }
+        }
+        
+        h1 {
+            font-family: var(--font-heading);
+            font-size: clamp(1.875rem, 4vw, 2.5rem);
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.01em;
+            color: var(--text-primary);
+        }
+        
+        h2 {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 3.5rem;
+            margin-bottom: 1.25rem;
+            color: var(--accent-primary);
+            letter-spacing: -0.01em;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        h3 {
+            font-family: var(--font-heading);
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+        }
+        
+        h4 {
+            font-family: var(--font-heading);
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--accent-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        
+        h5 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.8;
+        }
+        
+        .feynman-block {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-left: 3px solid var(--accent-primary);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            transition: border-color 0.2s var(--ease);
+        }
+        
+        .feynman-block:hover {
+            border-color: var(--border-hover);
+        }
+        
+        .feynman-block .icon {
+            font-size: 1.75rem;
+            margin-bottom: 0.75rem;
+            display: inline-block;
+        }
+        
+        .expandable {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            margin: 1.5rem 0;
+            overflow: hidden;
+        }
+        
+        .expandable-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            cursor: pointer;
+            user-select: none;
+            font-weight: 500;
+            font-family: var(--font-heading);
+            transition: background 0.15s var(--ease);
+        }
+        
+        .expandable-header:hover {
+            background: var(--bg-tertiary);
+        }
+        
+        .expandable-icon {
+            transition: transform 0.25s var(--ease);
+            display: inline-block;
+            font-size: 0.8rem;
+        }
+        
+        .expandable.open .expandable-icon {
+            transform: rotate(180deg);
+        }
+        
+        .expandable-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s var(--ease);
+        }
+        
+        .expandable.open .expandable-content {
+            max-height: 5000px;
+        }
+        
+        .expandable-content-inner {
+            padding: 1.25rem;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .quiz-container {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            border: 1px solid var(--border-color);
+        }
+        
+        .quiz-question {
+            font-size: 1.05rem;
+            font-family: var(--font-heading);
+            margin-bottom: 1.25rem;
+            color: var(--text-primary);
+        }
+        
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.625rem;
+        }
+        
+        .quiz-option {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.15s var(--ease);
+            font-size: 0.95rem;
+        }
+        
+        .quiz-option:hover {
+            border-color: var(--accent-primary);
+            padding-left: 1.25rem;
+        }
+        
+        .quiz-option.correct {
+            background: rgba(163, 217, 165, 0.2);
+            border-color: var(--accent-secondary);
+            color: var(--accent-secondary);
+        }
+        
+        .quiz-option.incorrect {
+            background: rgba(251, 113, 133, 0.15);
+            border-color: var(--accent-error);
+            color: var(--accent-error);
+        }
+        
+        .quiz-feedback {
+            margin-top: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-sm);
+            display: none;
+            font-size: 0.9rem;
+        }
+        
+        .quiz-feedback.show { display: block; }
+        .quiz-feedback.correct { background: rgba(163, 217, 165, 0.15); border: 1px solid var(--accent-secondary); }
+        .quiz-feedback.incorrect { background: rgba(251, 113, 133, 0.1); border: 1px solid var(--accent-error); }
+        
+        .progress-tracker {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--bg-secondary);
+            z-index: 1000;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: var(--gradient-primary);
+            width: 0%;
+            transition: width 0.2s var(--ease);
+        }
+        
+        .ai-chat {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+        }
+        
+        .ai-chat-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .ai-chat-messages {
+            max-height: 320px;
+            overflow-y: auto;
+            margin-bottom: 0.75rem;
+            padding: 0.75rem;
+            background: var(--bg-primary);
+            border-radius: var(--radius-sm);
+        }
+        
+        .ai-message {
+            margin-bottom: 0.75rem;
+            padding: 0.625rem 0.875rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+        
+        .ai-message.user {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            margin-left: 1.5rem;
+            font-weight: 500;
+        }
+        
+        .ai-message.assistant {
+            background: var(--bg-tertiary);
+            margin-right: 1.5rem;
+        }
+        
+        .ai-input-group { display: flex; gap: 0.5rem; }
+        
+        .ai-input {
+            flex: 1;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.625rem 0.75rem;
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+        }
+        
+        .ai-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+        
+        .ai-send-btn, .action-btn {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 0.625rem 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: var(--font-heading);
+            font-size: 0.85rem;
+            transition: opacity 0.15s;
+        }
+        
+        .action-btn {
+            width: 100%;
+            margin-bottom: 0.5rem;
+            text-align: left;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .ai-send-btn:hover { opacity: 0.85; }
+        .action-btn:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+        
+        kbd {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 0.15rem 0.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.8em;
+        }
+        
+        .toc-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: block;
+            padding: 0.375rem 0.5rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            font-family: var(--font-heading);
+            transition: color 0.15s, background 0.15s;
+        }
+        
+        .toc-link:hover {
+            color: var(--accent-primary);
+            background: var(--bg-tertiary);
+        }
+        
+        /* Scroll reveal - simple fade */
+        .reveal-on-scroll {
+            opacity: 0;
+            transform: translateY(16px);
+            transition: opacity 0.5s var(--ease), transform 0.5s var(--ease);
+        }
+        .reveal-on-scroll.revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--bg-elevated); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+        
+        ::selection { background: var(--accent-primary); color: var(--bg-primary); }
+        
+        /* Print */
+        @media print {
+            .sidebar-left, .sidebar-right, .progress-tracker { display: none; }
+            .page-container { grid-template-columns: 1fr; }
+            body { background: white; color: black; }
+        }
+        
+        /* ===========================================
+           DATA VISUALIZATION & CHARTS
+           =========================================== */
+        .chart-container {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+        .chart-container .chart-title {
+            font-family: var(--font-heading);
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            text-align: center;
+        }
+        .chart-container canvas { max-height: 380px; width: 100% !important; }
+        .chart-caption {
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+            text-align: center;
+            margin-top: 0.75rem;
+            font-style: italic;
+        }
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        .chart-grid .chart-container { margin: 0; }
+        
+        .diagram-container {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            margin: 2rem 0;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            overflow-x: auto;
+            text-align: center;
+        }
+        .diagram-container .diagram-title {
+            font-family: var(--font-heading);
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+        }
+        .diagram-container .mermaid { display: flex; justify-content: center; }
+        .diagram-container .mermaid svg { max-width: 100%; height: auto; }
+        .diagram-caption {
+            font-size: 0.85rem;
+            color: var(--text-tertiary);
+            text-align: center;
+            margin-top: 0.75rem;
+            font-style: italic;
+        }
+        
+        .comparison-block {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 1rem;
+            align-items: stretch;
+            margin: 2rem 0;
+        }
+        .comparison-side {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+        .comparison-side.left { border-top: 3px solid var(--accent-primary); }
+        .comparison-side.right { border-top: 3px solid var(--accent-secondary); }
+        .comparison-side h4 { margin-bottom: 0.75rem; }
+        .comparison-side ul { padding-left: 1.25rem; }
+        .comparison-side li { margin-bottom: 0.5rem; color: var(--text-secondary); font-size: 0.95rem; }
+        .comparison-divider {
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+            color: var(--text-tertiary);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            transition: transform 0.15s var(--ease);
+        }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            display: block;
+            font-family: var(--font-heading);
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            margin-top: 0.25rem;
+        }
+        
+        @media (max-width: 768px) {
+            .comparison-block { grid-template-columns: 1fr; }
+            .comparison-divider { justify-content: center; padding: 0.5rem 0; }
+            .chart-grid { grid-template-columns: 1fr; }
+        }
+        
+        /* ===========================================
+           SIDEBAR TABS & PANELS
+           =========================================== */
+        .sidebar-tabs {
+            display: flex;
+            gap: 2px;
+            margin-bottom: 1rem;
+            background: var(--bg-primary);
+            border-radius: var(--radius-sm);
+            padding: 2px;
+        }
+        .sidebar-tab {
+            flex: 1;
+            padding: 0.5rem 0.25rem;
+            background: transparent;
+            border: none;
+            color: var(--text-tertiary);
+            font-family: var(--font-heading);
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.15s var(--ease);
+        }
+        .sidebar-tab:hover { color: var(--text-secondary); }
+        .sidebar-tab.active {
+            background: var(--bg-elevated);
+            color: var(--accent-primary);
+        }
+        
+        /* ===========================================
+           NOTES SYSTEM
+           =========================================== */
+        .note-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.625rem;
+            font-size: 0.85rem;
+            position: relative;
+            cursor: pointer;
+            transition: border-color 0.15s var(--ease), transform 0.15s var(--ease);
+        }
+        .note-card:hover { border-color: var(--border-hover); }
+        .note-card.active {
+            border-color: var(--accent-primary);
+            transform: translateY(-1px);
+        }
+        .note-card.focused {
+            border-left: 3px solid var(--accent-secondary);
+            padding-left: calc(0.625rem - 2px);
+        }
+        .note-card .note-citation {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            border-left: 2px solid var(--accent-primary);
+            padding-left: 0.5rem;
+            margin-bottom: 0.375rem;
+            font-style: italic;
+            line-height: 1.4;
+        }
+        .note-card .note-body {
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .note-card .note-meta {
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+            margin-top: 0.375rem;
+            display: flex;
+            justify-content: space-between;
+        }
+        .note-card .note-delete {
+            background: none;
+            border: none;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 0;
+        }
+        .note-card .note-delete:hover { color: var(--accent-error); }
+        .note-card .note-focus {
+            background: none;
+            border: none;
+            color: var(--accent-secondary);
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 0;
+            margin-right: 0.5rem;
+        }
+        .note-card .note-focus:hover { color: var(--accent-primary); }
+        .note-reader {
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-primary);
+            overflow-y: auto;
+            max-height: 34vh;
+        }
+        .note-reader .reader-title {
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            margin-bottom: 0.5rem;
+        }
+        .note-reader .reader-content {
+            color: var(--text-secondary);
+            line-height: 1.65;
+            font-size: 0.9rem;
+        }
+        .note-reader .reader-content code {
+            background: var(--bg-tertiary);
+            padding: 0.1em 0.35em;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+        .note-draft-preview {
+            margin-top: 0.5rem;
+            max-height: 20vh;
+        }
+        
+        /* ===========================================
+           TEXT HIGHLIGHT
+           =========================================== */
+        .text-highlight {
+            background: rgba(246, 193, 119, 0.25);
+            border-bottom: 2px solid var(--accent-primary);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .text-highlight:hover {
+            background: rgba(246, 193, 119, 0.4);
+        }
+        
+        /* Highlight context menu */
+        .highlight-tooltip {
+            position: fixed;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-lg);
+            padding: 0.25rem;
+            display: none;
+            z-index: 1001;
+            gap: 2px;
+        }
+        .highlight-tooltip.show { display: flex; }
+        .highlight-tooltip button {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 0.375rem 0.625rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-family: var(--font-heading);
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        .highlight-tooltip button:hover {
+            background: var(--bg-tertiary);
+            color: var(--accent-primary);
+        }
+    
+    </style>
+</head>
+<body data-shell-page="lecture" data-lecture-title="Lecture 5: Portfolio Theory and Practice">
+    <!-- Progress Tracker -->
+    <div class="progress-tracker">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="page-container">
+        <!-- Left Sidebar -->
+        <aside class="sidebar-left">
+            <!-- Sidebar Tabs -->
+            <div class="sidebar-tabs">
+                <button class="sidebar-tab active" data-tab="toc" onclick="switchSidebarTab('toc')">Contents</button>
+                <button class="sidebar-tab" data-tab="pdf" onclick="switchSidebarTab('pdf')">PDF</button>
+                <button class="sidebar-tab" data-tab="notes" onclick="switchSidebarTab('notes')">Notes</button>
+            </div>
+            
+            <!-- Tab: Table of Contents -->
+            <div class="sidebar-panel" id="panel-toc">
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin-bottom: 0.75rem;">
+                        <a href="#overview" class="toc-link">Overview</a>
+                    </li>
+                    
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-1" class="toc-link">Diversification</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-2" class="toc-link">Systematic vs. Unsystematic Risk</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-3" class="toc-link">Portfolio Expected Return</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-4" class="toc-link">Portfolio Variance and Covariance</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-5" class="toc-link">Correlation Coefficient (ρ)</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-6" class="toc-link">Efficient Diversification</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-7" class="toc-link">Modern Portfolio Theory (MPT)</a>
+            </li>
+        
+            <li style="margin-bottom: 0.75rem;">
+                <a href="#concept-8" class="toc-link">Efficient Frontier</a>
+            </li>
+        
+                </ul>
+                
+                <div style="margin-top: 3rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.85rem;">
+                    <div style="color: var(--text-tertiary); margin-bottom: 0.5rem;">Course Stats</div>
+                    <div style="color: var(--text-secondary);">
+                        <div>8 Concepts</div>
+                        <div>81 Images</div>
+                        <div>0 Tables</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tab: PDF Viewer -->
+            <div class="sidebar-panel" id="panel-pdf" style="display:none;">
+                <div id="pdfViewerContainer" style="height: calc(100vh - 80px); display: flex; flex-direction: column;">
+                    <p style="font-size: 0.85rem; color: var(--text-tertiary); margin-bottom: 0.75rem;">Source: Lecture 5: Portfolio Theory and Practice.pdf</p>
+                    <iframe id="pdfFrame" src="../pdfs/upload_20260331103506_5.pdf" style="flex:1; width:100%; border:none; border-radius: var(--radius-sm); background: var(--bg-tertiary);"></iframe>
+                </div>
+            </div>
+            
+            <!-- Tab: Notes -->
+            <div class="sidebar-panel" id="panel-notes" style="display:none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                    <span style="font-size: 0.85rem; color: var(--text-tertiary);" id="notesCount">0 notes</span>
+                    <button onclick="exportNotesToObsidian()" class="action-btn" style="width:auto; padding: 0.4rem 0.75rem; font-size: 0.8rem;">Export .md</button>
+                </div>
+                <div id="notesList" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 32vh; overflow-y: auto;"></div>
+                <div id="noteReader" class="note-reader">
+                    <div class="reader-title">Reading</div>
+                    <div class="reader-content">Click a note in history to read it here.</div>
+                </div>
+                <div style="margin-top: 0.75rem; border-top: 1px solid var(--border-color); padding-top: 0.75rem;">
+                    <textarea id="noteInput" oninput="handleNoteInputChange(this.value)" placeholder="Write a note (Markdown supported)..." style="width:100%; min-height: 80px; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.5rem; color: var(--text-primary); font-family: var(--font-mono); font-size: 0.85rem; resize: vertical;"></textarea>
+                    <div id="noteDraftPreview" class="note-reader note-draft-preview">
+                        <div class="reader-title">Live Preview</div>
+                        <div class="reader-content" id="noteDraftPreviewContent">Type in the note box to preview Markdown rendering in real time.</div>
+                    </div>
+                    <button onclick="addFreeNote()" class="action-btn" style="margin-top: 0.375rem;">Add Note</button>
+                </div>
+            </div>
+        </aside>
+
+        <div class="column-resizer" id="resizerLeft" role="separator" aria-orientation="vertical" aria-label="Resize left sidebar"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header id="overview">
+                <h1>Lecture 5: Portfolio Theory and Practice</h1>
+                <p style="font-size: 1.1rem; color: var(--text-tertiary); margin-bottom: 2rem;">
+                    Interactive Learning Experience • Source: Lecture 5: Portfolio Theory and Practice.pdf
+                </p>
+                
+                <!-- Course Overview -->
+                <div class="feynman-block" style="border-left-color: #9f7aea;">
+                    <h4>Course Overview</h4>
+                    <p><strong>Difficulty:</strong> Intermediate</p>
+                    
+                    <h5 style="margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--accent-primary);">Prerequisites:</h5>
+                    <ul style="margin-left: 1.5rem;">
+                        <li>Basic Probability and Statistics (Mean, Variance, Standard Deviation)</li><li>Introduction to Financial Markets and Asset Classes</li><li>Fundamental Algebra and Matrix Notation</li>
+                    </ul>
+                    
+                    <h5 style="margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--accent-secondary);">Learning Objectives:</h5>
+                    <ul style="margin-left: 1.5rem;">
+                        <li>Differentiate between diversifiable firm-specific risk and non-diversifiable market risk.</li><li>Calculate the expected return and risk (standard deviation) of a two-asset and multi-asset portfolio.</li><li>Explain how the correlation between assets affects the overall risk-reduction benefits of a portfolio.</li><li>Construct and interpret a covariance matrix for portfolio risk assessment.</li><li>Define the theoretical basis for Modern Portfolio Theory and the Efficient Frontier.</li>
+                    </ul>
+                </div>
+            </header>
+
+            <!-- Concept Sections -->
+            
+        <section id="concept-1" class="concept-section">
+            <h2>Diversification</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Think of a street vendor who sells both sunglasses and umbrellas. If they only sold sunglasses, they would go broke on rainy days, but by carrying both, they ensure a steady income regardless of the weather because the two products perform well under opposite conditions.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>Diversification is often called the only 'free lunch' in finance because it allows you to reduce your total risk without necessarily lowering your expected returns. It protects your wealth from being wiped out by a single bad event affecting one company or industry.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="chart-container">
+            <div class="chart-title">The Diversification Effect: Risk vs. Number of Stocks</div>
+            <canvas id="chart-1" style="max-height:380px;"></canvas>
+            <div class="chart-caption">As the number of stocks increases, unique risk is eliminated, leaving only the market risk that cannot be diversified away.</div>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('chart-1');
+            if (ctx && typeof Chart !== 'undefined') {
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ["1", "5", "10", "20", "30", "40", "50+"],
+                        datasets: [{"label": "Total Portfolio Risk (Standard Deviation)", "data": [45, 30, 23, 18, 16, 15, 15], "borderColor": "#4299e1", "backgroundColor": "rgba(66,153,225,0.15)", "tension": 0.4, "fill": true}]
+                    },
+                    options: {
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            tooltip: { mode: 'index', intersect: false }
+                        },
+                        scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                x: { grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+                    }
+                });
+            }
+        });
+        </script>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Diversification works by combining assets that are not perfectly correlated, meaning their prices don't move in the exact same direction at the exact same time. Every investment carries two types of risk: 'idiosyncratic risk' (specific to that one company, like a CEO scandal) and 'market risk' (affecting everyone, like a global recession). By holding a variety of assets—such as stocks from different sectors or bonds from different countries—the individual 'shocks' from one investment are often canceled out by the stability or gains of another. As you add more unrelated assets to a portfolio, the unique risks of each asset start to wash away, leaving you with a much smoother and more predictable growth path than any single investment could provide on its own.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>
+## Construct a Portfolio
+
+ Why?  Diversification  How?  Markowitz modern portfolio theory 4
+
+
+## Why to Construct Portfolio
+
+
+## - Diversification Effect
+
+
+[Images on this page: page2_img2.png, page2_img3.jpeg, page2_img4.png, page2_img5.jpeg]</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>If you invest $1,000 entirely in a single airline stock and a fuel crisis hits, your entire investment might drop 30% ($300 loss). If you instead split that $1,000 between the airline and an oil company, the fuel crisis that hurts the airline will likely increase the profits of the oil company. While the airline stock drops, the oil stock rises, potentially leaving your total portfolio value at $1,050 despite the industry turmoil.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>A common error is 'over-diversifying' into assets that are all secretly tied to the same factor, such as buying ten different tech stocks and thinking you are safe. If the tech sector crashes, all ten stocks will fall together because they are highly correlated, failing to provide the actual risk reduction that true diversification requires.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> According to the content, what is the primary reason ('Why') for constructing a portfolio?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        To increase transaction fees
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        To achieve diversification
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To eliminate the need for market analysis
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To focus all capital on a single high-performing asset
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        [OK] Correct! The content explicitly states that the reason to construct a portfolio is to achieve diversification.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The content explicitly states that the reason to construct a portfolio is to achieve diversification.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> Which financial framework is cited as the method ('How') for constructing a portfolio in the text?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        Efficient Market Hypothesis
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Behavioral Finance Theory
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        Markowitz Modern Portfolio Theory
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The Dow Theory
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        [OK] Correct! The text identifies Markowitz Modern Portfolio Theory as the specific method used to construct a portfolio for diversification.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The text identifies Markowitz Modern Portfolio Theory as the specific method used to construct a portfolio for diversification.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> What is the primary goal of the 'Diversification Effect' in portfolio management?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="true">
+                        To reduce overall risk by spreading investments across different assets
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To ensure that all assets in the portfolio move in the exact same direction
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To maximize the risk of every individual investment
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To guarantee a fixed profit regardless of market conditions
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        [OK] Correct! The diversification effect refers to reducing a portfolio's total risk by combining various assets that do not change in value in the same way.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The diversification effect refers to reducing a portfolio's total risk by combining various assets that do not change in value in the same way.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-2" class="concept-section">
+            <h2>Systematic vs. Unsystematic Risk</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Systematic risk is like a massive hurricane hitting the entire coastline; every house is affected regardless of how well it is built. Unsystematic risk is like a single house having a leaky pipe or a localized electrical fire, which only affects that specific property and not the neighbors.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>Understanding this distinction allows investors to eliminate unnecessary 'firm-specific' danger for free through diversification. It reveals that the market only compensates you for taking systematic risk, as you shouldn't be rewarded for taking risks that could have been easily avoided.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="chart-container">
+            <div class="chart-title">Risk Reduction through Diversification</div>
+            <canvas id="chart-2" style="max-height:380px;"></canvas>
+            <div class="chart-caption">As the number of stocks increases, Unsystematic Risk is eliminated, leaving only the baseline Systematic Risk.</div>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('chart-2');
+            if (ctx && typeof Chart !== 'undefined') {
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ["1", "5", "10", "15", "20", "30", "40", "50+"],
+                        datasets: [{"label": "Total Portfolio Risk", "data": [100, 60, 45, 38, 32, 28, 26, 25], "borderColor": "#4299e1", "backgroundColor": "rgba(66,153,225,0.15)", "tension": 0.4, "fill": true}, {"label": "Systematic Risk (Market Floor)", "data": [25, 25, 25, 25, 25, 25, 25, 25], "borderColor": "#f56565", "backgroundColor": "transparent", "tension": 0.4, "fill": true}]
+                    },
+                    options: {
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            tooltip: { mode: 'index', intersect: false }
+                        },
+                        scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                x: { grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+                    }
+                });
+            }
+        });
+        </script>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Risk is the uncertainty of future returns, split into two distinct layers. Unsystematic risk (diversifiable) stems from events unique to a company or industry, such as a management scandal or a specific product recall; since these events are random and uncorrelated, they cancel each other out when many different assets are combined in a portfolio. Systematic risk (non-diversifiable) is driven by macroeconomic forces like inflation, interest rate shifts, or geopolitical instability that move the entire market at once. Because these forces affect all assets simultaneously, they cannot be 'washed away' by adding more stocks, meaning this baseline market risk remains even in the most diverse portfolios.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>Distinguishes between market-wide risks (non-diversifiable) and firm-specific risks (diversifiable) that can be eliminated through a broad portfolio.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Imagine you invest $10,000 solely in an airline stock; you face the unsystematic risk of a pilot strike or a specific plane crash which could tank your investment. If you instead spread that $10,000 across 50 companies in tech, retail, and energy, a strike at that one airline barely touches your total balance. However, if the price of oil triples globally, every company in your 50-stock portfolio will likely suffer higher costs and lower prices simultaneously. This oil price shock represents systematic risk that your broad portfolio cannot escape.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>Many students mistakenly believe that a perfectly diversified portfolio is 'risk-free' or immune to crashes. In reality, diversification only eliminates firm-specific headaches; it leaves you fully exposed to broad market collapses like the 2008 financial crisis.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> Which of the following terms is used to describe risk that is unique to a specific company or industry and can be eliminated through diversification?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        Systematic risk
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        Unsystematic risk
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Market risk
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Non-diversifiable risk
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        [OK] Correct! Unsystematic risk, also known as idiosyncratic or diversifiable risk, is specific to an individual firm and can be mitigated by holding a variety of different assets.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Unsystematic risk, also known as idiosyncratic or diversifiable risk, is specific to an individual firm and can be mitigated by holding a variety of different assets.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> An investor's portfolio loses value due to a sudden increase in national interest rates and a spike in inflation. This is an example of:
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        Firm-specific risk
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Diversifiable risk
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        Systematic risk
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Unsystematic risk
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        [OK] Correct! Systematic risk refers to market-wide factors like inflation or interest rates that affect all companies and cannot be removed through diversification.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Systematic risk refers to market-wide factors like inflation or interest rates that affect all companies and cannot be removed through diversification.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> Which of the following scenarios best illustrates unsystematic risk?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        A global recession causing a decline in the stock market
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        A sudden change in federal tax policy affecting all corporations
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        A labor strike at a specific airline company's main hub
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        An increase in political instability across the entire country
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        [OK] Correct! A labor strike is an event limited to a single company or industry, making it an unsystematic risk that does not impact the entire market.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. A labor strike is an event limited to a single company or industry, making it an unsystematic risk that does not impact the entire market.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-3" class="concept-section">
+            <h2>Portfolio Expected Return</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Think of a portfolio like a customized smoothie; the overall sweetness (return) depends entirely on the proportion of sweet fruits versus tart yogurt you blend together. If you add more honey, the entire drink gets sweeter in direct proportion to how much you poured in.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>This calculation allows investors to predict their future wealth and determine if their current investment mix will meet specific financial goals, like retirement. It is the fundamental 'reward' metric used to decide if the 'risk' of a specific portfolio is actually worth taking.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="chart-container">
+            <div class="chart-title">The Efficient Frontier: Expected Return vs. Risk</div>
+            <canvas id="chart-3" style="max-height:380px;"></canvas>
+            <div class="chart-caption">The curve shows the highest possible expected return for each level of risk (standard deviation).</div>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('chart-3');
+            if (ctx && typeof Chart !== 'undefined') {
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ["2%", "4%", "6%", "8%", "10%", "12%", "14%"],
+                        datasets: [{"label": "Efficient Frontier (Optimal Portfolios)", "data": [4, 7, 9, 10.5, 11.5, 12.2, 12.5], "borderColor": "#4299e1", "backgroundColor": "rgba(66,153,225,0.15)", "tension": 0.4, "fill": true}]
+                    },
+                    options: {
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            tooltip: { mode: 'index', intersect: false }
+                        },
+                        scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                x: { grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+                    }
+                });
+            }
+        });
+        </script>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Portfolio Expected Return is a linear weighted average of the returns of all individual assets held within the portfolio. To calculate it, you multiply the expected return of each asset by its 'weight' (the percentage of total money invested in that asset) and then sum those values together. Unlike portfolio risk, which is complicated by how assets move together (correlation), the expected return is straightforward: it only cares about the individual returns and how much of each you own. On the Efficient Frontier graph, this value sits on the vertical axis, representing the 'reward' an investor receives for moving toward the right (taking on more risk).</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>
+## Efficient frontier of risky assets
+
+ Minimum-variance frontier of risky assets  A graph of the lowest possible variance that can be attained for a given portfolio expected return  Efficient frontier of risky assets  The f r onti e r that lies above the global minimum-variance portfolio  Portfolios on the efficient frontier are dominant: minimum variance given a specified expected return, and maximum return given a specified variance
+
+
+[Images on this page: page13_img2.png]
+
+============</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>If you invest $8,000 in a Stock Fund with a 10% expected return and $2,000 in a Bond Fund with a 5% expected return, your weights are 0.8 and 0.2. Your portfolio expected return is (0.8 × 10%) + (0.2 × 5%), which equals 8% + 1%, or 9% total. If you shift $1,000 from bonds to stocks, your new weighted average would increase the total expected return to 9.5%.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>A frequent error is assuming that portfolio risk (volatility) is also a simple weighted average of the individual assets' risks, when in reality only the return follows this simple additive rule.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> Where does the efficient frontier of risky assets lie on the minimum-variance frontier graph?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        Below the global minimum-variance portfolio
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Only at the global minimum-variance portfolio point
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        Above the global minimum-variance portfolio
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Along the entire minimum-variance frontier curve
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        [OK] Correct! The efficient frontier consists of the portion of the minimum-variance frontier that lies above the global minimum-variance portfolio, offering higher returns for the same level of risk.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The efficient frontier consists of the portion of the minimum-variance frontier that lies above the global minimum-variance portfolio, offering higher returns for the same level of risk.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> Why are portfolios located on the efficient frontier described as 'dominant'?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="true">
+                        They provide the maximum return for a specified level of variance.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        They provide the highest possible variance for any given return.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        They consist only of assets with the lowest individual risk.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        They guarantee a return that is higher than the market average.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        [OK] Correct! Portfolios on the efficient frontier are dominant because they offer the minimum variance for a specified return and the maximum return for a specified level of variance.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Portfolios on the efficient frontier are dominant because they offer the minimum variance for a specified return and the maximum return for a specified level of variance.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> How is the minimum-variance frontier of risky assets defined?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        A graph representing the highest possible return for any level of risk.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        A graph of the lowest possible variance that can be attained for a given portfolio expected return.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        A set of portfolios that contain only one risky asset to minimize correlation.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The vertical line where expected return remains constant regardless of variance.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        [OK] Correct! The minimum-variance frontier is a plot representing the lowest possible level of risk (variance) achievable for every potential level of expected return.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The minimum-variance frontier is a plot representing the lowest possible level of risk (variance) achievable for every potential level of expected return.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-4" class="concept-section">
+            <h2>Portfolio Variance and Covariance</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Imagine an umbrella seller and a sunscreen seller: if it rains, the umbrella seller makes money; if it's sunny, the sunscreen seller does. Portfolio variance is the 'bumpiness' of your total income, while covariance is the fact that they thrive in opposite weather, canceling out each other's bad days to give you a steady paycheck.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>This is the mathematical foundation of diversification, allowing investors to reduce risk without necessarily sacrificing returns. It explains why a mix of volatile assets can actually create a stable portfolio, provided those assets don't move in perfect lockstep.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="chart-container">
+            <div class="chart-title">The Smoothing Effect of Negative Covariance</div>
+            <canvas id="chart-4" style="max-height:380px;"></canvas>
+            <div class="chart-caption">While Asset A and B are both highly volatile, their negative covariance results in a stable, low-variance portfolio.</div>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('chart-4');
+            if (ctx && typeof Chart !== 'undefined') {
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ["Day 1", "Day 2", "Day 3", "Day 4", "Day 5", "Day 6"],
+                        datasets: [{"label": "Asset A (High Volatility)", "data": [10, 20, 5, 25, 0, 30], "borderColor": "#e53e3e", "backgroundColor": "transparent", "tension": 0.4, "fill": true}, {"label": "Asset B (Opposite Movement)", "data": [20, 10, 25, 5, 30, 0], "borderColor": "#3182ce", "backgroundColor": "transparent", "tension": 0.4, "fill": true}, {"label": "Combined Portfolio (Low Variance)", "data": [15, 15, 15, 15, 15, 15], "borderColor": "#38a169", "backgroundColor": "rgba(56,161,105,0.1)", "tension": 0.4, "fill": true}]
+                    },
+                    options: {
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            tooltip: { mode: 'index', intersect: false }
+                        },
+                        scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                x: { grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+                    }
+                });
+            }
+        });
+        </script>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Portfolio variance measures the total volatility of a group of assets, but it is not simply the average of their individual risks. It is calculated by summing the weighted variances of each asset plus the 'covariance' terms between every pair of assets. Covariance determines if assets move together (positive), move apart (negative), or are unrelated (zero). In a large portfolio, the covariance between assets matters much more than the individual risk of each asset; if you add an asset that moves inversely to your current holdings, you can mathematically 'cancel out' some of the portfolio's total risk.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>Statistical measures used to determine the risk of a portfolio, accounting for how individual assets move in relation to one another.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>If you put 50% of your money in Stock A and 50% in Stock B, and both have a risk (standard deviation) of 20%, your total risk isn't automatically 20%. If Stock A goes up 10% whenever Stock B drops 10% (negative covariance), your portfolio variance could be zero, meaning you have a perfectly stable return despite owning two very volatile stocks.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>A common error is believing that portfolio risk is just the weighted average of individual asset risks, which ignores the interaction (covariance) that actually drives diversification.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> In the context of portfolio theory, what does a negative covariance between two assets signify regarding portfolio risk?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        The assets move in the same direction, increasing total risk.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        The assets move in opposite directions, which helps to reduce total portfolio risk.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The assets have no statistical relationship and do not impact risk.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The assets both have negative expected returns.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        [OK] Correct! Negative covariance indicates that assets tend to move in opposite directions, providing a diversification benefit that offsets individual asset volatility and lowers overall portfolio risk.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Negative covariance indicates that assets tend to move in opposite directions, providing a diversification benefit that offsets individual asset volatility and lowers overall portfolio risk.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> When calculating the variance of a two-asset portfolio, which component specifically accounts for the relationship between the two assets?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        The sum of the individual asset variances.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The risk-free rate of return.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        The covariance term multiplied by the weights of both assets.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The arithmetic mean of the individual asset returns.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        [OK] Correct! Portfolio variance is not just the sum of individual variances; it includes a covariance term that adjusts the total risk based on how the assets fluctuate relative to one another.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Portfolio variance is not just the sum of individual variances; it includes a covariance term that adjusts the total risk based on how the assets fluctuate relative to one another.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> If two assets in a portfolio have a correlation coefficient of +1.0 (perfect positive correlation), what is the effect on diversification?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        Portfolio risk is eliminated completely.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        The portfolio variance is maximized because there are no diversification benefits.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The portfolio variance will be lower than the variance of the least risky asset.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The assets will always move in opposite directions.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        [OK] Correct! Perfect positive correlation means the assets move in lockstep, meaning the portfolio gains no risk-reduction benefits from diversification beyond a simple weighted average of the individual risks.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Perfect positive correlation means the assets move in lockstep, meaning the portfolio gains no risk-reduction benefits from diversification beyond a simple weighted average of the individual risks.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-5" class="concept-section">
+            <h2>Correlation Coefficient (ρ)</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Think of two dancers on a stage: if they move in perfect sync, their correlation is +1; if one moves left every time the other moves right, it is -1; if they are dancing to completely different songs and ignore each other, it is 0.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>Correlation is the foundation of diversification; it allows you to 'cancel out' risks by pairing assets that don't fail at the same time. By choosing assets with low or negative correlation, you can maintain high returns while significantly lowering the 'rollercoaster' volatility of your total portfolio.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="comparison-block">
+            <div class="comparison-side left">
+                <h4>🔵 Positive Correlation (+1.0)</h4>
+                <ul><li>Assets move in the same direction</li><li>No diversification benefit</li><li>Doubles the impact of market swings</li><li>Example: Two different Tech stocks</li></ul>
+            </div>
+            <div class="comparison-divider">vs</div>
+            <div class="comparison-side right">
+                <h4>🟢 Negative Correlation (-1.0)</h4>
+                <ul><li>Assets move in opposite directions</li><li>Maximum diversification benefit</li><li>Eliminates volatility (Perfect Hedge)</li><li>Example: Gold vs. High-Risk Equities</li></ul>
+            </div>
+        </div>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>The correlation coefficient (ρ) is a statistical tool that standardizes the relationship between two variables, stripping away their individual units to focus purely on the strength and direction of their movement. It is derived by dividing the covariance of two assets by the product of their standard deviations, which forces the value into a strict range of -1 to +1. In a portfolio context, a correlation of +1 means the assets provide no diversification benefit because they move in lockstep, whereas any value less than +1 begins to reduce the total portfolio variance, with -1 representing a 'perfect hedge' where movements perfectly offset each other.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>A standardized measure ranging from -1 to +1 that indicates the degree to which two assets move together, directly impacting diversification benefits.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Imagine you own an Ice Cream stock and an Umbrella stock. On sunny days, Ice Cream goes up (+5%) and Umbrellas go down (-5%), resulting in a correlation near -1. This pairing creates a stable portfolio that stays flat regardless of the weather, whereas owning two Ice Cream stocks would lead to massive gains in summer but total losses in winter.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>A common error is assuming that a correlation of 0 means the assets are 'opposite.' In reality, 0 means they are simply unrelated, while -1 is the true opposite that provides the maximum possible risk reduction.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> What is the standardized range of the correlation coefficient (ρ) and what does it measure?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        0 to +1; it measures the total variance of a single asset.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        -1 to +1; it measures the degree to which two assets move in relation to each other.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        -100 to +100; it measures the percentage of return expected from an asset.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        0 to infinity; it measures the market risk premium of a portfolio.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        [OK] Correct! The correlation coefficient is a standardized metric bounded by -1 and +1 that quantifies the linear relationship between the price movements of two securities.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The correlation coefficient is a standardized metric bounded by -1 and +1 that quantifies the linear relationship between the price movements of two securities.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> Which of the following correlation coefficients between two assets would provide the greatest diversification benefit to an investor?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        +1.0
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        +0.5
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        0.0
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        -1.0
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        [OK] Correct! A correlation of -1.0 indicates that assets move in perfectly opposite directions, which maximizes the reduction of unsystematic risk within a portfolio.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. A correlation of -1.0 indicates that assets move in perfectly opposite directions, which maximizes the reduction of unsystematic risk within a portfolio.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> If two stocks have a correlation coefficient (ρ) of +1.0, what does this imply about their price movements?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        The stocks move in perfectly opposite directions.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        The stocks move in the same direction and in perfect proportion to each other.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        There is no relationship between the movements of the two stocks.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        One stock is significantly more volatile than the other stock.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        [OK] Correct! A correlation of +1.0 signifies a perfect positive linear relationship, meaning the assets move in lockstep and offer no diversification benefits.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. A correlation of +1.0 signifies a perfect positive linear relationship, meaning the assets move in lockstep and offer no diversification benefits.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-6" class="concept-section">
+            <h2>Efficient Diversification</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Think of a farmer planting two different crops: one that thrives in heavy rain and another that thrives in dry heat. By planting both, the farmer ensures a stable harvest regardless of whether the season is wet or dry, preventing a total loss from a single weather pattern.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>Efficient diversification allows investors to eliminate unnecessary risk without sacrificing potential profit, effectively creating a 'smoother ride' for their money. It is the fundamental principle used by pension funds and professional investors to protect wealth against market volatility.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="comparison-block">
+            <div class="comparison-side left">
+                <h4>🔵 Simple Average (Incorrect View)</h4>
+                <ul><li>Assumes Portfolio Risk = Weighted average of individual risks</li><li>Ignores how assets interact with each other</li><li>Overestimates the danger of combining risky assets</li><li>Formula: w1*σ1 + w2*σ2</li></ul>
+            </div>
+            <div class="comparison-divider">vs</div>
+            <div class="comparison-side right">
+                <h4>🟢 Efficient Diversification (Correct View)</h4>
+                <ul><li>Recognizes Portfolio Risk is less than the weighted average</li><li>Uses Covariance to find 'hidden' stability</li><li>Proves that adding a risky asset can sometimes lower total risk</li><li>Formula: Includes 2*w1*w2*Cov(1,2) term</li></ul>
+            </div>
+        </div>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Efficient diversification is the mathematical process of combining assets so their individual price swings partially cancel each other out. While the expected return of a portfolio is a simple weighted average of its components, the portfolio's total risk (variance) is lower than the average risk of the individual assets, provided they aren't perfectly correlated. This benefit comes from the 'covariance' term in the formula, which measures how assets move together; when assets move in different directions or at different times, they buffer the portfolio against extreme losses, allowing for a more stable growth trajectory.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br> A portfolio of  two  risky assets  A mutual fund specializing in bond securities, denoted  D  A stock fund, denoted  E  Risk  a nd   Return of the portfolio  r P = w D r D  + w E r E ( ex post )  E(r P ) = w D E(r D ) + w E E(r E ) ( ex ante )   P 2 = w D 2  D 2  + w E 2  E 2  + 2w D w E Cov(r D ,r E ) = w D w D Cov(r D ,r D ) + w E w E Cov(r E ,r E ) + 2w D w E Cov(r D ,r E ) where Cov(r D ,r E ) = Covariance of returns for D and E 14
+
+
+## Efficient diversification (cont.)
+
+ Portfol</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>If you invest 50% in a bond fund with 5% volatility and 50% in a stock fund with 20% volatility, and they have zero correlation, your portfolio risk isn't the average (12.5%). Instead, the math results in a portfolio volatility of only about 10.3%. You achieve the same average return as the simple mix but with significantly less 'heartbeat-skipping' price movement.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>Many students wrongly assume that simply owning many different stocks provides diversification, ignoring that if those stocks are all in the same sector (like tech), they will likely crash together during a market downturn.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> What is the formula for the expected return E(rP) of a portfolio consisting of a bond fund (D) and a stock fund (E)?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        E(rP) = wD^2 E(rD) + wE^2 E(rE)
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        E(rP) = wD E(rD) + wE E(rE)
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        E(rP) = Cov(rD, rE) / (wD + wE)
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        E(rP) = wD E(rD) - wE E(rE)
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        [OK] Correct! The expected return of a portfolio is the weighted average of the expected returns of the individual assets within that portfolio.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The expected return of a portfolio is the weighted average of the expected returns of the individual assets within that portfolio.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> In the calculation of portfolio variance (σP^2) for two risky assets, what does the term '2wD wE Cov(rD, rE)' represent?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        The expected return of the stock fund
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The individual variance of the bond fund
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        The interaction between the returns of the bond and stock funds
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        The total weight of the portfolio
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        [OK] Correct! The covariance term accounts for how the two assets move in relation to one another, which is a critical component of diversification.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The covariance term accounts for how the two assets move in relation to one another, which is a critical component of diversification.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> Based on the bordered-multiplied covariance matrix provided, how is the total portfolio variance derived?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        By calculating the square root of the sum of the weights
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        By adding the individual returns of assets D and E
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        By summing all the weighted variance and covariance elements in the matrix
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        By dividing the covariance by the product of the weights
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        [OK] Correct! Portfolio variance is the sum of the weighted variances of each asset and the weighted covariances between all pairs of assets.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Portfolio variance is the sum of the weighted variances of each asset and the weighted covariances between all pairs of assets.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-7" class="concept-section">
+            <h2>Modern Portfolio Theory (MPT)</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Investing in only one stock is like owning a shop that only sells umbrellas; you make a fortune when it rains but go broke during a heatwave. Modern Portfolio Theory is like selling both umbrellas and ice cream so that your total income stays steady regardless of the weather.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>MPT is the foundation of modern investing, providing a mathematical way to reduce risk without necessarily sacrificing returns. It allows individual investors and pension funds to build 'efficient' portfolios that maximize wealth while staying within their personal comfort zone for volatility.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="chart-container">
+            <div class="chart-title">The Efficient Frontier: Risk vs. Expected Return</div>
+            <canvas id="chart-7" style="max-height:380px;"></canvas>
+            <div class="chart-caption">The curve represents the 'Efficient Frontier' where return is maximized for each level of risk. Points below the curve are inefficient.</div>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('chart-7');
+            if (ctx && typeof Chart !== 'undefined') {
+                new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        labels: ["Low Risk Asset", "Moderate Portfolio", "Efficient Frontier Peak", "High Risk Asset"],
+                        datasets: [{"label": "Individual Assets & Portfolios", "data": [{"x": 5, "y": 2}, {"x": 10, "y": 5}, {"x": 15, "y": 9}, {"x": 25, "y": 12}], "borderColor": "#4299e1", "backgroundColor": "rgba(66,153,225,0.15)"}]
+                    },
+                    options: {
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            tooltip: { mode: 'index', intersect: false }
+                        },
+                        scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                x: { grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+                    }
+                });
+            }
+        });
+        </script>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Modern Portfolio Theory (MPT) shifts the focus from picking 'winning' individual stocks to building a cohesive 'team' of assets. It suggests that the risk of a single investment matters less than how that investment moves in relation to the rest of the portfolio. By combining assets with low correlation—meaning they don't all go up and down at the same time—the peaks of one asset can fill the valleys of another. This statistical synergy allows an investor to reach the 'Efficient Frontier,' a curve representing the best possible return for any given level of risk. Ultimately, MPT proves that the volatility of a diversified portfolio is lower than the weighted average of the individual stocks within it.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>## How to Construct Portfolio
+
+
+## - Modern Portfolio Theory (MPT)
+
+20
+
+
+## Figure 5.4 The Normal Distribution
+
+
+[Images on this page: page10_img2.png, page10_img3.jpeg]
+</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Suppose you have $10,000. If you put it all into a volatile Tech Stock, you might gain 20% or lose 20% in a year. If you instead put $5,000 in Tech and $5,000 in Gold (which often rises when stocks fall), the Gold might gain 5% when the Tech stock drops 10%. Your total portfolio would only be down 2.5%, significantly cushioning the blow compared to the 10% loss you would have faced alone.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>Many students think diversification simply means owning a large number of stocks, but if you own 50 different tech companies, they will likely all crash together during a sector downturn. True MPT diversification requires owning assets that are 'uncorrelated,' meaning they react differently to the same economic events.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> According to Modern Portfolio Theory (MPT), what is the primary goal when constructing an investment portfolio?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        To pick individual stocks that will outperform the market indices
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        To maximize expected return for a specific level of risk through diversification
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To eliminate all possible market risk by investing in a single sector
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To guarantee a fixed profit regardless of market fluctuations
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        [OK] Correct! MPT focuses on optimizing the balance between risk and return by combining various assets that do not move in perfect lockstep.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. MPT focuses on optimizing the balance between risk and return by combining various assets that do not move in perfect lockstep.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> In the context of MPT and Figure 5.4, why is the 'Normal Distribution' used when analyzing portfolio returns?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        To predict the exact price of a stock at the end of the year
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To ensure that every stock in the portfolio earns the same return
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        To model the probability of returns and measure risk using standard deviation
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        To prove that markets are always rising in a straight line
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        [OK] Correct! Modern Portfolio Theory assumes that asset returns follow a normal distribution, allowing risk to be quantified as the variance or standard deviation from the mean.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Modern Portfolio Theory assumes that asset returns follow a normal distribution, allowing risk to be quantified as the variance or standard deviation from the mean.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> What is the key mechanism MPT uses to reduce a portfolio's overall risk without necessarily lowering its expected return?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        Increasing the weight of the highest-performing asset every day
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Investing only in assets with a correlation of +1.0
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Avoiding the stock market entirely and holding only cash
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        Diversification across assets that have low or negative correlations
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        [OK] Correct! By combining assets that react differently to market events, an investor can reduce unsystematic risk while maintaining a desired level of expected return.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. By combining assets that react differently to market events, an investor can reduce unsystematic risk while maintaining a desired level of expected return.
+                    </div>
+                </div>
+                
+        </section>
+        
+        <section id="concept-8" class="concept-section">
+            <h2>Efficient Frontier</h2>
+            
+            <!-- Simple Analogy -->
+            <div class="feynman-block" style="border-left-color: var(--accent-primary);">
+                <h4>Simple Analogy</h4>
+                <p>Think of the Efficient Frontier as a 'Best Value' menu at a restaurant where you want the most delicious meal possible for the fewest calories. The frontier represents the specific combinations of dishes that give you the maximum flavor for every calorie spent; any other combination is either less tasty for the same calories or more caloric for the same taste.</p>
+            </div>
+            
+            <!-- Why It Matters -->
+            <div class="feynman-block" style="border-left-color: var(--accent-secondary);">
+                <h4>Why This Matters</h4>
+                <p>It helps investors stop guessing by providing a mathematical boundary to eliminate 'bad' portfolios that take on unnecessary risk. By staying on this frontier, an investor ensures they are getting the maximum possible 'bang for their buck' in terms of market returns relative to the volatility they endure.</p>
+            </div>
+            
+            <!-- Visualization -->
+            
+        <div class="chart-container">
+            <div class="chart-title">The Efficient Frontier: Risk vs. Expected Return</div>
+            <canvas id="chart-8" style="max-height:380px;"></canvas>
+            <div class="chart-caption">The curve represents the Efficient Frontier. Points on the curve are optimal; points inside the shaded area are inefficient.</div>
+        </div>
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('chart-8');
+            if (ctx && typeof Chart !== 'undefined') {
+                new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        labels: ["Portfolio A", "Portfolio B", "Portfolio C", "Inefficient Portfolio"],
+                        datasets: [{"label": "Efficient Frontier", "data": [{"x": 10, "y": 5}, {"x": 12, "y": 8}, {"x": 15, "y": 10}, {"x": 20, "y": 12}, {"x": 30, "y": 14}], "borderColor": "#4299e1", "backgroundColor": "rgba(66,153,225,0.15)"}, {"label": "Inefficient Portfolios", "data": [{"x": 15, "y": 6}, {"x": 20, "y": 8}, {"x": 25, "y": 9}], "borderColor": "#f56565", "backgroundColor": "rgba(245,101,101,0.5)"}]
+                    },
+                    options: {
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            tooltip: { mode: 'index', intersect: false }
+                        },
+                        scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                x: { grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+                    }
+                });
+            }
+        });
+        </script>
+        
+            
+            <!-- Deep Explanation -->
+            <div class="expandable">
+                <div class="expandable-header">
+                    <span>Deep Dive: Detailed Explanation</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>When you combine different stocks, you create a 'cloud' of possible portfolios on a graph with risk on the horizontal axis and return on the vertical axis. The Efficient Frontier is the very top edge of this cloud. It represents a set of optimal portfolios where it is impossible to increase the expected return without also increasing the risk. Portfolios falling below this line are considered sub-optimal because you could achieve a higher return for the exact same amount of risk by simply changing your asset mix to move up to the frontier line.</p>
+                        <div style="margin-top: 1rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.95rem; color: var(--text-tertiary);"><strong>From lecture:</strong><br>13 25
+
+
+## The Efficient Frontier With No Risk-
+
+
+## Fr ee As s et (Risky Investment
+
+
+## Opportunity Set)
+
+26
+</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Practical Example -->
+            <div class="expandable open">
+                <div class="expandable-header">
+                    <span>Practical Example</span>
+                    <span class="expandable-icon">▼</span>
+                </div>
+                <div class="expandable-content">
+                    <div class="expandable-content-inner">
+                        <p>Imagine Portfolio X offers a 10% return with 15% volatility, while Portfolio Y offers a 7% return with the same 15% volatility. Portfolio Y is 'inefficient' and sits inside the cloud, whereas Portfolio X sits on the Efficient Frontier. If you move further along the frontier to Portfolio Z, which offers a 14% return but requires 20% volatility, you are still being efficient; you are simply choosing to 'pay' more in risk to 'buy' more return.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Common Mistakes -->
+            <div class="feynman-block" style="border-left-color: var(--accent-warning);">
+                <h4>Common Mistakes</h4>
+                <p>Students often assume there is one single 'perfect' point on the Efficient Frontier that everyone should buy. In reality, the entire line is optimal, and the specific point an investor chooses depends entirely on their personal appetite for risk.</p>
+            </div>
+            
+            <!-- Quiz Questions -->
+            
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 1:</strong> In the context of a risky investment opportunity set with no risk-free asset, what defines a portfolio on the Efficient Frontier?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        It provides the lowest possible return for any given level of risk.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        It represents the highest expected return for a specific level of risk.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It consists of a single asset with the highest historical volatility.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        It is any portfolio that lies below the minimum variance portfolio.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        [OK] Correct! The efficient frontier consists of optimal portfolios that offer the maximum possible expected return for a defined level of risk.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The efficient frontier consists of optimal portfolios that offer the maximum possible expected return for a defined level of risk.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 2:</strong> Where does the efficient frontier begin on the minimum-variance boundary of risky assets?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        At the asset with the highest expected return.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        At the risk-free rate on the vertical axis.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        At the global minimum variance portfolio.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        At the asset with the lowest individual standard deviation.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        [OK] Correct! The efficient frontier is the upper portion of the opportunity set boundary, starting from the global minimum variance portfolio and extending upward.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. The efficient frontier is the upper portion of the opportunity set boundary, starting from the global minimum variance portfolio and extending upward.
+                    </div>
+                </div>
+                
+                <div class="quiz-container">
+                    <div class="quiz-question">
+                        <strong>Question 3:</strong> Why would a rational investor avoid portfolios on the bottom half of the minimum-variance curve?
+                    </div>
+                    <div class="quiz-options">
+                        
+                    <div class="quiz-option" data-correct="false">
+                        Because those portfolios have zero risk.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Because those portfolios are composed entirely of a risk-free asset.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="false">
+                        Because they offer a higher return than the top half for the same risk.
+                    </div>
+                    
+                    <div class="quiz-option" data-correct="true">
+                        Because for every portfolio on the bottom half, there is one on the top half with the same risk but a higher return.
+                    </div>
+                    
+                    </div>
+                    <div class="quiz-feedback correct">
+                        [OK] Correct! Portfolios on the lower part of the curve are inefficient because an investor could achieve a higher return for the exact same level of volatility by choosing a portfolio on the upper frontier.
+                    </div>
+                    <div class="quiz-feedback incorrect">
+                        ✗ Not quite. Portfolios on the lower part of the curve are inefficient because an investor could achieve a higher return for the exact same level of volatility by choosing a portfolio on the upper frontier.
+                    </div>
+                </div>
+                
+        </section>
+        
+            
+            <!-- Completion -->
+            <div style="margin-top: 4rem; padding: 2rem; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); border-radius: 12px; text-align: center; color: white;">
+                <h3 style="margin-bottom: 1rem;">Course Complete!</h3>
+                <p>You've reviewed all 8 main concepts. Keep practicing with the quizzes above.</p>
+            </div>
+        </main>
+
+        <div class="column-resizer" id="resizerRight" role="separator" aria-orientation="vertical" aria-label="Resize right sidebar"></div>
+
+        <!-- Right Sidebar: AI Assistant & Tools -->
+        <aside class="sidebar-right">
+            <div class="ai-chat">
+                <div class="ai-chat-header">
+                    <div>
+                        <h3 style="margin: 0;">AI Study Assistant</h3>
+                        <p style="font-size: 0.8rem; color: var(--text-tertiary); margin: 0;">Powered by Gemini</p>
+                    </div>
+                </div>
+                
+                <div class="ai-chat-messages" id="aiMessages">
+                    <div class="ai-message assistant">
+                        Hi! I'm your AI study assistant. Ask me anything about this topic, or request:
+                        <ul style="margin-top: 0.5rem; padding-left: 1.5rem; font-size: 0.9rem;">
+                            <li>Explanations in simpler terms</li>
+                            <li>More examples</li>
+                            <li>Practice questions</li>
+                            <li>Connections to other concepts</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="ai-input-group">
+                    <input 
+                        type="text" 
+                        class="ai-input" 
+                        id="aiInput" 
+                        placeholder="Ask a question..."
+                        onkeypress="if(event.key==='Enter') sendAIMessage()"
+                    />
+                    <button class="ai-send-btn" onclick="sendAIMessage()">Send</button>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div style="margin-top: 2rem;">
+                <h4 style="margin-bottom: 1rem; color: var(--text-tertiary);">Quick Actions</h4>
+                <button onclick="reviewAllQuizzes()" class="action-btn">
+                    Review All Quizzes
+                </button>
+                <button onclick="createSummary()" class="action-btn">
+                    Generate Summary
+                </button>
+                <button onclick="window.print()" class="action-btn">
+                    Print Notes
+                </button>
+            </div>
+            
+            <!-- Keyboard Shortcuts -->
+            <div style="margin-top: 2rem; padding: 1rem; background: var(--bg-elevated); border-radius: 8px; font-size: 0.85rem;">
+                <h5 style="margin-bottom: 0.75rem; color: var(--text-tertiary);">Shortcuts</h5>
+                <div id="shortcutsDisplay" style="color: var(--text-secondary); line-height: 1.8;">
+                    <div><kbd id="shortcutFocusAI">Alt+A</kbd> Focus AI</div>
+                    <div><kbd id="shortcutSummary">Alt+S</kbd> Summary</div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        
+        // ── Gemini Proxy Configuration ──
+        const GEMINI_PROXY_URL = '../api/gemini';
+        const LAYOUT_STORAGE_KEY = 'learning-layout-widths-v1';
+        
+        let courseContext = '';
+        let conversationHistory = [];
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+        
+        // ── Main Controller ──
+        class LearningPageController {
+            constructor() {
+                this.isMac = /Mac|iPhone|iPod|iPad/i.test(navigator.platform);
+                this.setupExpandables();
+                this.setupQuizzes();
+                this.setupProgressTracking();
+                this.setupScrollReveal();
+                this.setupCourseContext();
+                this.setupKeyboardShortcuts();
+                this.initializeMermaid();
+                this.initializeCharts();
+                this.updateShortcutsDisplay();
+                this.setupColumnResizers();
+            }
+            
+            initializeMermaid() {
+                if (typeof mermaid !== 'undefined') {
+                    mermaid.initialize({
+                        startOnLoad: true,
+                        theme: 'dark',
+                        themeVariables: {
+                            primaryColor: '#263352',
+                            primaryTextColor: '#edf2f7',
+                            primaryBorderColor: '#f6c177',
+                            lineColor: '#a0aec0',
+                            secondaryColor: '#1f2b47',
+                            tertiaryColor: '#1c2a45',
+                            background: '#16213e',
+                            mainBkg: '#263352',
+                            nodeBorder: '#f6c177',
+                            clusterBkg: '#1f2b47',
+                            fontSize: '14px'
+                        },
+                        flowchart: { curve: 'basis', padding: 20 },
+                        sequence: { actorMargin: 50 }
+                    });
+                }
+            }
+            
+            initializeCharts() {
+                if (typeof Chart !== 'undefined') {
+                    Chart.defaults.color = '#a0aec0';
+                    Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+                    Chart.defaults.font.family = "-apple-system, 'Helvetica Neue', sans-serif";
+                    Chart.defaults.responsive = true;
+                    Chart.defaults.maintainAspectRatio = true;
+                    Chart.defaults.plugins.legend.labels.usePointStyle = true;
+                }
+            }
+            
+            setupCourseContext() {
+                const mc = document.querySelector('.main-content');
+                if (mc) courseContext = mc.innerText.substring(0, 6000);
+            }
+            
+            setupExpandables() {
+                document.querySelectorAll('.expandable-header').forEach(header => {
+                    header.addEventListener('click', () => {
+                        header.parentElement.classList.toggle('open');
+                    });
+                });
+            }
+            
+            setupQuizzes() {
+                document.querySelectorAll('.quiz-option').forEach(opt => {
+                    opt.addEventListener('click', () => this.handleQuiz(opt));
+                });
+            }
+            
+            handleQuiz(option) {
+                const quiz = option.closest('.quiz-container');
+                const isCorrect = option.dataset.correct === 'true';
+                
+                quiz.querySelectorAll('.quiz-option').forEach(o => {
+                    o.classList.remove('selected','correct','incorrect');
+                });
+                
+                option.classList.add('selected');
+                option.classList.add(isCorrect ? 'correct' : 'incorrect');
+                
+                // Show correct answer if wrong
+                if (!isCorrect) {
+                    quiz.querySelectorAll('.quiz-option').forEach(o => {
+                        if (o.dataset.correct === 'true') o.classList.add('correct');
+                    });
+                }
+                
+                const cf = quiz.querySelector('.quiz-feedback.correct');
+                const ic = quiz.querySelector('.quiz-feedback.incorrect');
+                if (isCorrect) { cf.classList.add('show'); ic.classList.remove('show'); }
+                else { ic.classList.add('show'); cf.classList.remove('show'); }
+            }
+            
+            setupProgressTracking() {
+                window.addEventListener('scroll', () => {
+                    const h = document.documentElement.scrollHeight - window.innerHeight;
+                    const p = h > 0 ? Math.min((window.scrollY / h) * 100, 100) : 0;
+                    document.getElementById('progressBar').style.width = p + '%';
+                });
+            }
+            
+            setupScrollReveal() {
+                const obs = new IntersectionObserver((entries) => {
+                    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('revealed'); });
+                }, { threshold: 0.08 });
+                document.querySelectorAll('.reveal-on-scroll').forEach(el => obs.observe(el));
+            }
+            
+            setupKeyboardShortcuts() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.altKey && e.key === 'a') {
+                        e.preventDefault();
+                        document.getElementById('aiInput')?.focus();
+                    }
+                    if (e.altKey && e.key === 's') {
+                        e.preventDefault();
+                        askSummary();
+                    }
+                });
+            }
+            
+            updateShortcutsDisplay() {
+                const prefix = this.isMac ? '⌥' : 'Alt+';
+                const focusEl = document.getElementById('shortcutFocusAI');
+                const summaryEl = document.getElementById('shortcutSummary');
+                if (focusEl) focusEl.textContent = prefix + 'A';
+                if (summaryEl) summaryEl.textContent = prefix + 'S';
+            }
+
+            setupColumnResizers() {
+                if (window.matchMedia('(max-width: 1200px)').matches) return;
+                const container = document.querySelector('.page-container');
+                const leftResizer = document.getElementById('resizerLeft');
+                const rightResizer = document.getElementById('resizerRight');
+                if (!container || !leftResizer || !rightResizer) return;
+
+                const minLeft = 200, maxLeft = 560;
+                const minRight = 220, maxRight = 560;
+                const minMain = 520;
+                let leftWidth = 260;
+                let rightWidth = 300;
+
+                const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+                const applyWidths = () => {
+                    container.style.setProperty('--left-width', leftWidth + 'px');
+                    container.style.setProperty('--right-width', rightWidth + 'px');
+                };
+                const getTotalWidth = () => container.getBoundingClientRect().width - 16;
+                const clampAll = () => {
+                    const total = getTotalWidth();
+                    leftWidth = clamp(leftWidth, minLeft, maxLeft);
+                    rightWidth = clamp(rightWidth, minRight, maxRight);
+                    if (total - leftWidth - rightWidth < minMain) {
+                        const overflow = minMain - (total - leftWidth - rightWidth);
+                        leftWidth = clamp(leftWidth - overflow / 2, minLeft, maxLeft);
+                        rightWidth = clamp(rightWidth - overflow / 2, minRight, maxRight);
+                        if (total - leftWidth - rightWidth < minMain) {
+                            const rightCap = clamp(total - leftWidth - minMain, minRight, maxRight);
+                            rightWidth = rightCap;
+                            leftWidth = clamp(total - rightWidth - minMain, minLeft, maxLeft);
+                        }
+                    }
+                };
+
+                try {
+                    const cached = JSON.parse(localStorage.getItem(LAYOUT_STORAGE_KEY) || '{}');
+                    if (Number.isFinite(cached.left)) leftWidth = cached.left;
+                    if (Number.isFinite(cached.right)) rightWidth = cached.right;
+                } catch {}
+                clampAll();
+                applyWidths();
+
+                const startDrag = (side) => (evt) => {
+                    evt.preventDefault();
+                    const rect = container.getBoundingClientRect();
+                    const total = getTotalWidth();
+                    const onMove = (moveEvt) => {
+                        if (side === 'left') {
+                            const rawLeft = moveEvt.clientX - rect.left;
+                            const maxAllowed = Math.min(maxLeft, total - rightWidth - minMain);
+                            leftWidth = clamp(rawLeft, minLeft, Math.max(minLeft, maxAllowed));
+                        } else {
+                            const rawRight = rect.right - moveEvt.clientX;
+                            const maxAllowed = Math.min(maxRight, total - leftWidth - minMain);
+                            rightWidth = clamp(rawRight, minRight, Math.max(minRight, maxAllowed));
+                        }
+                        applyWidths();
+                    };
+                    const stopMove = () => {
+                        document.body.style.userSelect = '';
+                        document.body.style.cursor = '';
+                        leftResizer.classList.remove('dragging');
+                        rightResizer.classList.remove('dragging');
+                        localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify({ left: leftWidth, right: rightWidth }));
+                        document.removeEventListener('pointermove', onMove);
+                        document.removeEventListener('pointerup', stopMove);
+                    };
+                    document.body.style.userSelect = 'none';
+                    document.body.style.cursor = 'col-resize';
+                    (side === 'left' ? leftResizer : rightResizer).classList.add('dragging');
+                    document.addEventListener('pointermove', onMove);
+                    document.addEventListener('pointerup', stopMove);
+                };
+
+                leftResizer.addEventListener('pointerdown', startDrag('left'));
+                rightResizer.addEventListener('pointerdown', startDrag('right'));
+                window.addEventListener('resize', () => {
+                    if (window.matchMedia('(max-width: 1200px)').matches) return;
+                    clampAll();
+                    applyWidths();
+                });
+            }
+        }
+        
+        // ── AI Chat (Real Gemini API) ──
+        async function sendAIMessage() {
+            const input = document.getElementById('aiInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+            
+            appendMsg('user', msg);
+            input.value = '';
+            input.disabled = true;
+            
+            const typingEl = appendMsg('assistant', '<span class="typing-dots"><span>.</span><span>.</span><span>.</span></span>');
+            
+            try {
+                const answer = await callGemini(msg);
+                typingEl.innerHTML = formatMd(answer);
+            } catch (err) {
+                const errMsg = err?.message || String(err);
+                let hint = 'Check console for details.';
+                if (window.location.protocol === 'file:' || errMsg.includes('Failed to fetch')) {
+                    const current = window.location.pathname.split('/').pop();
+                    hint = `Start local server: python3 serve.py --open html/${current} and ensure GEMINI_API_KEY exists in .env.local`;
+                }
+                typingEl.innerHTML = '[WARN] Error: ' + escapeHtml(errMsg) + '<br><small>' + escapeHtml(hint) + '</small>';
+                console.error('Gemini API error:', err);
+            } finally {
+                input.disabled = false;
+                input.focus();
+            }
+        }
+        
+        async function callGemini(userMessage) {
+            if (window.location.protocol === 'file:') {
+                throw new Error('This page is opened as file:// and cannot reach ../api/gemini');
+            }
+
+            const prompt = `You are a concise study assistant for this course.
+
+Course content (excerpt):
+${courseContext.substring(0, 3500)}
+
+Previous conversation:
+${conversationHistory.slice(-4).map(m => m.role + ': ' + m.content).join('\n')}
+
+Student question: ${userMessage}
+
+Instructions:
+- Answer in 3-6 sentences, be direct and complete
+- Always finish your sentences, never leave a thought incomplete
+- Use the course content as reference
+- If the question is in Chinese, answer in Chinese`;
+
+            const res = await fetch(GEMINI_PROXY_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    prompt: prompt,
+                    generationConfig: { temperature: 0.7, maxOutputTokens: 1024 }
+                })
+            });
+            
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(`API ${res.status}: ${errText.substring(0, 200)}`);
+            }
+            
+            const data = await res.json();
+            const candidate = data.candidates?.[0];
+            const answer = candidate?.content?.parts?.[0]?.text;
+            if (!answer) throw new Error('Empty response from API');
+            
+            // Check if response was truncated
+            if (candidate?.finishReason === 'MAX_TOKENS') {
+                conversationHistory.push({ role: 'user', content: userMessage }, { role: 'assistant', content: answer });
+                return answer + '...\n\n_(Response was trimmed. Ask a follow-up for more detail.)_';
+            }
+            
+            conversationHistory.push({ role: 'user', content: userMessage }, { role: 'assistant', content: answer });
+            return answer;
+        }
+        
+        function appendMsg(role, html) {
+            const container = document.getElementById('aiMessages');
+            const div = document.createElement('div');
+            div.className = 'ai-message ' + role;
+            div.innerHTML = html;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            return div;
+        }
+        
+        function formatMd(text) {
+            return text
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/`(.+?)`/g, '<code style="background:var(--bg-tertiary);padding:0.1em 0.4em;border-radius:3px;font-size:0.9em;">$1</code>')
+                .replace(/\n/g, '<br>');
+        }
+        
+        function askSummary() {
+            const input = document.getElementById('aiInput');
+            input.value = 'Please summarize the key concepts of this lesson in bullet points.';
+            sendAIMessage();
+        }
+        
+        function reviewAllQuizzes() {
+            const q = document.querySelector('.quiz-container');
+            if (q) q.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        function createSummary() { askSummary(); }
+        
+        // ── Sidebar Tabs ──
+        function switchSidebarTab(tabName) {
+            document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.sidebar-panel').forEach(p => p.style.display = 'none');
+            document.querySelector(`.sidebar-tab[data-tab="${tabName}"]`)?.classList.add('active');
+            const panel = document.getElementById('panel-' + tabName);
+            if (panel) panel.style.display = 'block';
+        }
+        
+        // ── Notes System ──
+        const NOTES_STORAGE_KEY = 'learning-notes-' + document.title;
+        const NOTES_FOCUS_KEY = NOTES_STORAGE_KEY + '-focus';
+        const NOTES_ACTIVE_KEY = NOTES_STORAGE_KEY + '-active';
+        const NOTES_DRAFT_KEY = NOTES_STORAGE_KEY + '-draft';
+        
+        function loadNotes() {
+            try {
+                const raw = JSON.parse(localStorage.getItem(NOTES_STORAGE_KEY) || '[]');
+                if (!Array.isArray(raw)) return [];
+                return raw.map((n, idx) => {
+                    const idNum = Number(n?.id);
+                    return {
+                        id: Number.isFinite(idNum) ? idNum : -(idx + 1),
+                        citation: typeof n?.citation === 'string' ? n.citation : (typeof n?.quote === 'string' ? n.quote : ''),
+                        body: typeof n?.body === 'string' ? n.body : (typeof n?.text === 'string' ? n.text : (typeof n?.content === 'string' ? n.content : '')),
+                        section: typeof n?.section === 'string' ? n.section : (typeof n?.title === 'string' ? n.title : ''),
+                        timestamp: typeof n?.timestamp === 'string' && n.timestamp
+                            ? n.timestamp
+                            : (typeof n?.created_at === 'string' && n.created_at ? n.created_at : new Date().toISOString())
+                    };
+                });
+            }
+            catch { return []; }
+        }
+        
+        function saveNotes(notes) {
+            localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(notes));
+            renderNotes();
+        }
+
+        function saveDraft(text) {
+            localStorage.setItem(NOTES_DRAFT_KEY, text || '');
+        }
+
+        function loadDraft() {
+            return localStorage.getItem(NOTES_DRAFT_KEY) || '';
+        }
+
+        function renderDraftPreview(text) {
+            const preview = document.getElementById('noteDraftPreviewContent');
+            if (!preview) return;
+            const clean = text || '';
+            if (!clean.trim()) {
+                preview.innerHTML = '<span style="color: var(--text-tertiary);">Type in the note box to preview Markdown rendering in real time.</span>';
+                return;
+            }
+            preview.innerHTML = renderNoteMarkdown(clean);
+        }
+
+        function handleNoteInputChange(value) {
+            saveDraft(value);
+            renderDraftPreview(value);
+        }
+
+        function initNoteComposer() {
+            const input = document.getElementById('noteInput');
+            if (!input) return;
+            const draft = loadDraft();
+            input.value = draft;
+            renderDraftPreview(draft);
+            input.addEventListener('input', () => {
+                handleNoteInputChange(input.value);
+            });
+            input.addEventListener('keydown', (e) => {
+                if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                    e.preventDefault();
+                    addFreeNote();
+                }
+            });
+        }
+
+        function getFocusedNoteId() {
+            const value = localStorage.getItem(NOTES_FOCUS_KEY);
+            return value ? Number(value) : null;
+        }
+
+        function getActiveNoteId() {
+            const value = localStorage.getItem(NOTES_ACTIVE_KEY);
+            return value ? Number(value) : null;
+        }
+
+        function setFocusedNoteId(id) {
+            if (!id) localStorage.removeItem(NOTES_FOCUS_KEY);
+            else localStorage.setItem(NOTES_FOCUS_KEY, String(id));
+        }
+
+        function setActiveNoteId(id) {
+            if (!id) localStorage.removeItem(NOTES_ACTIVE_KEY);
+            else localStorage.setItem(NOTES_ACTIVE_KEY, String(id));
+        }
+
+        function toggleFocusNote(id, e) {
+            e?.stopPropagation();
+            const focusedId = getFocusedNoteId();
+            setFocusedNoteId(focusedId === id ? null : id);
+            renderNotes();
+        }
+
+        function openNote(id) {
+            setActiveNoteId(id);
+            renderNotes();
+            switchSidebarTab('notes');
+        }
+
+        function ensureNoteReader() {
+            const panel = document.getElementById('panel-notes');
+            const notesList = document.getElementById('notesList');
+            if (!panel || !notesList) return null;
+            notesList.style.maxHeight = '32vh';
+
+            let reader = document.getElementById('noteReader');
+            if (!reader) {
+                reader = document.createElement('div');
+                reader.id = 'noteReader';
+                reader.className = 'note-reader';
+                notesList.insertAdjacentElement('afterend', reader);
+            }
+            return reader;
+        }
+
+        function renderNoteMarkdown(text) {
+            return escapeHtml(text || '')
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/`(.+?)`/g, '<code>$1</code>')
+                .replace(/\n/g, '<br>');
+        }
+
+        function renderNoteReader(notes) {
+            const reader = ensureNoteReader();
+            if (!reader) return;
+            if (notes.length === 0) {
+                reader.innerHTML = '<div class="reader-title">Reader</div><div class="reader-content">No notes yet.</div>';
+                return;
+            }
+
+            let activeId = getActiveNoteId();
+            let active = notes.find(n => n.id === activeId);
+            if (!active) {
+                active = notes[0];
+                setActiveNoteId(active.id);
+            }
+            const time = new Date(active.timestamp).toLocaleString();
+            const citationHtml = active.citation ? `<div class="note-citation">${escapeHtml(active.citation)}</div>` : '';
+            const activeBody = typeof active.body === 'string' ? active.body : '';
+            reader.innerHTML = `
+                <div class="reader-title">Reading • ${escapeHtml(active.section || 'General')} • ${time}</div>
+                ${citationHtml}
+                <div class="reader-content">${renderNoteMarkdown(activeBody)}</div>
+            `;
+        }
+        
+        function addNote(citation, body, section) {
+            const notes = loadNotes();
+            const note = {
+                id: Date.now(),
+                citation: citation || '',
+                body: body || '',
+                section: section || '',
+                timestamp: new Date().toISOString()
+            };
+            notes.push(note);
+            setActiveNoteId(note.id);
+            saveNotes(notes);
+            // Switch to notes tab
+            switchSidebarTab('notes');
+        }
+        
+        function addFreeNote() {
+            const input = document.getElementById('noteInput');
+            const text = input.value.trim();
+            if (!text) return;
+            addNote('', text, '');
+            input.value = '';
+            saveDraft('');
+            renderDraftPreview('');
+        }
+        
+        function deleteNote(id, e) {
+            e?.stopPropagation();
+            const notes = loadNotes().filter(n => n.id !== id);
+            if (getFocusedNoteId() === id) setFocusedNoteId(null);
+            if (getActiveNoteId() === id) setActiveNoteId(notes.length ? notes[0].id : null);
+            saveNotes(notes);
+        }
+        
+        function renderNotes() {
+            const notes = loadNotes();
+            const container = document.getElementById('notesList');
+            const counter = document.getElementById('notesCount');
+            if (!container) return;
+            
+            counter.textContent = notes.length + ' note' + (notes.length !== 1 ? 's' : '');
+            
+            if (notes.length === 0) {
+                container.innerHTML = '<p style="font-size:0.85rem; color:var(--text-tertiary); text-align:center; padding:2rem 0;">Select text and click "Add Note" to begin, or write freely below.</p>';
+                renderNoteReader(notes);
+                return;
+            }
+
+            const focusedId = getFocusedNoteId();
+            const activeId = getActiveNoteId();
+            const sortedNotes = [...notes].sort((a, b) => {
+                const aFocused = a.id === focusedId ? 1 : 0;
+                const bFocused = b.id === focusedId ? 1 : 0;
+                if (aFocused !== bFocused) return bFocused - aFocused;
+                return new Date(b.timestamp) - new Date(a.timestamp);
+            });
+
+            container.innerHTML = sortedNotes.map(n => {
+                const time = new Date(n.timestamp).toLocaleString();
+                const citationHtml = n.citation 
+                    ? `<div class="note-citation">${escapeHtml(n.citation)}</div>` 
+                    : '';
+                const noteBody = typeof n.body === 'string' ? n.body : '';
+                const preview = noteBody.length > 140 ? (noteBody.slice(0, 140) + '...') : noteBody;
+                const focusLabel = n.id === focusedId ? 'Unfocus' : 'Focus';
+                return `<div class="note-card ${n.id === activeId ? 'active' : ''} ${n.id === focusedId ? 'focused' : ''}" onclick="openNote(${n.id})">
+                    ${citationHtml}
+                    <div class="note-body">${escapeHtml(preview)}</div>
+                    <div class="note-meta">
+                        <span>${n.section ? escapeHtml(n.section) : ''} ${time}</span>
+                        <span>
+                            <button class="note-focus" onclick="toggleFocusNote(${n.id}, event)">${focusLabel}</button>
+                            <button class="note-delete" onclick="deleteNote(${n.id}, event)">Delete</button>
+                        </span>
+                    </div>
+                </div>`;
+            }).join('');
+            renderNoteReader(sortedNotes);
+        }
+        
+        function exportNotesToObsidian() {
+            const notes = loadNotes();
+            if (notes.length === 0) { alert('No notes to export.'); return; }
+            
+            const title = document.title.replace(' - Interactive Learning', '');
+            const sourceFile = document.querySelector('.main-content header p')?.textContent?.match(/Source: (.+)/)?.[1] || '';
+            
+            let md = `---
+tags: [lecture-notes, mfin7034]
+source: "${sourceFile}"
+date: ${new Date().toISOString().split('T')[0]}
+---
+
+`;
+            md += `# ${title}
+
+`;
+            md += `> [!info] Source
+> PDF: [[${sourceFile.replace('.pdf','')}]]
+
+`;
+            
+            notes.forEach((n, idx) => {
+                if (n.citation) {
+                    md += `> [!quote] Highlight
+> ${n.citation}
+
+`;
+                }
+                const noteBody = typeof n.body === 'string' ? n.body : '';
+                md += noteBody + `
+
+`;
+                if (idx < notes.length - 1) md += `---
+
+`;
+            });
+            
+            md += `
+## References
+
+- Source: ${sourceFile}
+- Generated: ${new Date().toLocaleString()}
+`;
+            
+            const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = title.replace(/[^a-zA-Z0-9一-鿿 ]/g, '_') + '.md';
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+        
+        // ── Text Highlight & Selection ──
+        const highlightTooltip = document.createElement('div');
+        highlightTooltip.className = 'highlight-tooltip';
+        highlightTooltip.innerHTML = `
+            <button onclick="highlightSelection()">Highlight</button>
+            <button onclick="highlightAndNote()">+ Note</button>
+        `;
+        document.body.appendChild(highlightTooltip);
+        
+        document.addEventListener('mouseup', (e) => {
+            const sel = window.getSelection();
+            const text = sel.toString().trim();
+            
+            // Only show for selections within main content
+            const main = document.querySelector('.main-content');
+            if (!text || text.length < 3 || !main?.contains(sel.anchorNode)) {
+                highlightTooltip.classList.remove('show');
+                return;
+            }
+            
+            const range = sel.getRangeAt(0);
+            const rect = range.getBoundingClientRect();
+            highlightTooltip.style.left = rect.left + (rect.width / 2) - 60 + 'px';
+            highlightTooltip.style.top = rect.top - 40 + window.scrollY + 'px';
+            highlightTooltip.classList.add('show');
+        });
+        
+        document.addEventListener('mousedown', (e) => {
+            if (!highlightTooltip.contains(e.target)) {
+                highlightTooltip.classList.remove('show');
+            }
+        });
+        
+        function highlightSelection() {
+            const sel = window.getSelection();
+            if (!sel.rangeCount) return;
+            const range = sel.getRangeAt(0);
+            const mark = document.createElement('mark');
+            mark.className = 'text-highlight';
+            try {
+                range.surroundContents(mark);
+            } catch(e) {
+                // Cross-element selection: fall back
+                const text = sel.toString();
+                mark.textContent = text;
+                range.deleteContents();
+                range.insertNode(mark);
+            }
+            sel.removeAllRanges();
+            highlightTooltip.classList.remove('show');
+        }
+        
+        function highlightAndNote() {
+            const sel = window.getSelection();
+            const text = sel.toString().trim();
+            if (!text) return;
+            
+            // Find section context
+            let section = '';
+            let node = sel.anchorNode;
+            while (node && node !== document.body) {
+                if (node.classList?.contains('concept-section')) {
+                    const h2 = node.querySelector('h2');
+                    if (h2) section = h2.textContent;
+                    break;
+                }
+                node = node.parentNode;
+            }
+            
+            highlightSelection();
+            openInlineSelectionNoteEditor(text, section, sel.getRangeAt(0).getBoundingClientRect());
+        }
+
+        function closeInlineSelectionNoteEditor() {
+            document.getElementById('inlineSelectionNoteEditor')?.remove();
+        }
+
+        function openInlineSelectionNoteEditor(selectionText, section, rect) {
+            closeInlineSelectionNoteEditor();
+            const editor = document.createElement('div');
+            editor.id = 'inlineSelectionNoteEditor';
+            editor.style.position = 'absolute';
+            editor.style.zIndex = '10030';
+            editor.style.width = 'min(420px, 90vw)';
+            editor.style.background = 'var(--bg-card)';
+            editor.style.border = '1px solid var(--border-color)';
+            editor.style.borderRadius = '12px';
+            editor.style.boxShadow = '0 16px 36px rgba(0,0,0,0.32)';
+            editor.style.padding = '0.65rem';
+            editor.style.top = (window.scrollY + rect.bottom + 10) + 'px';
+            editor.style.left = Math.max(12, Math.min(window.scrollX + rect.left, window.scrollX + window.innerWidth - 440)) + 'px';
+            editor.innerHTML = `
+                <div style="font-size:0.78rem;color:var(--text-tertiary);margin-bottom:0.4rem;">Add note for selection</div>
+                <textarea id="inlineSelectionNoteInput" placeholder="Write note... (Markdown supported)" style="width:100%;min-height:88px;background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border-color);border-radius:8px;padding:0.5rem;font-size:0.86rem;resize:vertical;"></textarea>
+                <div style="display:flex;justify-content:flex-end;gap:0.45rem;margin-top:0.45rem;">
+                    <button type="button" id="inlineSelectionNoteCancel" style="border:1px solid var(--border-color);background:var(--bg-elevated);color:var(--text-primary);border-radius:8px;padding:0.3rem 0.6rem;cursor:pointer;font-size:0.8rem;">Cancel</button>
+                    <button type="button" id="inlineSelectionNoteSave" style="border:1px solid rgba(163,217,165,.55);background:var(--bg-elevated);color:var(--accent-secondary);border-radius:8px;padding:0.3rem 0.6rem;cursor:pointer;font-size:0.8rem;">Save</button>
+                </div>
+            `;
+            document.body.appendChild(editor);
+            const input = editor.querySelector('#inlineSelectionNoteInput');
+            input?.focus();
+            editor.querySelector('#inlineSelectionNoteCancel')?.addEventListener('click', closeInlineSelectionNoteEditor);
+            editor.querySelector('#inlineSelectionNoteSave')?.addEventListener('click', () => {
+                const body = (input?.value || '').trim() || '(highlighted)';
+                addNote(selectionText, body, section);
+                closeInlineSelectionNoteEditor();
+            });
+        }
+        
+        // ── Init ──
+        document.addEventListener('DOMContentLoaded', () => {
+            new LearningPageController();
+            
+            // Add reveal animation to concept sections
+            document.querySelectorAll('.feynman-block, .quiz-container, .expandable, .chart-container, .diagram-container, .comparison-block, .stats-grid').forEach(el => {
+                el.classList.add('reveal-on-scroll');
+            });
+            
+            // Re-init observer for dynamically added elements
+            const obs = new IntersectionObserver((entries) => {
+                entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('revealed'); });
+            }, { threshold: 0.08 });
+            document.querySelectorAll('.reveal-on-scroll').forEach(el => obs.observe(el));
+            
+            // Initialize note draft autosave + live markdown preview
+            initNoteComposer();
+            // Load saved notes
+            renderNotes();
+        });
+        
+        // Typing dots animation
+        const typingStyle = document.createElement('style');
+        typingStyle.textContent = `
+            .typing-dots span {
+                animation: blink 1.4s infinite;
+                font-size: 1.5em;
+                line-height: 1;
+            }
+            .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+            .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+            @keyframes blink {
+                0%, 60%, 100% { opacity: 0.2; }
+                30% { opacity: 1; }
+            }
+        `;
+        document.head.appendChild(typingStyle);
+    
+    </script>
+    <script src="../../../html/app-shell.js?v=10"></script>
+    <script src="../../../html/lecture-enhancements.js?v=4"></script>
+    
+    <!-- KaTeX auto-render -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: "$$", right: "$$", display: true},
+                        {left: "$", right: "$", display: false},
+                        {left: "\\(", right: "\\)", display: false},
+                        {left: "\\[", right: "\\]", display: true}
+                    ],
+                    throwOnError: false
+                });
+            }
+        });
+    </script>
+</body>
+</html>

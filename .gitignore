@@ -13,6 +13,8 @@ __pycache__/
 # Build artifacts
 extracted/
 _site/
+output/playwright/
+.playwright-cli/
 
 # Claude skills (large external repos)
 .claude/.DS_Store

@@ -14,13 +14,69 @@ import sys
 from pathlib import Path
 
 
+def _normalize_title_candidate(value):
+    if not isinstance(value, str):
+        return ""
+    text = re.sub(r"\s+", " ", value).strip()
+    text = re.sub(r"\.(pdf|pptx?)$", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"^(microsoft powerpoint\s*-\s*)", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"^(adobe acrobat\s*-\s*)", "", text, flags=re.IGNORECASE)
+    return text.strip(" -_:")
+
+
+def _extract_title_from_first_page(page):
+    lines = []
+    for raw_line in page.get_text("text").splitlines():
+        line = re.sub(r"\s+", " ", raw_line).strip()
+        if not line:
+            continue
+        if re.fullmatch(r"\d+", line):
+            continue
+        lines.append(line)
+
+    if not lines:
+        return ""
+
+    skip_prefixes = ("prof.", "professor", "readings:", "reading:")
+    filtered = [line for line in lines if not line.lower().startswith(skip_prefixes)]
+
+    for index, line in enumerate(filtered):
+        if re.fullmatch(r"lecture\s*\d+\s*[:\-]?", line, flags=re.IGNORECASE):
+            next_line = filtered[index + 1] if index + 1 < len(filtered) else ""
+            if next_line and len(next_line) >= 4:
+                return f"{line.rstrip(': -')}: {next_line}"
+
+    for line in filtered[:12]:
+        if len(line) < 6 or len(line) > 120:
+            continue
+        if "|" in line:
+            continue
+        if re.search(r"(what to do|overview|contents?)$", line, flags=re.IGNORECASE):
+            continue
+        if re.search(r"[A-Za-z]{3,}", line):
+            return line
+
+    return ""
+
+
+def derive_pdf_title(doc, pdf_path):
+    file_title = Path(pdf_path).stem
+    first_page_title = _normalize_title_candidate(_extract_title_from_first_page(doc[0])) if len(doc) else ""
+    metadata_title = _normalize_title_candidate(doc.metadata.get("title", "")) if doc.metadata else ""
+
+    for candidate in (first_page_title, metadata_title, file_title):
+        if candidate:
+            return candidate
+    return file_title
+
+
 def extract_pdf_comprehensive(pdf_path, output_dir):
     """
     Extract all content from PDF with rich structure preservation.
     Returns JSON with text, images, tables, formulas, and metadata.
     """
     
-    print(f"\n📄 Processing: {pdf_path}")
+    print(f"\n[PDF] Processing: {pdf_path}")
     print("="*60)
     
     # Create output directories
@@ -44,10 +100,10 @@ def extract_pdf_comprehensive(pdf_path, output_dir):
     # Open PDF with PyMuPDF for images and text
     doc = fitz.open(pdf_path)
     
-    # Extract title from first page or filename
-    extracted_data['title'] = os.path.splitext(os.path.basename(pdf_path))[0]
+    # Extract a human-readable title from the PDF itself when possible.
+    extracted_data['title'] = derive_pdf_title(doc, pdf_path)
     
-    print(f"📖 Total pages: {len(doc)}")
+    print(f"[INFO] Total pages: {len(doc)}")
     
     for page_num in range(len(doc)):
         page = doc[page_num]
@@ -131,15 +187,15 @@ def extract_pdf_comprehensive(pdf_path, output_dir):
                 })
                 extracted_data['total_images'] += 1
             except Exception as e:
-                print(f"\n    ⚠️  Warning: Could not extract image {img_index + 1}: {e}")
+                print(f"\n    [WARN] Could not extract image {img_index + 1}: {e}")
         
         extracted_data['pages'].append(page_data)
-        print(f"✓ ({len(page_data['text_blocks'])} blocks, {len(page_data['images'])} images)")
+        print(f"[OK] ({len(page_data['text_blocks'])} blocks, {len(page_data['images'])} images)")
     
     doc.close()
     
     # Use pdfplumber for better table extraction
-    print("\n📊 Extracting tables...")
+    print("\n[INFO] Extracting tables...")
     try:
         with pdfplumber.open(pdf_path) as pdf:
             for page_num, page in enumerate(pdf.pages):
@@ -185,9 +241,9 @@ def extract_pdf_comprehensive(pdf_path, output_dir):
                         'col_count': table_data['col_count']
                     })
                     extracted_data['total_tables'] += 1
-                    print(f"  ✓ Page {page_num + 1}: Table with {table_data['row_count']} rows × {table_data['col_count']} cols")
+                    print(f"  [OK] Page {page_num + 1}: Table with {table_data['row_count']} rows x {table_data['col_count']} cols")
     except Exception as e:
-        print(f"  ⚠️  Warning: Table extraction had issues: {e}")
+        print(f"  [WARN] Table extraction had issues: {e}")
     
     # Save comprehensive extraction data
     output_json = output_path / 'extracted_content.json'
@@ -242,20 +298,20 @@ def extract_pdf_comprehensive(pdf_path, output_dir):
     
     # Print summary
     print("\n" + "="*60)
-    print("✅ EXTRACTION COMPLETE")
+    print("[OK] EXTRACTION COMPLETE")
     print("="*60)
-    print(f"📄 Title: {extracted_data['title']}")
-    print(f"📖 Pages: {len(extracted_data['pages'])}")
-    print(f"🖼️  Images: {extracted_data['total_images']} extracted")
-    print(f"📋 Tables: {extracted_data['total_tables']} extracted")
-    print(f"📐 Formulas: {extracted_data['total_formulas']} detected")
-    print(f"\n📁 Output directory: {output_dir}")
-    print(f"   • extracted_content.json")
-    print(f"   • text/full_text.txt")
+    print(f"Title: {extracted_data['title']}")
+    print(f"Pages: {len(extracted_data['pages'])}")
+    print(f"Images: {extracted_data['total_images']} extracted")
+    print(f"Tables: {extracted_data['total_tables']} extracted")
+    print(f"Formulas: {extracted_data['total_formulas']} detected")
+    print(f"\nOutput directory: {output_dir}")
+    print(f"   - extracted_content.json")
+    print(f"   - text/full_text.txt")
     if extracted_data['total_images'] > 0:
-        print(f"   • images/ ({extracted_data['total_images']} files)")
+        print(f"   - images/ ({extracted_data['total_images']} files)")
     if extracted_data['total_tables'] > 0:
-        print(f"   • tables/ ({extracted_data['total_tables']} files)")
+        print(f"   - tables/ ({extracted_data['total_tables']} files)")
     print("="*60)
     
     return extracted_data
@@ -271,7 +327,7 @@ def main():
     pdf_path = sys.argv[1]
     
     if not os.path.exists(pdf_path):
-        print(f"❌ Error: PDF file not found: {pdf_path}")
+        print(f"[ERROR] PDF file not found: {pdf_path}")
         sys.exit(1)
     
     # Default output directory based on PDF name
@@ -283,10 +339,10 @@ def main():
     
     try:
         result = extract_pdf_comprehensive(pdf_path, output_dir)
-        print(f"\n✨ Ready for interactive HTML generation!")
+        print(f"\n[OK] Ready for interactive HTML generation!")
         return 0
     except Exception as e:
-        print(f"\n❌ Error during extraction: {e}")
+        print(f"\n[ERROR] Error during extraction: {e}")
         import traceback
         traceback.print_exc()
         return 1

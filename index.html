@@ -1,13 +1,16 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MFIN7034 Machine Learning and Artificial Intelligence</title>
+  <title>Feynman Lab - AI-Enhanced Interactive Learning</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./html/app-shell.css?v=10" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./html/app-shell.css?v=1774926954" />
   <style>
     :root {
       --bg-primary: #1a1a2e;
@@ -20,6 +23,8 @@
       --text-tertiary: #718096;
       --accent-primary: #f6c177;
       --accent-secondary: #a3d9a5;
+      --accent-blue: #7dd3fc;
+      --accent-purple: #c4a7e7;
       --border-color: rgba(255, 255, 255, 0.1);
       --border-hover: rgba(246, 193, 119, 0.35);
       --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.32);
@@ -28,11 +33,11 @@
       --font-heading: -apple-system, "Helvetica Neue", "PingFang SC", sans-serif;
       --glow-warm: rgba(246, 193, 119, 0.18);
       --glow-soft: rgba(163, 217, 165, 0.16);
+      --glow-purple: rgba(196, 167, 231, 0.16);
       --card-mix: rgba(29, 42, 69, 0.58);
       --panel-mix: rgba(29, 42, 69, 0.6);
       --portal-mix: rgba(19, 31, 53, 0.76);
     }
-
     @media (prefers-color-scheme: light) {
       :root {
         --bg-primary: #faf8f5;
@@ -45,12 +50,15 @@
         --text-tertiary: #a8a29e;
         --accent-primary: #c2742f;
         --accent-secondary: #3d8b40;
+        --accent-blue: #0284c7;
+        --accent-purple: #7c3aed;
         --border-color: rgba(0, 0, 0, 0.08);
         --border-hover: rgba(194, 116, 47, 0.3);
         --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
         --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.14);
         --glow-warm: rgba(194, 116, 47, 0.12);
-        --glow-soft: rgba(194, 116, 47, 0.06);
+        --glow-soft: rgba(61, 139, 64, 0.10);
+        --glow-purple: rgba(124, 58, 237, 0.10);
         --card-mix: rgba(255, 255, 255, 0.82);
         --panel-mix: rgba(255, 255, 255, 0.84);
         --portal-mix: rgba(255, 255, 255, 0.86);
@@ -58,13 +66,14 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; scroll-snap-type: y mandatory; }
+    html { scroll-behavior: smooth; }
     body {
       font-family: var(--font-body);
       color: var(--text-primary);
       background:
         radial-gradient(64vw 64vw at 8% 12%, var(--glow-warm), transparent 70%),
         radial-gradient(58vw 58vw at 92% 18%, var(--glow-soft), transparent 72%),
+        radial-gradient(50vw 50vw at 50% 85%, var(--glow-purple), transparent 65%),
         linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-primary) 100%);
       min-height: 100vh;
       overflow-x: hidden;
@@ -81,404 +90,1458 @@
         radial-gradient(circle at 22% 50%, rgba(246, 193, 119, 0.2), transparent 55%),
         radial-gradient(circle at 72% 36%, var(--glow-soft), transparent 56%);
       animation: drift 16s ease-in-out infinite alternate;
-      transform: translateY(var(--aurora-offset, 0px));
-    }
-
-    .section {
-      width: min(1180px, calc(100vw - 32px));
-      margin: 0 auto;
-      height: 100svh;
-      display: grid;
-      align-content: center;
-      gap: 20px;
-      padding: 64px 0 52px;
-      position: relative;
-      scroll-snap-align: start;
-      scroll-snap-stop: always;
-    }
-    .section::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: -1px;
-      height: 140px;
-      pointer-events: none;
-      background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(246, 193, 119, 0.06));
-      opacity: 0.4;
-    }
-
-    .reveal {
-      opacity: 0;
-      transform: translateY(18px);
-      transition: opacity 0.62s ease, transform 0.62s ease;
-    }
-    .reveal.visible { opacity: 1; transform: translateY(0); }
-
-    h1, h2, h3 {
-      font-family: var(--font-heading);
-      line-height: 1.16;
-      letter-spacing: -0.01em;
-    }
-    h1 { font-size: clamp(2rem, 5vw, 3.6rem); max-width: 900px; }
-    h2 { font-size: clamp(1.5rem, 3vw, 2.35rem); }
-
-    .kicker {
-      color: var(--accent-primary);
-      font-size: 0.84rem;
-      text-transform: uppercase;
-      letter-spacing: 0.13em;
-      font-family: var(--font-heading);
-    }
-    .subtitle {
-      max-width: 760px;
-      color: var(--text-secondary);
-      font-size: 1rem;
-      line-height: 1.72;
-    }
-
-    .btn-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 4px;
-    }
-    .btn-row .btn {
-      padding: 14px 32px;
-      font-size: 1.02rem;
-      min-width: 230px;
-      text-align: center;
-    }
-    .btn {
-      border: 1px solid var(--border-color);
-      border-radius: 999px;
-      padding: 10px 17px;
-      text-decoration: none;
-      color: var(--text-primary);
-      font-family: var(--font-heading);
-      font-size: 0.9rem;
-      background: rgba(255, 255, 255, 0.1);
-      -webkit-backdrop-filter: blur(14px) saturate(135%);
-      backdrop-filter: blur(14px) saturate(135%);
-      transition: transform 0.2s ease, border-color 0.2s ease;
-      cursor: pointer;
-    }
-    .btn:hover { transform: translateY(-1px); border-color: var(--border-hover); }
-    .btn.primary {
-      border-color: rgba(246, 193, 119, 0.45);
-      background: linear-gradient(145deg, rgba(246, 193, 119, 0.18), rgba(246, 193, 119, 0.06));
-      color: var(--accent-primary);
-    }
-
-    .scroll-tip {
-      color: var(--text-tertiary);
-      font-size: 0.82rem;
-      font-family: var(--font-heading);
-      animation: bob 2.4s ease-in-out infinite;
-    }
-
-    .feature-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 14px;
-      margin-top: 6px;
-    }
-    .feature-card {
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      padding: 16px;
-      background:
-        linear-gradient(145deg, rgba(255,255,255,0.11), rgba(255,255,255,0.03) 45%, rgba(255,255,255,0.01)),
-        var(--card-mix);
-      box-shadow: var(--shadow-md);
-      -webkit-backdrop-filter: blur(20px) saturate(160%);
-      backdrop-filter: blur(20px) saturate(160%);
-      transition: border-color 0.22s ease, transform 0.22s ease;
-    }
-    .feature-card:hover {
-      transform: translateY(-2px);
-      border-color: var(--border-hover);
-    }
-    .feature-card h3 {
-      font-size: 1rem;
-      margin-bottom: 8px;
-    }
-    .feature-card p {
-      color: var(--text-secondary);
-      line-height: 1.62;
-      font-size: 0.9rem;
-    }
-
-    .experience-grid {
-      display: grid;
-      grid-template-columns: 1.1fr 1fr;
-      gap: 14px;
-      align-items: stretch;
-    }
-    .panel {
-      border: 1px solid var(--border-color);
-      border-radius: 18px;
-      padding: 16px;
-      background:
-        linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02) 43%, rgba(255,255,255,0.01)),
-        var(--panel-mix);
-      box-shadow: var(--shadow-md);
-      -webkit-backdrop-filter: blur(20px) saturate(155%);
-      backdrop-filter: blur(20px) saturate(155%);
-    }
-    .panel p {
-      color: var(--text-secondary);
-      line-height: 1.68;
-      font-size: 0.92rem;
-    }
-    .panel h3 {
-      font-size: 1rem;
-      margin-bottom: 10px;
-    }
-
-    .flow {
-      overflow: hidden;
-      position: relative;
-    }
-    .flow svg {
-      width: 100%;
-      height: 180px;
-      display: block;
-    }
-    .flow path.track {
-      fill: none;
-      stroke: rgba(246, 193, 119, 0.42);
-      stroke-width: 2.2;
-      stroke-linecap: round;
-      stroke-dasharray: 8 8;
-    }
-    .flow path.wave {
-      fill: none;
-      stroke: rgba(246, 193, 119, 0.86);
-      stroke-width: 2.4;
-      stroke-linecap: round;
-      stroke-dasharray: 520;
-      stroke-dashoffset: 520;
-      animation: pathDraw 4.4s ease-in-out infinite;
-    }
-    .flow-dot {
-      position: absolute;
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: rgba(246, 193, 119, 0.95);
-      top: 65%;
-      left: 10%;
-      box-shadow: 0 0 0 6px rgba(246, 193, 119, 0.16);
-      animation: dotMove 4.4s ease-in-out infinite;
-    }
-
-    .portal-wrap {
-      padding-top: 5vh;
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-    }
-    .portal-wrap .portal-shell {
-      flex: 1;
-      min-height: 0;
-      display: flex;
-      flex-direction: column;
-    }
-    .portal-shell {
-      border-radius: 22px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      padding: 14px;
-      background:
-        linear-gradient(150deg, rgba(255,255,255,0.12), rgba(255,255,255,0.02) 42%, rgba(255,255,255,0.03)),
-        var(--portal-mix);
-      box-shadow: var(--shadow-lg);
-      -webkit-backdrop-filter: blur(22px) saturate(165%);
-      backdrop-filter: blur(22px) saturate(165%);
-    }
-    .portal-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-      color: var(--text-secondary);
-      font-size: 0.87rem;
-      font-family: var(--font-heading);
-    }
-    .portal-preview {
-      border: none;
-      border-radius: 14px;
-      width: 100%;
-      flex: 1;
-      min-height: 0;
-      background: #fff;
-    }
-
-    .ios26-shell { pointer-events: auto; }
-
-    @media (max-width: 960px) {
-      html { scroll-snap-type: none; }
-      .section { height: auto; min-height: auto; padding: 56px 0 44px; }
-      .experience-grid { grid-template-columns: 1fr; }
-      .portal-preview { min-height: 68vh; flex: none; }
-      .portal-wrap { display: grid; align-content: start; }
-      .portal-wrap .portal-shell { flex: none; }
-      .btn-row .btn { width: 100%; min-width: 0; }
-    }
-    @media (prefers-color-scheme: light) {
-      .section::after {
-        background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(194, 116, 47, 0.08));
-      }
-      .feature-card,
-      .panel,
-      .portal-shell {
-        border-color: rgba(73, 61, 48, 0.14);
-      }
-      .feature-card p,
-      .panel p,
-      .subtitle {
-        color: #57534e;
-      }
-      .scroll-tip {
-        color: #a8a29e;
-      }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      html { scroll-behavior: auto; scroll-snap-type: none; }
-      .aurora, .scroll-tip, .flow path.wave, .flow-dot { animation: none !important; }
-      .reveal { opacity: 1; transform: none; }
-    }
-
-    @keyframes bob {
-      0%, 100% { transform: translateY(0); opacity: 0.85; }
-      50% { transform: translateY(6px); opacity: 1; }
     }
     @keyframes drift {
-      from { transform: translateY(var(--aurora-offset, 0px)) translateX(-2vw); }
-      to { transform: translateY(calc(var(--aurora-offset, 0px) + 4px)) translateX(2vw); }
+      from { transform: translateX(-2vw); }
+      to { transform: translateX(2vw); }
     }
-    @keyframes pathDraw {
-      0% { stroke-dashoffset: 520; opacity: 0.4; }
-      35% { opacity: 1; }
-      100% { stroke-dashoffset: 0; opacity: 0.5; }
+
+    .container {
+      width: min(1180px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 48px 0 140px;
     }
-    @keyframes dotMove {
-      0% { left: 8%; top: 66%; }
-      50% { left: 52%; top: 36%; }
-      100% { left: 86%; top: 48%; }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      padding: 24px 0 48px;
+    }
+    .hero-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      background: var(--card-mix);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      font-family: var(--font-heading);
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-family: var(--font-heading);
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      line-height: 1.15;
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-subtitle {
+      font-size: 1.15rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto 32px;
+      line-height: 1.6;
+    }
+    .hero-cta {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      font-family: var(--font-heading);
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      background: var(--card-mix);
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+    .btn:hover {
+      border-color: var(--border-hover);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      transform: translateY(-2px);
+    }
+    .btn.primary {
+      background: linear-gradient(135deg, var(--accent-primary), #e0a85d);
+      color: #1a1a2e;
+      border-color: transparent;
+    }
+    .btn.primary:hover {
+      box-shadow: 0 4px 20px rgba(246, 193, 119, 0.4);
+    }
+
+    /* Main Content Area - Side by side on landscape */
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    .main-content > section {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    @media (min-width: 900px) {
+      .main-content {
+        grid-template-columns: minmax(0, 1.35fr) minmax(340px, 1fr);
+        align-items: stretch;
+      }
+      .main-content > section {
+        height: clamp(360px, 48vh, 460px);
+      }
+      .course-list,
+      .upload-card {
+        min-height: 0;
+        max-height: none;
+      }
+    }
+
+    /* Section Headers */
+    .section-header {
+      margin-bottom: 20px;
+    }
+    .section-header h2 {
+      font-family: var(--font-heading);
+      font-size: clamp(1.3rem, 2.5vw, 1.6rem);
+      margin-bottom: 6px;
+    }
+    .section-header p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    /* Courses Section */
+    .courses-section {
+      padding: 0;
+    }
+    .course-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-height: 400px;
+      min-height: 320px;
+      overflow-y: auto;
+      padding-right: 8px;
+      flex: 1;
+    }
+    .course-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    .course-list::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .course-list::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 3px;
+    }
+    .course-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: var(--card-mix);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 16px 18px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+    .course-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      border-radius: 14px 0 0 14px;
+      background: var(--course-accent, var(--accent-primary));
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+    .course-card:hover {
+      border-color: var(--border-hover);
+      transform: translateX(4px);
+      box-shadow: var(--shadow-md);
+    }
+    .course-card:hover::before {
+      opacity: 1;
+    }
+    .course-card[data-context-target] {
+      cursor: context-menu;
+    }
+    .course-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      font-family: var(--font-heading);
+      font-weight: 700;
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      background: linear-gradient(135deg, rgba(246, 193, 119, 0.2), rgba(246, 193, 119, 0.08));
+      color: var(--accent-primary);
+      flex-shrink: 0;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 10px 18px rgba(0, 0, 0, 0.08);
+    }
+    .course-icon::before {
+      content: '';
+      position: absolute;
+      inset: 6px;
+      border-radius: 10px;
+      border: 1px solid currentColor;
+      opacity: 0.22;
+    }
+    .course-icon::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(150deg, rgba(255, 255, 255, 0.18), transparent 55%);
+      pointer-events: none;
+    }
+    .course-icon__badge {
+      position: relative;
+      z-index: 1;
+    }
+    .course-info { flex: 1; min-width: 0; }
+    .course-code {
+      font-family: var(--font-heading);
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 2px;
+    }
+    .course-name {
+      font-family: var(--font-heading);
+      font-size: 1rem;
+      font-weight: 600;
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .course-meta {
+      font-family: var(--font-heading);
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      margin-top: 4px;
+    }
+    .course-arrow {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      color: var(--text-tertiary);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: transform 0.2s, color 0.2s, background 0.2s;
+    }
+    .course-card:hover .course-arrow {
+      transform: translateX(4px);
+      color: var(--accent-primary);
+      background: rgba(246, 193, 119, 0.1);
+    }
+    .course-arrow svg {
+      width: 17px;
+      height: 17px;
+      display: block;
+    }
+    .course-arrow path {
+      stroke: currentColor;
+      stroke-width: 1.9;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
+    /* Upload Section */
+    .upload-section {
+      padding: 0;
+    }
+    .upload-card {
+      background: var(--card-mix);
+      border: 2px dashed var(--border-color);
+      border-radius: 16px;
+      padding: 40px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+      min-height: 320px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+    }
+    .upload-card:hover, .upload-card.drag-over {
+      border-color: var(--accent-primary);
+      background: rgba(246, 193, 119, 0.05);
+    }
+    .upload-icon {
+      width: 78px;
+      height: 78px;
+      margin-bottom: 18px;
+      border-radius: 22px;
+      position: relative;
+      background: linear-gradient(155deg, rgba(246, 193, 119, 0.2), rgba(246, 193, 119, 0.06));
+      border: 1px solid rgba(194, 116, 47, 0.2);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 12px 24px rgba(194, 116, 47, 0.08);
+    }
+    .upload-icon::before {
+      content: '';
+      position: absolute;
+      inset: 18px;
+      background: linear-gradient(180deg, var(--accent-primary), var(--accent-primary));
+      opacity: 0.96;
+      -webkit-mask: url('./pdf.svg') center / contain no-repeat;
+      mask: url('./pdf.svg') center / contain no-repeat;
+      filter: saturate(1.02) brightness(1.02);
+    }
+    .upload-icon::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(150deg, rgba(255, 255, 255, 0.22), transparent 58%);
+      pointer-events: none;
+    }
+    .upload-title {
+      font-family: var(--font-heading);
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .upload-hint {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .upload-input {
+      position: fixed;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      border: 0;
+      opacity: 0;
+      pointer-events: none;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    /* Features Section */
+    .features-section {
+      padding: 48px 0 24px;
+    }
+    .features-section .section-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+    }
+    .feature-card {
+      background: var(--card-mix);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 22px 20px;
+      transition: all 0.25s ease;
+    }
+    .feature-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+    }
+    .feature-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    }
+    .feature-icon.ai { background: linear-gradient(135deg, rgba(246, 193, 119, 0.25), rgba(246, 193, 119, 0.1)); color: var(--accent-primary); }
+    .feature-icon.interactive { background: linear-gradient(135deg, rgba(163, 217, 165, 0.25), rgba(163, 217, 165, 0.1)); color: var(--accent-secondary); }
+    .feature-icon.pdf { background: linear-gradient(135deg, rgba(125, 211, 252, 0.25), rgba(125, 211, 252, 0.1)); color: var(--accent-blue); }
+    .feature-icon.feynman { background: linear-gradient(135deg, rgba(196, 167, 231, 0.25), rgba(196, 167, 231, 0.1)); color: var(--accent-purple); }
+    .feature-icon svg {
+      width: 22px;
+      height: 22px;
+      display: block;
+    }
+    .feature-card h3 {
+      font-family: var(--font-heading);
+      font-size: 0.95rem;
+      margin-bottom: 6px;
+    }
+    .feature-card p {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-secondary);
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .empty-state-icon {
+      width: 74px;
+      height: 74px;
+      margin-bottom: 14px;
+      border-radius: 20px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.05));
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-tertiary);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    }
+    .empty-state-icon svg {
+      width: 34px;
+      height: 34px;
+      display: block;
+      animation: floatPulse 2.8s ease-in-out infinite;
+    }
+    @keyframes floatPulse {
+      0%, 100% { transform: translateY(0); opacity: 0.7; }
+      50% { transform: translateY(-3px); opacity: 1; }
+    }
+    .icon-stroke {
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+    .icon-fill {
+      fill: currentColor;
+    }
+
+    /* Context Menu */
+    .context-menu {
+      position: fixed;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 6px 0;
+      min-width: 160px;
+      box-shadow: var(--shadow-lg);
+      z-index: 3000;
+      display: none;
+    }
+    .context-menu.is-open { display: block; }
+    .context-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      font-family: var(--font-heading);
+      font-size: 0.85rem;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .context-menu-item:hover {
+      background: var(--bg-tertiary);
+    }
+    .context-menu-item.danger {
+      color: #ef4444;
+    }
+    .context-menu-item.danger:hover {
+      background: rgba(239, 68, 68, 0.1);
+    }
+    .context-menu-divider {
+      height: 1px;
+      background: var(--border-color);
+      margin: 6px 0;
+    }
+
+    /* Toast Notification */
+    .toast-container {
+      position: fixed;
+      bottom: 100px;
+      right: 24px;
+      z-index: 2500;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .toast {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 14px 18px;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 280px;
+      max-width: 400px;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    .toast.success { border-left: 3px solid var(--accent-secondary); }
+    .toast.error { border-left: 3px solid #ef4444; }
+    .toast.loading { border-left: 3px solid var(--accent-primary); }
+    .toast-icon {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+    .toast-content { flex: 1; }
+    .toast-title {
+      font-family: var(--font-heading);
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .toast-message {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+    .toast-close {
+      background: none;
+      border: none;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      padding: 4px;
+      font-size: 1.1rem;
+    }
+    .toast-spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--border-color);
+      border-top-color: var(--accent-primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 24px;
+    }
+    .modal-overlay.is-open { display: flex; }
+    .modal {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .modal-title {
+      font-family: var(--font-heading);
+      font-size: 1.15rem;
+      font-weight: 600;
+    }
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border: none;
+      background: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-tertiary);
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .modal-close:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+    .file-preview {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 24px;
+      background: var(--bg-tertiary);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .file-preview-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .file-preview-icon::before {
+      content: '';
+      width: 22px;
+      height: 22px;
+      background: #fff7ed;
+      -webkit-mask: url('./pdf.svg') center / contain no-repeat;
+      mask: url('./pdf.svg') center / contain no-repeat;
+    }
+    .file-preview-info { flex: 1; min-width: 0; }
+    .file-preview-name {
+      font-family: var(--font-heading);
+      font-size: 0.9rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .file-preview-size {
+      font-size: 0.8rem;
+      color: var(--text-tertiary);
+    }
+    .file-preview-remove {
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: none;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      border-radius: 6px;
+      font-size: 1.2rem;
+      transition: all 0.2s;
+    }
+    .file-preview-remove:hover {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+    }
+    #uploadForm {
+      padding: 24px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-label {
+      display: block;
+      font-family: var(--font-heading);
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+    }
+    .form-input {
+      width: 100%;
+      padding: 12px 14px;
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      color: var(--text-primary);
+      transition: all 0.2s;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px rgba(246, 193, 119, 0.15);
+    }
+    .form-hint {
+      font-size: 0.8rem;
+      color: var(--text-tertiary);
+      margin-top: 6px;
+    }
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .radio-option:hover {
+      border-color: var(--border-hover);
+    }
+    .radio-option.selected {
+      border-color: var(--accent-primary);
+      background: rgba(246, 193, 119, 0.08);
+    }
+    .radio-option input {
+      accent-color: var(--accent-primary);
+    }
+    .radio-label {
+      font-family: var(--font-heading);
+      font-size: 0.9rem;
+    }
+    .new-course-fields {
+      display: none;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-color);
+      margin-top: 20px;
+    }
+    .new-course-fields.is-visible { display: block; }
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    .btn-row .btn { flex: 1; justify-content: center; }
+
+    /* Bottom Navigation - 3 buttons */
+    .ios26-shell {
+      position: fixed;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%);
+      z-index: 500;
+    }
+    .ios26-shell__inner {
+      display: flex;
+      gap: 4px;
+      padding: 6px;
+      background: var(--portal-mix);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow-lg);
+    }
+    .ios26-shell__btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 10px 18px;
+      background: transparent;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--text-tertiary);
+    }
+    .ios26-shell__btn:hover {
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+    }
+    .ios26-shell__btn.is-active {
+      background: var(--bg-elevated);
+      color: var(--accent-primary);
+    }
+    .ios26-shell__icon {
+      font-size: 1.2rem;
+      font-family: var(--font-heading);
+    }
+    .ios26-shell__label {
+      font-family: var(--font-heading);
+      font-size: 0.65rem;
+      font-weight: 600;
+    }
+
+    @media (max-width: 640px) {
+      .hero h1 { font-size: 1.8rem; }
+      .hero-subtitle { font-size: 1rem; }
+      .main-content { grid-template-columns: 1fr; }
+      .course-list { max-height: 300px; }
+      .features-grid { grid-template-columns: 1fr 1fr; }
+      .btn-row { flex-direction: column; }
+      .btn-row .btn { width: 100%; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .aurora { animation: none; }
+      .toast-spinner { animation: none; }
+      *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+      }
     }
   </style>
 </head>
-<body data-shell-page="landing">
+<body data-shell-page="platform">
   <div class="aurora" aria-hidden="true"></div>
 
-  <main>
-    <section id="home" class="section">
-      <div class="kicker reveal">MFIN7034 • HKU Business School</div>
-      <h1 class="reveal">Machine Learning and Artificial Intelligence</h1>
-      <p class="subtitle reveal">
-        Explore 11 AI-enhanced interactive lectures, each with Feynman-style concept expansion, source PDFs, note-taking,
-        quizzes, and AI Q&A — all in one continuous app-like workspace.
-        Scroll down to enter the portal directly.
+  <div class="container">
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-badge">AI-Powered Education</div>
+      <h1>Feynman Lab</h1>
+      <p class="hero-subtitle">
+        Transform static PDF lectures into interactive learning experiences. 
+        Our AI explains complex concepts the Feynman way.
       </p>
-      <div class="btn-row reveal">
-        <button class="btn primary" type="button" data-scroll-target="#portal-entry">Scroll into Portal</button>
-        <a class="btn" href="./html/index.html">Open Portal directly</a>
-      </div>
-      <div class="scroll-tip reveal">Scroll ↓ to enter the learning flow</div>
-
-      <div class="feature-grid reveal">
-        <article class="feature-card">
-          <h3>Lecture continuity</h3>
-          <p>All generated interactive pages and PDFs are managed in one searchable portal with consistent navigation.</p>
-        </article>
-        <article class="feature-card">
-          <h3>Study actions in context</h3>
-          <p>AI Q&A, notes, and quizzes stay inside each lecture page, so revision does not break context.</p>
-        </article>
-        <article class="feature-card">
-          <h3>Mobile app-like behavior</h3>
-          <p>The bottom glass nav remains available while scrolling from this landing page to the portal and beyond.</p>
-        </article>
+      <div class="hero-cta">
+        <button class="btn primary" id="heroUploadBtn">
+          <span>+</span> Upload PDF
+        </button>
+        <a href="#courses" class="btn">Browse Courses</a>
       </div>
     </section>
 
-    <section id="portal-entry" class="section portal-wrap">
-      <div class="kicker reveal">Portal</div>
-      <h2 class="reveal">Open a lecture and start studying below.</h2>
-      <p class="subtitle reveal">Each card links to a full interactive page: read concepts → open PDF → take notes → do quizzes → ask AI.</p>
-      <div class="portal-shell reveal">
-        <div class="portal-head">
-          <span>Live portal preview</span>
-          <a class="btn" href="./html/index.html">Open full portal</a>
+    <!-- Main Content: Courses + Upload Side by Side -->
+    <div class="main-content" id="courses">
+      <section class="courses-section">
+        <div class="section-header">
+          <h2>Your Courses</h2>
+          <p>Select a course to explore lectures</p>
         </div>
-        <iframe class="portal-preview" src="./html/index.html" title="Lecture Portal Preview" loading="lazy"></iframe>
+        <div id="courseList" class="course-list">
+          <div class="empty-state">
+            <div class="empty-state-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path class="icon-stroke" d="M5 7.5C5 6.67 5.67 6 6.5 6h10C17.33 6 18 6.67 18 7.5v9c0 .83-.67 1.5-1.5 1.5h-10C5.67 18 5 17.33 5 16.5z" />
+                <path class="icon-stroke" d="M8 9h8M8 12h5M8 15h6" />
+                <path class="icon-stroke" d="M3.5 9V8c0-.83.67-1.5 1.5-1.5M20.5 9V8c0-.83-.67-1.5-1.5-1.5" />
+              </svg>
+            </div>
+            <p>Loading courses...</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="upload-section">
+        <div class="section-header">
+          <h2>Add Content</h2>
+          <p>Upload PDF to create lectures</p>
+        </div>
+        <div class="upload-card" id="uploadCard">
+          <div class="upload-icon" aria-hidden="true"></div>
+          <div class="upload-title">Drop PDF Here</div>
+          <p class="upload-hint">Drag and drop, or click to browse</p>
+          <input type="file" id="uploadInput" class="upload-input" accept=".pdf" tabindex="-1" aria-hidden="true" />
+        </div>
+      </section>
+    </div>
+
+    <!-- Features Section - At Bottom -->
+    <section class="features-section">
+      <div class="section-header">
+        <h2>How It Works</h2>
+        <p>Upload once, learn forever - with AI that thinks like Feynman</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon pdf" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path class="icon-stroke" d="M8 3.5h5l4 4v13H8c-1.1 0-2-.9-2-2v-13c0-1.1.9-2 2-2z" />
+              <path class="icon-stroke" d="M13 3.5v4h4" />
+              <path class="icon-stroke" d="M9.5 13h5M9.5 16h5" />
+            </svg>
+          </div>
+          <h3>Instant PDF Parsing</h3>
+          <p>Extracts text, formulas, and diagrams automatically.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon ai" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path class="icon-stroke" d="M12 4.5l1.6 3.9 3.9 1.6-3.9 1.6L12 15.5l-1.6-3.9-3.9-1.6 3.9-1.6z" />
+              <path class="icon-stroke" d="M18.5 5.5v3M20 7h-3" />
+              <path class="icon-stroke" d="M6 16.5v3M7.5 18h-3" />
+            </svg>
+          </div>
+          <h3>AI Explanations</h3>
+          <p>Gemini creates clear explanations for every concept.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon feynman" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path class="icon-stroke" d="M12 4.5c-3.3 0-6 2.7-6 6 0 2.2 1.2 4.1 3 5.2v2.8h6v-2.8c1.8-1.1 3-3 3-5.2 0-3.3-2.7-6-6-6z" />
+              <path class="icon-stroke" d="M9.5 20.5h5" />
+              <path class="icon-stroke" d="M10 8.5h4M10.5 11.5h3" />
+            </svg>
+          </div>
+          <h3>Feynman Technique</h3>
+          <p>Simple language, real examples, deep understanding.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon interactive" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path class="icon-stroke" d="M6.5 7h11c1.1 0 2 .9 2 2v5c0 1.1-.9 2-2 2H12l-3.5 3v-3h-2c-1.1 0-2-.9-2-2V9c0-1.1.9-2 2-2z" />
+              <path class="icon-stroke" d="M9 10.5h6M9 13.5h4" />
+            </svg>
+          </div>
+          <h3>Interactive Q&A</h3>
+          <p>Ask questions and get contextual answers.</p>
+        </div>
       </div>
     </section>
-  </main>
+  </div>
 
+  <!-- Context Menu -->
+  <div class="context-menu" id="contextMenu">
+    <div class="context-menu-item" data-action="open">Open Course</div>
+    <div class="context-menu-divider"></div>
+    <div class="context-menu-item" data-action="copy">Copy Link</div>
+    <div class="context-menu-divider"></div>
+    <div class="context-menu-item danger" data-action="delete">Delete Course</div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Upload Modal -->
+  <div class="modal-overlay" id="uploadModal">
+    <div class="modal" role="dialog" aria-labelledby="modalTitle">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle">Upload PDF Lecture</h3>
+        <button class="modal-close" type="button" aria-label="Close">&times;</button>
+      </div>
+
+      <div id="filePreview" class="file-preview" style="display: none;">
+        <span class="file-preview-icon" aria-hidden="true"></span>
+        <div class="file-preview-info">
+          <div class="file-preview-name" id="fileName"></div>
+          <div class="file-preview-size" id="fileSize"></div>
+        </div>
+        <button class="file-preview-remove" type="button" aria-label="Remove file">&times;</button>
+      </div>
+
+      <form id="uploadForm">
+        <div class="form-group">
+          <label class="form-label">Where should this lecture go?</label>
+          <div class="radio-group" id="courseChoice"></div>
+        </div>
+
+        <div class="new-course-fields" id="newCourseFields">
+          <div class="form-group">
+            <label class="form-label" for="courseCode">Course Code</label>
+            <input type="text" id="courseCode" class="form-input" placeholder="e.g., MFIN7035" />
+            <p class="form-hint">Short identifier for the course</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="courseName">Course Name</label>
+            <input type="text" id="courseName" class="form-input" placeholder="e.g., Advanced Financial Analysis" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="courseDesc">Description (optional)</label>
+            <input type="text" id="courseDesc" class="form-input" placeholder="Brief course description" />
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button type="button" class="btn" id="cancelBtn">Cancel</button>
+          <button type="submit" class="btn primary" id="submitBtn" disabled>Upload & Process</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation - 3 buttons -->
   <nav class="ios26-shell" aria-label="Bottom navigation">
     <div class="ios26-shell__inner">
-      <button class="ios26-shell__btn is-active" type="button" data-target="#home"><span class="ios26-shell__icon">⌂</span><span class="ios26-shell__label">Home</span></button>
-      <button class="ios26-shell__btn" type="button" data-target="#portal-entry"><span class="ios26-shell__icon">⤓</span><span class="ios26-shell__label">Portal</span></button>
-      <button class="ios26-shell__btn" type="button" data-link="./html/index.html"><span class="ios26-shell__icon">↗</span><span class="ios26-shell__label">Open</span></button>
+      <button class="ios26-shell__btn is-active" type="button" data-action="home">
+        <span class="ios26-shell__icon" aria-hidden="true">
+          <svg class="ios26-shell__glyph" viewBox="0 0 24 24">
+            <path d="M4.5 10.5L12 4l7.5 6.5" />
+            <path d="M6.5 9.5V19h11V9.5" />
+          </svg>
+        </span>
+        <span class="ios26-shell__label">Home</span>
+      </button>
+      <button class="ios26-shell__btn" type="button" data-action="lectures">
+        <span class="ios26-shell__icon" aria-hidden="true">
+          <svg class="ios26-shell__glyph" viewBox="0 0 24 24">
+            <path d="M7 6.5h11" />
+            <path d="M7 12h11" />
+            <path d="M7 17.5h11" />
+            <circle cx="4.5" cy="6.5" r="1" class="ios26-shell__glyph-fill" />
+            <circle cx="4.5" cy="12" r="1" class="ios26-shell__glyph-fill" />
+            <circle cx="4.5" cy="17.5" r="1" class="ios26-shell__glyph-fill" />
+          </svg>
+        </span>
+        <span class="ios26-shell__label">Lectures</span>
+      </button>
+      <button class="ios26-shell__btn" type="button" data-action="upload">
+        <span class="ios26-shell__icon" aria-hidden="true">
+          <svg class="ios26-shell__glyph" viewBox="0 0 24 24">
+            <path d="M12 15V6.5" />
+            <path d="M8.5 10l3.5-3.5 3.5 3.5" />
+            <path d="M5.5 17.5h13" />
+            <path d="M7.5 20h9" />
+          </svg>
+        </span>
+        <span class="ios26-shell__label">Upload</span>
+      </button>
     </div>
   </nav>
 
   <script>
     (() => {
-      const navButtons = Array.from(document.querySelectorAll(".ios26-shell__btn"));
-      const revealEls = Array.from(document.querySelectorAll(".reveal"));
-      const sectionIds = ["home", "portal-entry"];
-      const sectionBtnMap = new Map(sectionIds.map((id) => [id, navButtons.find((b) => b.dataset.target === `#${id}`)]));
-      const setActive = (btn) => navButtons.forEach((b) => b.classList.toggle("is-active", b === btn));
+      // State
+      let courses = [];
+      let selectedFile = null;
+      let selectedCourse = null;
+      let contextTarget = null;
 
-      navButtons.forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const link = btn.dataset.link;
-          if (link) {
-            window.location.href = link;
-            return;
+      // DOM Elements
+      const courseList = document.getElementById('courseList');
+      const uploadCard = document.getElementById('uploadCard');
+      const uploadInput = document.getElementById('uploadInput');
+      const uploadModal = document.getElementById('uploadModal');
+      const uploadForm = document.getElementById('uploadForm');
+      const filePreview = document.getElementById('filePreview');
+      const fileName = document.getElementById('fileName');
+      const fileSize = document.getElementById('fileSize');
+      const courseChoice = document.getElementById('courseChoice');
+      const newCourseFields = document.getElementById('newCourseFields');
+      const submitBtn = document.getElementById('submitBtn');
+      const cancelBtn = document.getElementById('cancelBtn');
+      const closeBtn = uploadModal.querySelector('.modal-close');
+      const removeFileBtn = filePreview.querySelector('.file-preview-remove');
+      const heroUploadBtn = document.getElementById('heroUploadBtn');
+      const contextMenu = document.getElementById('contextMenu');
+      const toastContainer = document.getElementById('toastContainer');
+
+      // Utility functions
+      const formatFileSize = (bytes) => {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+      };
+
+      const getCourseBadge = (course) => {
+        const rawCode = String(course.code || '').trim().toUpperCase();
+        const digitGroups = rawCode.match(/\d{2,}/g);
+        if (digitGroups && digitGroups.length) {
+          return digitGroups[digitGroups.length - 1].slice(-4);
+        }
+        const letters = rawCode.replace(/[^A-Z]/g, '');
+        return letters.slice(0, 4) || 'COUR';
+      };
+
+      const courseEmptyIcon = `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path class="icon-stroke" d="M5 7.5C5 6.67 5.67 6 6.5 6h10C17.33 6 18 6.67 18 7.5v9c0 .83-.67 1.5-1.5 1.5h-10C5.67 18 5 17.33 5 16.5z" />
+          <path class="icon-stroke" d="M8 9h8M8 12h5M8 15h6" />
+          <path class="icon-stroke" d="M3.5 9V8c0-.83.67-1.5 1.5-1.5M20.5 9V8c0-.83-.67-1.5-1.5-1.5" />
+        </svg>
+      `;
+
+      const arrowIcon = `
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M8.5 6.5L14.5 12l-6 5.5" />
+        </svg>
+      `;
+
+      const processingStatusText = {
+        queued: 'Queued in the background',
+        extracting: 'Preparing uploaded PDF',
+        extracting_content: 'Extracting PDF structure',
+        generating_html: 'Generating interactive HTML',
+        complete: 'Lecture ready'
+      };
+
+      // Toast notifications
+      function showToast(type, title, message, duration = 5000) {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        const iconMap = { success: '[OK]', error: '[!]', loading: '' };
+        toast.innerHTML = `
+          <div class="toast-icon">${type === 'loading' ? '<div class="toast-spinner"></div>' : iconMap[type]}</div>
+          <div class="toast-content">
+            <div class="toast-title">${title}</div>
+            <div class="toast-message">${message}</div>
+          </div>
+          <button class="toast-close">&times;</button>
+        `;
+        toast.querySelector('.toast-close').addEventListener('click', () => toast.remove());
+        toastContainer.appendChild(toast);
+        
+        if (type !== 'loading' && duration > 0) {
+          setTimeout(() => toast.remove(), duration);
+        }
+        return toast;
+      }
+
+      // Load courses
+      async function loadCourses() {
+        try {
+          const res = await fetch('./api/courses');
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          courses = data.courses || [];
+        } catch (e) {
+          try {
+            const fallback = await fetch('./courses/courses.json');
+            if (!fallback.ok) throw new Error(`HTTP ${fallback.status}`);
+            const data = await fallback.json();
+            courses = data.courses || [];
+          } catch (fallbackError) {
+            console.error('Failed to load courses:', fallbackError);
+            courses = [];
           }
-          const target = document.querySelector(btn.dataset.target || "");
-          if (!target) return;
-          setActive(btn);
-          target.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+        renderCourses();
+        renderCourseOptions();
+      }
+
+      // Render course cards
+      function renderCourses() {
+        if (courses.length === 0) {
+          courseList.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">${courseEmptyIcon}</div>
+              <p>No courses yet. Upload a PDF to get started!</p>
+            </div>
+          `;
+          return;
+        }
+
+        courseList.innerHTML = courses.map(course => `
+          <a href="./data/${course.id}/html/index.html" class="course-card" 
+             data-course-id="${course.id}" 
+             data-context-target
+             style="--course-accent: ${course.color || '#f6c177'}">
+            <div class="course-icon" style="background: linear-gradient(135deg, ${course.color || '#f6c177'}33, ${course.color || '#f6c177'}15); color: ${course.color || '#f6c177'}">
+              <span class="course-icon__badge">${getCourseBadge(course)}</span>
+            </div>
+            <div class="course-info">
+              <div class="course-code">${course.code}</div>
+              <div class="course-name">${course.name}</div>
+              <div class="course-meta">${course.lectureCount || 0} lectures</div>
+            </div>
+            <span class="course-arrow">${arrowIcon}</span>
+          </a>
+        `).join('');
+      }
+
+      // Render course options in modal
+      function renderCourseOptions() {
+        let html = `
+          <label class="radio-option selected">
+            <input type="radio" name="courseTarget" value="new" checked />
+            <span class="radio-label">Create new course</span>
+          </label>
+        `;
+
+        courses.forEach(course => {
+          html += `
+            <label class="radio-option">
+              <input type="radio" name="courseTarget" value="${course.id}" />
+              <span class="radio-label">Add to ${course.code}</span>
+            </label>
+          `;
+        });
+
+        courseChoice.innerHTML = html;
+
+        courseChoice.querySelectorAll('.radio-option').forEach(opt => {
+          opt.addEventListener('click', () => {
+            courseChoice.querySelectorAll('.radio-option').forEach(o => o.classList.remove('selected'));
+            opt.classList.add('selected');
+            const input = opt.querySelector('input');
+            input.checked = true;
+            selectedCourse = input.value;
+            
+            if (selectedCourse === 'new') {
+              newCourseFields.classList.add('is-visible');
+            } else {
+              newCourseFields.classList.remove('is-visible');
+            }
+            validateForm();
+          });
+        });
+
+        selectedCourse = 'new';
+        newCourseFields.classList.add('is-visible');
+      }
+
+      // Validate form
+      function validateForm() {
+        const hasFile = selectedFile !== null;
+        const isNewCourse = selectedCourse === 'new';
+        const hasCode = document.getElementById('courseCode').value.trim() !== '';
+        const hasName = document.getElementById('courseName').value.trim() !== '';
+
+        if (isNewCourse) {
+          submitBtn.disabled = !(hasFile && hasCode && hasName);
+        } else {
+          submitBtn.disabled = !hasFile;
+        }
+      }
+
+      // Modal functions
+      function openModal() {
+        uploadModal.classList.add('is-open');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeModal() {
+        uploadModal.classList.remove('is-open');
+        document.body.style.overflow = '';
+        resetForm();
+      }
+
+      function resetForm() {
+        selectedFile = null;
+        filePreview.style.display = 'none';
+        uploadForm.reset();
+        submitBtn.disabled = true;
+        renderCourseOptions();
+      }
+
+      // File handling
+      function handleFile(file) {
+        if (!file || file.type !== 'application/pdf') {
+          showToast('error', 'Invalid File', 'Please select a PDF file.');
+          return;
+        }
+        selectedFile = file;
+        fileName.textContent = file.name;
+        fileSize.textContent = formatFileSize(file.size);
+        filePreview.style.display = 'flex';
+        openModal();
+        validateForm();
+      }
+
+      // Upload and process with toast notifications
+      async function uploadAndProcess() {
+        if (!selectedFile) return;
+
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        formData.append('course_id', selectedCourse);
+
+        if (selectedCourse === 'new') {
+          formData.append('action', 'new_course');
+          formData.append('course_code', document.getElementById('courseCode').value.trim());
+          formData.append('course_name', document.getElementById('courseName').value.trim());
+          formData.append('course_desc', document.getElementById('courseDesc').value.trim());
+        } else {
+          formData.append('action', 'add_lecture');
+        }
+
+        closeModal();
+        
+        // Show loading toast instead of blocking overlay
+        const loadingToast = showToast('loading', 'Processing PDF...', 'Extracting content and generating explanations', 0);
+
+        try {
+          const uploadRes = await fetch('./api/upload', {
+            method: 'POST',
+            body: formData
+          });
+
+          if (!uploadRes.ok) {
+            const err = await uploadRes.json();
+            throw new Error(err.error || 'Upload failed');
+          }
+
+          const uploadData = await uploadRes.json();
+          const taskId = uploadData.task_id;
+
+          // Poll for completion
+          let complete = false;
+          while (!complete) {
+            await new Promise(r => setTimeout(r, 2000));
+
+            const statusRes = await fetch(`./api/upload/status?task_id=${taskId}`);
+            const statusData = await statusRes.json();
+
+            if (statusData.status === 'complete') {
+              complete = true;
+              loadingToast.remove();
+              showToast('success', 'Processing Complete', statusData.message || 'The course list has been updated.', 8000);
+              
+              // Reload courses
+              await loadCourses();
+            } else if (statusData.status === 'error') {
+              throw new Error(statusData.error || 'Processing failed');
+            } else {
+              loadingToast.querySelector('.toast-message').textContent = statusData.message || processingStatusText[statusData.status] || 'Still processing...';
+            }
+          }
+        } catch (err) {
+          loadingToast.remove();
+          showToast('error', 'Error', err.message);
+        }
+      }
+
+      // Context menu
+      function shouldUseNativeContextMenu(target) {
+        if (!target) return true;
+        if (target.closest('input, textarea, [contenteditable="true"]')) {
+          return true;
+        }
+        const selectedText = window.getSelection && window.getSelection().toString().trim();
+        return Boolean(selectedText);
+      }
+
+      function showContextMenu(e, courseId) {
+        e.preventDefault();
+        contextTarget = courseId;
+        contextMenu.style.left = e.pageX + 'px';
+        contextMenu.style.top = e.pageY + 'px';
+        contextMenu.classList.add('is-open');
+      }
+
+      function hideContextMenu() {
+        contextMenu.classList.remove('is-open');
+        contextTarget = null;
+      }
+
+      contextMenu.querySelectorAll('.context-menu-item').forEach(item => {
+        item.addEventListener('click', async () => {
+          const action = item.dataset.action;
+          const course = courses.find(c => c.id === contextTarget);
+          
+          if (action === 'open' && course) {
+            window.location.href = `./data/${course.id}/html/index.html`;
+          } else if (action === 'copy' && course) {
+            navigator.clipboard.writeText(window.location.origin + `/data/${course.id}/html/index.html`);
+            showToast('success', 'Copied', 'Link copied to clipboard');
+          } else if (action === 'delete' && course) {
+            if (confirm(`Delete "${course.name}"? This will move it to the recycle bin.`)) {
+              const loadingToast = showToast('loading', 'Deleting...', 'Moving course to recycle bin', 0);
+              try {
+                const response = await fetch('./api/recycle', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    target_type: 'course',
+                    course_id: course.id
+                  })
+                });
+                const result = await response.json();
+                if (!response.ok) {
+                  throw new Error(result.error || 'Delete failed');
+                }
+                loadingToast.remove();
+                courses = courses.filter(c => c.id !== course.id);
+                renderCourses();
+                renderCourseOptions();
+                showToast('success', 'Moved to Recycle Bin', result.message || 'Course deleted');
+              } catch (error) {
+                loadingToast.remove();
+                showToast('error', 'Delete Failed', error.message);
+              }
+            }
+          }
+          hideContextMenu();
         });
       });
 
-      document.querySelectorAll("[data-scroll-target]").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const target = document.querySelector(btn.getAttribute("data-scroll-target") || "");
-          if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.addEventListener('click', hideContextMenu);
+      document.addEventListener('contextmenu', (e) => {
+        if (shouldUseNativeContextMenu(e.target)) {
+          hideContextMenu();
+          return;
+        }
+        const card = e.target.closest('[data-context-target]');
+        if (card) {
+          showContextMenu(e, card.dataset.courseId);
+        } else {
+          hideContextMenu();
+        }
+      });
+
+      // Event listeners
+      uploadCard.addEventListener('click', () => uploadInput.click());
+      uploadCard.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadCard.classList.add('drag-over');
+      });
+      uploadCard.addEventListener('dragleave', () => {
+        uploadCard.classList.remove('drag-over');
+      });
+      uploadCard.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadCard.classList.remove('drag-over');
+        handleFile(e.dataTransfer.files[0]);
+      });
+
+      uploadInput.addEventListener('change', (e) => {
+        handleFile(e.target.files[0]);
+      });
+
+      heroUploadBtn.addEventListener('click', () => {
+        uploadInput.click();
+      });
+
+      closeBtn.addEventListener('click', closeModal);
+      cancelBtn.addEventListener('click', closeModal);
+      uploadModal.addEventListener('click', (e) => {
+        if (e.target === uploadModal) closeModal();
+      });
+
+      removeFileBtn.addEventListener('click', () => {
+        selectedFile = null;
+        filePreview.style.display = 'none';
+        uploadInput.value = '';
+        validateForm();
+      });
+
+      uploadForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        uploadAndProcess();
+      });
+
+      document.getElementById('courseCode').addEventListener('input', validateForm);
+      document.getElementById('courseName').addEventListener('input', validateForm);
+
+      // Bottom nav
+      document.querySelectorAll('.ios26-shell__btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const action = btn.dataset.action;
+          if (action === 'upload') {
+            uploadInput.click();
+          } else if (action === 'home') {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else if (action === 'lectures') {
+            document.getElementById('courses').scrollIntoView({ behavior: 'smooth' });
+          }
         });
       });
 
-      const revealObserver = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) entry.target.classList.add("visible");
-        });
-      }, { threshold: 0.15 });
-      revealEls.forEach((el) => revealObserver.observe(el));
-
-      const sectionObserver = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          const btn = sectionBtnMap.get(entry.target.id);
-          if (btn) setActive(btn);
-        });
-      }, { threshold: 0.54 });
-      sectionIds.forEach((id) => {
-        const section = document.getElementById(id);
-        if (section) sectionObserver.observe(section);
-      });
-
-      const aurora = document.querySelector(".aurora");
-      window.addEventListener("scroll", () => {
-        if (!aurora) return;
-        aurora.style.setProperty("--aurora-offset", `${Math.min(window.scrollY * 0.08, 26)}px`);
-      }, { passive: true });
+      // Initialize
+      loadCourses();
     })();
   </script>
 </body>
